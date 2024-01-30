@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -27,8 +26,6 @@ public class Drivetrain extends SubsystemBase {
 
 	// Used to track odometry
 	public final SwerveDrivePoseEstimator poseEstimator;
-	private Pose2d pose = new Pose2d(); 
-	private Rotation2d lastGyroRotation = new Rotation2d(); 
 
 	// ----------------------------------------------------------
     // Initialization
@@ -48,7 +45,7 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													this.gyroInputs.yawPosition,
+													this.getGyroAngle(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
@@ -59,7 +56,7 @@ public class Drivetrain extends SubsystemBase {
     // ----------------------------------------------------------
 
 	/**
-	 * Method to drive the robot using joystick info.
+	 * Method to drive the robot from the auto routines.
 	 *
 	 * @param xSpeed Speed of the robot in the x direction (forward).
 	 * @param ySpeed Speed of the robot in the y direction (sideways).
@@ -86,12 +83,12 @@ public class Drivetrain extends SubsystemBase {
 	 * 				 - angle in degrees
 	*/
 	public void setModuleStates(final SwerveModuleState[] states) {
-		// 7. DESATURATE WHEEL SPEEDS
+		// 5. DESATURATE WHEEL SPEEDS
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
 
 		SmartDashboard.putNumber(" Angle theta", states[0].angle.getDegrees());
 
-		// 8. SET SPEED AND ANGLE FOR EACH WHEEL
+		// 6. SET SPEED AND ANGLE FOR EACH WHEEL
 		for(int i = 0; i < this.modules.length; i++)
 			this.modules[i].applyState(states[i]);
 	}
@@ -116,18 +113,6 @@ public class Drivetrain extends SubsystemBase {
 	public void resetGyro() {
 		gyroIO.resetGyro();
 	}
-
-	/**
-	 * Resets the odometry to the specified pose.
-	 *
-	 * @param pose The pose to which to set the odometry.
-	 */
-	public void resetOdometry(Pose2d pose) {
-		this.poseEstimator.resetPosition(
-			this.gyroInputs.yawPosition,
-			this.getModulePositions(),
-			pose);
-	}
 	
 	// ----------------------------------------------------------
     // Control Input
@@ -144,13 +129,14 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	/**
-	 * Current reported yaw of the Pigeon2 in degrees
-	 * Constructs and returns a Rotation2d
+	 * Current reported yaw of the Pigeon2 using pigeon.getYaw().
+	 * pigeon.getYaw() returns a double value in degrees that is then 
+	 * converted to radians to create the Rotation2d object.
 	 * 
 	 * @return current angle of the robot
 	 */
 	@AutoLogOutput(key = "Gyro/YawPosition")
-	public Rotation2d getRobotAngle() {
+	public Rotation2d getGyroAngle() {
 		return this.gyroInputs.yawPosition;
 	}
 
@@ -165,12 +151,6 @@ public class Drivetrain extends SubsystemBase {
 		return getHeading().unaryMinus().getRotations();
 	}
 
-	/** Returns the current odometry pose. */
-	@AutoLogOutput(key = "Odometry/Estimation")
-	public Pose2d getPoseEstimation() {
-		return this.poseEstimator.getEstimatedPosition();
-	}
-
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
 	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
@@ -178,41 +158,26 @@ public class Drivetrain extends SubsystemBase {
 	// ----------------------------------------------------------
     // Odometry
     // ----------------------------------------------------------
-	public SwerveModulePosition[] getModulePositions() {
-		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
+	/**
+	 * Resets the odometry to the specified pose.
+	 *
+	 * @param pose The pose to which to set the odometry.
+	 */
+	public void resetOdometry(Pose2d pose) {
+		this.poseEstimator.resetPosition(
+			this.getGyroAngle(),
+			this.getModulePositions(),
+			pose);
 	}
 
 	/** Returns the current odometry pose. */
-	@AutoLogOutput(key = "Odometry/Robot")
-	public Pose2d getPose() {
-	  	return pose;
+	@AutoLogOutput(key = "Odometry/Estimation")
+	public Pose2d getPoseEstimation() {
+		return this.poseEstimator.getEstimatedPosition();
 	}
 
-	/** Resets the current odometry pose. */
-	public void setPose(Pose2d pose) {
-		this.pose = pose;
-	}
-
-	public void updateOdometry() {
-		// Update odometry
-		SwerveModulePosition[] wheelDeltas = new SwerveModulePosition[4];
-		for (int i = 0; i < 4; i++) {
-		wheelDeltas[i] = modules[i].getPositionDelta();
-		}
-		// The twist represents the motion of the robot since the last
-		// loop cycle in x, y, and theta based only on the modules,
-		// without the gyro. The gyro is always disconnected in simulation.
-		var twist = kinematics.toTwist2d(wheelDeltas);
-		if (gyroInputs.connected) {
-		// If the gyro is connected, replace the theta component of the twist
-		// with the change in angle since the last loop cycle.
-		twist =
-			new Twist2d(
-				twist.dx, twist.dy, gyroInputs.yawPosition.minus(lastGyroRotation).getRadians());
-		lastGyroRotation = gyroInputs.yawPosition;
-		}
-		// Apply the twist (change since last loop cycle) to the current pose
-    	pose = pose.exp(twist);
+	public SwerveModulePosition[] getModulePositions() {
+		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
 	}
 
 	// ----------------------------------------------------------
@@ -240,6 +205,7 @@ public class Drivetrain extends SubsystemBase {
 			
 		}
 		
+		// Update Odometry
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
 	}
 

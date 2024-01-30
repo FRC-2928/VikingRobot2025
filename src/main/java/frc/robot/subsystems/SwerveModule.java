@@ -110,7 +110,7 @@ public class SwerveModule {
      * @return drive velocity in meters per/sec
      */
     public double getDriveVelocity() {
-        return (this.inputs.driveVelocityRadPerSec / (2 * Constants.Drivetrain.pi)) * Constants.Drivetrain.wheelRadius;
+        return (this.inputs.driveVelocityRadPerSec / (2 * Math.PI)) * Constants.Drivetrain.wheelRadius;
     }
 
     /**
@@ -155,13 +155,6 @@ public class SwerveModule {
         return new SwerveModulePosition(getDrivePositionMeters(), getCancoderAbsolutePosition());
     }
 
-    /** Returns the module position delta since the last call to this method. */
-    public SwerveModulePosition getPositionDelta() {
-        var delta = new SwerveModulePosition(getDrivePositionMeters() - lastPositionMeters, getTurnPosition());
-        lastPositionMeters = getDrivePositionMeters();
-        return delta;
-    }
-
     // ----------------------------------------------------------
     // Process Logic
     // ----------------------------------------------------------
@@ -174,7 +167,7 @@ public class SwerveModule {
         SmartDashboard.putNumber(this.place.name() + " Angle", currentAngle);
         SmartDashboard.putNumber(this.place.name() + " Angle Target", this.targetAngle.getDegrees());
 
-        // 9. WHEEL DIRECTION OPTIMIZATION
+        // 7. WHEEL DIRECTION OPTIMIZATION
         this.backwards = Constants.Drivetrain.Flags.wheelOptimization
             && Constants.angleDistance(this.targetAngle.getDegrees(), currentAngle) > 90;
 
@@ -186,7 +179,7 @@ public class SwerveModule {
         SmartDashboard
             .putNumber(this.place.name() + " Angle Error", Constants.angleDistance(targetAngle, currentAngle));
 
-        // 10. APPLY POWER    
+        // 8. APPLY POWER    
 
         // Calculate power required to reach the setpoint
         final double turn = this.turnPID.calculate(currentAngle, targetAngle);

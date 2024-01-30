@@ -84,8 +84,6 @@ public class Constants {
 
 		public final static PIDController drivePID = new PIDController(0.2, 0, 0);
 
-		public final static double pi = 3.14159;
-
 		public static final class Flags {
 			private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }
 
