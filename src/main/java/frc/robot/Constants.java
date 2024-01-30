@@ -16,6 +16,9 @@ public class Constants {
 		/** Running on a real robot. */
 		REAL,
 
+		/** Running on a real robot. */
+		HOTPANTS,
+
 		/** Running a physics simulator. */
 		SIM,
 
