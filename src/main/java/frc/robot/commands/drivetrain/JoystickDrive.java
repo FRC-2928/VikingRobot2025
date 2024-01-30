@@ -35,6 +35,7 @@ public class JoystickDrive extends Command {
 	@Override
 	public void execute() {
 		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
+
 		Translation2d linearVelocity = getSpeeds(mul);
 		// Translation2d linearVelocity = getLinearVelocity();
 		double theta = getTheta(mul);
@@ -45,10 +46,6 @@ public class JoystickDrive extends Command {
 			linearVelocity.getX(),
 			linearVelocity.getY(),
 			theta
-			// theta
-			// 	* Math.toRadians(Constants.Drivetrain.thetaSpeed)
-			// 	* mul
-			// 	* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1)
 		);
 
 		// Compensate for wheel rotation while driving and rotating
