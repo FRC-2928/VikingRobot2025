@@ -40,16 +40,6 @@ public class RobotContainer {
 					new ModuleIOTalonFX(SwerveModule.Place.BackRight));
 				break;
 
-			case HOTPANTS:
-				// Real robot, instantiate hardware IO implementations      
-				drivetrain = new Drivetrain(
-					new GyroIOPigeon2(),
-					new ModuleIOTalonFX(SwerveModule.Place.FrontLeft),
-					new ModuleIOTalonFX(SwerveModule.Place.FrontRight),
-					new ModuleIOTalonFX(SwerveModule.Place.BackLeft),
-					new ModuleIOTalonFX(SwerveModule.Place.BackRight));
-				break;	
-
 			case SIM:
 				// Sim robot, instantiate physics sim IO implementations
 				drivetrain =

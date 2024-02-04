@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -45,7 +46,7 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													this.getGyroAngle(),
+													this.gyroInputs.yawPosition,
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
@@ -56,22 +57,25 @@ public class Drivetrain extends SubsystemBase {
     // ----------------------------------------------------------
 
 	/**
-	 * Method to drive the robot from the auto routines.
+	 * Method to drive the robot using joystick info.
 	 *
 	 * @param xSpeed Speed of the robot in the x direction (forward).
 	 * @param ySpeed Speed of the robot in the y direction (sideways).
 	 * @param rot Angular rate of the robot.
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
-	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-		SmartDashboard.putNumber("xSpeed", xSpeed);
-		SmartDashboard.putNumber("ySpeed", ySpeed);
-		SmartDashboard.putNumber("rotation", rot);
+	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, 
+					  double omegaRadiansPerSecond, boolean fieldRelative) {
+		
+		SmartDashboard.putNumber("xSpeed", vxMetersPerSecond);
+		SmartDashboard.putNumber("ySpeed", vyMetersPerSecond);
+		SmartDashboard.putNumber("rotation", omegaRadiansPerSecond);
+
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getHeading())
-					: new ChassisSpeeds(xSpeed, ySpeed, rot));
+					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getHeading())
+					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
 
 		setModuleStates(swerveModuleStates);
 	}
@@ -80,13 +84,11 @@ public class Drivetrain extends SubsystemBase {
 	 * Set the required speed and angle of each wheel.
 	 * 
 	 * @param states - required speed in meters per/sec
-	 * 				 - angle in degrees
+	 * 				 - angle in radians per/sec
 	*/
 	public void setModuleStates(final SwerveModuleState[] states) {
 		// 5. DESATURATE WHEEL SPEEDS
-		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxWheelSpeed);
-
-		SmartDashboard.putNumber(" Angle theta", states[0].angle.getDegrees());
+		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocityMetersPerSec);
 
 		// 6. SET SPEED AND ANGLE FOR EACH WHEEL
 		for(int i = 0; i < this.modules.length; i++)
@@ -129,14 +131,13 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	/**
-	 * Current reported yaw of the Pigeon2 using pigeon.getYaw().
-	 * pigeon.getYaw() returns a double value in degrees that is then 
-	 * converted to radians to create the Rotation2d object.
+	 * Current reported yaw of the Pigeon2 in degrees
+	 * Constructs and returns a Rotation2d
 	 * 
 	 * @return current angle of the robot
 	 */
 	@AutoLogOutput(key = "Gyro/YawPosition")
-	public Rotation2d getGyroAngle() {
+	public Rotation2d getRobotAngle() {
 		return this.gyroInputs.yawPosition;
 	}
 
@@ -165,7 +166,7 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	public void resetOdometry(Pose2d pose) {
 		this.poseEstimator.resetPosition(
-			this.getGyroAngle(),
+			this.gyroInputs.yawPosition,
 			this.getModulePositions(),
 			pose);
 	}
@@ -205,7 +206,6 @@ public class Drivetrain extends SubsystemBase {
 			
 		}
 		
-		// Update Odometry
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
 	}
 
