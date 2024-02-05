@@ -8,16 +8,17 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveModule.Place;
+import frc.robot.vision.Limelight;
 
 public class Drivetrain extends SubsystemBase {
 	private final GyroIO gyroIO;
@@ -27,6 +28,7 @@ public class Drivetrain extends SubsystemBase {
 
 	// Used to track odometry
 	public final SwerveDrivePoseEstimator poseEstimator;
+	private final Limelight limelight = new Limelight("limelight");
 
 	// ----------------------------------------------------------
     // Initialization
@@ -189,6 +191,7 @@ public class Drivetrain extends SubsystemBase {
 		gyroIO.updateInputs(gyroInputs);
 		Logger.processInputs("Drive/Gyro", gyroInputs);
 
+		// Update the state of each swerve module
 		for(final SwerveModule module : this.modules)
 			module.update();
 
@@ -206,7 +209,13 @@ public class Drivetrain extends SubsystemBase {
 			
 		}
 		
+		// Update the odometry pose
 		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
+
+		// Fuse odometry pose with vision data if we have it.
+		if(this.limelight.hasValidTargets()) {
+			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+		}
 	}
 
 }
