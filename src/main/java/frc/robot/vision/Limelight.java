@@ -70,7 +70,7 @@ public class Limelight {
 	public Pose2d getPose2d() {
         // Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
 		// This should do the same thing as the commented out line above, without need for manual coordinate transformation
-		if (Robot.instance.alliance.get() == Alliance.Red) {
+		if (Robot.instance.alliance.isPresent() && Robot.instance.alliance.get() == Alliance.Red) {
 			return LimelightHelpers.getBotPose2d_wpiRed(this.limelightName);
 		} else {
 			return LimelightHelpers.getBotPose2d_wpiBlue(this.limelightName);
