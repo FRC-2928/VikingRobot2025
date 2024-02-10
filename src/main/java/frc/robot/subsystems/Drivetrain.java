@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -27,9 +28,10 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 
 	// Used to track odometry
+	public final SwerveDriveOdometry pose;
 	public final SwerveDrivePoseEstimator poseEstimator;
 	private final Limelight limelight = new Limelight("limelight");
-
+	
 	// ----------------------------------------------------------
     // Initialization
     // ----------------------------------------------------------
@@ -48,22 +50,28 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													this.gyroInputs.yawPosition,
+													getRobotAngle(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
+
+		pose = new SwerveDriveOdometry( this.kinematics,
+										getRobotAngle(),
+										this.getModulePositions(),
+										new Pose2d() 	
+										);
 	}
 
 	// ----------------------------------------------------------
-    // Control Input
+    // Control Output
     // ----------------------------------------------------------
 
 	/**
 	 * Method to drive the robot using joystick info.
 	 *
-	 * @param xSpeed Speed of the robot in the x direction (forward).
-	 * @param ySpeed Speed of the robot in the y direction (sideways).
-	 * @param rot Angular rate of the robot.
+	 * @param vxMetersPerSecond Speed of the robot in the x direction (forward).
+	 * @param vyMetersPerSecond Speed of the robot in the y direction (sideways).
+	 * @param omegaRadiansPerSecond Angular rate of the robot in radians per/sec
 	 * @param fieldRelative Whether the provided x and y speeds are relative to the field.
 	 */
 	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, 
@@ -76,7 +84,7 @@ public class Drivetrain extends SubsystemBase {
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getHeading())
+					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getRobotAngle())
 					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
 
 		setModuleStates(swerveModuleStates);
@@ -101,10 +109,11 @@ public class Drivetrain extends SubsystemBase {
 
 	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getHeading().unaryMinus());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, getRobotAngle().unaryMinus());
 	}
 
-	// Compensate for wheel rotation while driving and rotating
+	// Compensate for wheel rotation.  This prevents the robot 
+	// from drifting to one side while driving and rotating
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
 		// using this function because its just an easy way to rotate the axial/lateral speeds
 		return ChassisSpeeds
@@ -119,29 +128,24 @@ public class Drivetrain extends SubsystemBase {
 	}
 	
 	// ----------------------------------------------------------
-    // Control Input
+    // Sensor Input
     // ----------------------------------------------------------
-	/**
-	 * The angle is continuous; that is, it will continue from 360 to
-     * 361 degrees. 
-	 * 
-	 * @return heading of the robot as a Rotation2d.
-	 */
-	@AutoLogOutput(key = "Gyro/Heading")
-	public Rotation2d getHeading() {
-		return this.gyroInputs.heading;
-	}
 
 	/**
 	 * Current reported yaw of the Pigeon2 in degrees
-	 * Constructs and returns a Rotation2d
+	 * Constructs and returns a Rotation2d.
+	 * Rotation is continuous through 360 degrees.
 	 * 
 	 * @return current angle of the robot
 	 */
-	@AutoLogOutput(key = "Gyro/YawPosition")
+	@AutoLogOutput(key = "Robot/Rotation")
 	public Rotation2d getRobotAngle() {
-		return this.gyroInputs.yawPosition;
+		return this.gyroInputs.yawPosition;	
 	}
+
+	public double getAngularVelocity() {
+		return gyroInputs.yawVelocityRadPerSec;
+    }
 
 	/**
 	 * Takes the negative of the current angular value
@@ -149,9 +153,8 @@ public class Drivetrain extends SubsystemBase {
 	 * 
 	 * @return the continuous rotations and partial rotations
 	 */
-	@AutoLogOutput(key = "Gyro/Rotations")
 	public double getGyroRotations() {
-		return getHeading().unaryMinus().getRotations();
+		return getRobotAngle().unaryMinus().getRotations();
 	}
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
@@ -166,11 +169,18 @@ public class Drivetrain extends SubsystemBase {
 	 *
 	 * @param pose The pose to which to set the odometry.
 	 */
-	public void resetOdometry(Pose2d pose) {
+	public void resetOdometryEstimator(Pose2d pose) {
 		this.poseEstimator.resetPosition(
-			this.gyroInputs.yawPosition,
+			getRobotAngle(),
 			this.getModulePositions(),
 			pose);
+	}
+
+	public void resetOdometry(Pose2d newPose) {
+		this.pose.resetPosition(
+			getRobotAngle(),
+			this.getModulePositions(),
+			newPose);
 	}
 
 	/** Returns the current odometry pose. */
@@ -179,8 +189,35 @@ public class Drivetrain extends SubsystemBase {
 		return this.poseEstimator.getEstimatedPosition();
 	}
 
+	/** Returns the current odometry pose. */
+	@AutoLogOutput(key = "Odometry/Pose")
+	public Pose2d getPose() {
+		return this.pose.getPoseMeters();
+	}
+
 	public SwerveModulePosition[] getModulePositions() {
 		return Arrays.stream(this.modules).map(SwerveModule::updateModulePosition).toArray(SwerveModulePosition[]::new);
+	}
+
+	@AutoLogOutput(key = "SwerveStates/Desired")
+	public SwerveModuleState[] getModuleStates() {
+		return Arrays.stream(this.modules).map(SwerveModule::getModuleState).toArray(SwerveModuleState[]::new);
+	}
+
+	/**
+	 * Updates the pose with vision if close to current position.
+	 */
+	public void updatePoseEstimatorWithVision() {
+		if(this.limelight.hasValidTargets()) {
+			// distance from current pose to vision estimated pose
+			double poseDifference = this.poseEstimator.getEstimatedPosition().getTranslation()
+				.getDistance(this.limelight.getPose2d().getTranslation());
+			SmartDashboard.putNumber("pose difference", poseDifference);
+
+			if (poseDifference < 0.5) {
+				this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			}
+		}
 	}
 
 	// ----------------------------------------------------------
@@ -205,17 +242,26 @@ public class Drivetrain extends SubsystemBase {
 		// Log empty setpoint states when disabled
 		if (DriverStation.isDisabled()) {
 			Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-			
+			Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});		
 		}
 		
 		// Update the odometry pose
-		this.poseEstimator.update(this.gyroInputs.yawPosition, this.getModulePositions());
+		this.pose.update(getRobotAngle(), this.getModulePositions());
+		this.poseEstimator.update(getRobotAngle(), this.getModulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		if(this.limelight.hasValidTargets()) {
-			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-		}
+		updatePoseEstimatorWithVision();
+	}
+
+	// ----------------------------------------------------------
+    // Simulation
+    // ----------------------------------------------------------
+	public boolean getHasValidTargetsSim() {
+		double heading = this.getPoseEstimation().getRotation().getDegrees();
+
+		// if(DriverStation.getAlliance() == DriverStation.Alliance.Red) return heading < 75 || heading > -75;
+		// else 
+		return heading > 135 || heading < -135;
 	}
 
 }

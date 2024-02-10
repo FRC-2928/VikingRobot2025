@@ -2,10 +2,7 @@ package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -22,10 +19,6 @@ public class JoystickDrive extends Command {
 	public Rotation2d absoluteTarget = new Rotation2d();
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
-
-	private final SlewRateLimiter xLimiter = new SlewRateLimiter(100.0);
-	private final SlewRateLimiter yLimiter = new SlewRateLimiter(100.0);
-	private final SlewRateLimiter turnLimiter = new SlewRateLimiter(100.0);
 
 	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
@@ -45,8 +38,9 @@ public class JoystickDrive extends Command {
 		SmartDashboard.putNumber("Linear Velocity X", linearVelocity.getX());
 		SmartDashboard.putNumber("Linear Velocity Y", linearVelocity.getY());
 
-		double omegaRadPerSec = getTheta(mul); // Radians per/sec
-		SmartDashboard.putNumber("Omega", omegaRadPerSec);
+		// Calculate the desired angle rate of change
+		double omegaRadPerSec = getOmega(mul); // Radians per/sec
+		SmartDashboard.putNumber("Omega Rad Per/Sec", omegaRadPerSec);
 
 		// 2 CONVERT TO CHASSIS SPEEDS	
 		ChassisSpeeds desired = new ChassisSpeeds(linearVelocity.getX(), linearVelocity.getY(), omegaRadPerSec);
@@ -67,7 +61,8 @@ public class JoystickDrive extends Command {
 
 	/**
 	 * 
-	 * @param mul
+	 * @param mul - joystick input to slow the speed
+	 * 
 	 * @return the velocity in meters per/sec
 	 */
 	private Translation2d getLinearVelocity(final double mul) {
@@ -79,7 +74,6 @@ public class JoystickDrive extends Command {
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
-		// final Rotation2d moveDirection = new Rotation2d(this.oi.moveAxial.get(), this.oi.moveLateral.get());
 
 		// Calculate the move magnitude
 		double magnitude = Math.hypot(lateral, axial);
@@ -96,42 +90,43 @@ public class JoystickDrive extends Command {
 		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
 	}
 
-	private double getTheta(final double mul) {
+	private double getOmega(final double mul) {
 		// Right Axis
-		final double theta;
+		double omega;
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
 			final double rotX = this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
 
 			this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
+			SmartDashboard.putNumber("absoluteTargetMagnitude", absoluteTargetMagnitude);
 
-			final boolean command = this.absoluteTargetMagnitude > 0.5;
-			if(command) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
+			// Get a new rotation target if joystick values are beyond the deadband.
+			// Otherwise, we'll keep the old one.
+			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
+			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
+
+			SmartDashboard.putNumber("absoluteTarget", absoluteTarget.getDegrees());
+
+			// Run a PID loop to calculate the angular rate of change of the robot
+			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
+			double setpoint = this.absoluteTarget.getRotations();
+			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
+			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
+
+			// omega = MathUtil.applyDeadband(
+			// 			MathUtil
+			// 				.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
+			// 			rotateRobot ? 0.075 : 0.25
+			// 		);
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
-			double setpoint = this.absoluteTarget.getRotations();
-			theta = MathUtil.applyDeadband(
-						MathUtil
-							.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
-						command ? 0.075 : 0.25
-					);
+			omega = omega * this.absoluteTargetMagnitude;
 		} else {
-			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
+			omega = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 		}
-		
-		// theta = this.turnLimiter.calculate(theta);
 
-		double omega = theta * mul
-					* (Constants.Drivetrain.Flags.absoluteRotation ? this.absoluteTargetMagnitude : 1);
-
-		return omega * Constants.Drivetrain.maxAngularVelocityRadPerSec;
+		double omegaRadiansPerSecond = omega * Constants.Drivetrain.maxAngularVelocityRadPerSec * mul;
+		return omegaRadiansPerSecond;
 	}
-
-	// Square values
-	// private double curve(final double input) {
-	// 	return Math.pow(input, 2); // x^2
-	// }
-
 }

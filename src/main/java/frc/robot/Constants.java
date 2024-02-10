@@ -13,7 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 public class Constants {
 	private Constants() { throw new IllegalCallerException("Cannot instantiate `Constants`"); }
 
-	public static final Mode currentMode = Mode.REAL;
+	public static Mode currentMode = Mode.SIM;
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -39,6 +39,7 @@ public class Constants {
 	public static record PIDValues(double p, double i, double d, double f) {
 		public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
 	}
+	
 
 	public static record Ratio(double factor) {
 		public Ratio(final double from, final double to) { this(to / from); }
@@ -101,12 +102,9 @@ public class Constants {
 		// kI = 0.1 An error of 1 rotation per second increases output by 0.1 amps every second
 		// kD = 0.001 A change of 1000 rotation per second squared results in 1 amp output
 		public static final Slot1Configs driveGainsSlot1 = new Slot1Configs()
-			.withKP(5)
-			.withKI(0.1)
-			.withKD(0.001)
-			.withKS(0)
-			.withKV(0)
-			.withKA(0);
+			.withKP(5).withKI(0.1).withKD(0.001)
+			.withKS(0).withKV(0).withKA(0);
+	
 
 		/* VOLTAGE-based velocity requires a feed forward to account for the back-emf of the motor */
 		// kP = 0.11 An error of 1 rotation per second results in 2V output
@@ -114,30 +112,22 @@ public class Constants {
 		// kD = 0.0001 A change of 1 rotation per second squared results in 0.01 volts output
 		// 0.12 Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12 
 		public static final Slot0Configs driveGainsSlot0 = new Slot0Configs()
-			.withKP(0.11)
-			.withKI(0.5)
-			.withKD(0.0001)
-			.withKS(0)
-			.withKV(0.12)
-			.withKA(0);
-		// .withKP(3).withKI(0).withKD(0)
-		// .withKS(0).withKV(0).withKA(0);
+			.withKP(0.11).withKI(0.5).withKD(0.0001)
+			.withKS(0).withKV(0.12).withKA(0);
+			// .withKP(3).withKI(0).withKD(0)
+			// .withKS(0).withKV(0).withKA(0);
 
 		// POSITION Closed-loop control
 		// An error of 0.5 rotations results in 1.2 volts output
 		// A change of 1 rotation per second results in 0.1 volts output
 		public static final Slot0Configs turnGainsSlot0 = new Slot0Configs()
-			.withKP(2.4)
-			.withKI(0)
-			.withKD(0.1)
-			.withKS(0)
-			.withKV(0)
-			.withKA(0);
+			.withKP(2.4).withKI(0).withKD(0.1)
+			.withKS(0).withKV(0).withKA(0);
 
 		// The steer motor uses any SwerveModule.SteerRequestType control request with the
 		// output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
-		// .withKP(100).withKI(0).withKD(0.05)
-		// .withKS(0).withKV(1.5).withKA(0);
+			// .withKP(100).withKI(0).withKD(0.05)
+			// .withKS(0).withKV(1.5).withKA(0);
 
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
@@ -185,12 +175,11 @@ public class Constants {
 		public static final double wheelRadius = 2.0 * 0.0254; // m
 		public static final double wheelCircumference = (wheelRadius * 2) * Math.PI;
 		public static final double rotationsPerMeter = driveGearRatio / wheelCircumference;
-
+	
 		public static final double maxVelocityMetersPerSec = 5.0; // m/s
 
 		// max angular velocity computes to 6.41 radians per second
-		public static final double maxAngularVelocityRadPerSec = maxVelocityMetersPerSec
-			/ Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
+		public static final double maxAngularVelocityRadPerSec = maxVelocityMetersPerSec / Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 
 		// // todo: choose
 		// public static final double axialLateralSpeed = 1; // m/s
