@@ -14,6 +14,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -45,6 +46,7 @@ public class ModuleIOSim implements ModuleIO {
     inputs.driveVelocityRadPerSec = driveSim.getAngularVelocityRadPerSec();
     inputs.driveAppliedVolts = driveAppliedVolts;
     inputs.driveCurrentAmps = new double[] {Math.abs(driveSim.getCurrentDrawAmps())};
+    inputs.driveRotorPosition = driveSim.getAngularPositionRotations();
 
     inputs.cancoderAbsolutePosition =
         new Rotation2d(turnSim.getAngularPositionRad()).plus(turnAbsoluteInitPosition);
@@ -60,9 +62,10 @@ public class ModuleIOSim implements ModuleIO {
     driveSim.setInputVoltage(driveAppliedVolts);
   }
 
+  // Voltage is reversed since turn motors isInverted is false
   @Override
   public void setTurnVoltage(double volts) {
-    turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+    turnAppliedVolts = MathUtil.clamp(-volts, -12.0, 12.0);
     turnSim.setInputVoltage(turnAppliedVolts);
   }
 
@@ -74,7 +77,7 @@ public class ModuleIOSim implements ModuleIO {
 
   /** Run the drive motor at the specified duty cycle (-1 to 1). */
   public void setTurnDutyCycle(double speed) {
-    double volts = 12.0 * -speed;
+    double volts = 12.0 * speed;
     setTurnVoltage(volts);
   }
 }
