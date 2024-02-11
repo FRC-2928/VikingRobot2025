@@ -69,8 +69,8 @@ public class JoystickDrive extends Command {
 		// Left Axis
 
 		// Get joystick inputs and apply deadbands
-		final double axial = -MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
-		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+		final double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
+		final double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
