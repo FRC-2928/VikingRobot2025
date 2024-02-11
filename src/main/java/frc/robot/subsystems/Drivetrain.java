@@ -50,13 +50,13 @@ public class Drivetrain extends SubsystemBase {
 		modules[3] = new SwerveModule(brModuleIO, Place.BackRight);
 
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
-													getRobotAngle(),
+													getRobotAngle().unaryMinus(),
 													this.getModulePositions(),
 													new Pose2d() 	
 													);
 
 		pose = new SwerveDriveOdometry( this.kinematics,
-										getRobotAngle(),
+										getRobotAngle().unaryMinus(),
 										this.getModulePositions(),
 										new Pose2d() 	
 										);
@@ -84,7 +84,7 @@ public class Drivetrain extends SubsystemBase {
 		var swerveModuleStates =
 			kinematics.toSwerveModuleStates(
 				fieldRelative
-					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getRobotAngle())
+					? ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation())
 					: new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
 
 		setModuleStates(swerveModuleStates);
@@ -171,14 +171,14 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	public void resetOdometryEstimator(Pose2d pose) {
 		this.poseEstimator.resetPosition(
-			getRobotAngle(),
+			getRobotAngle().unaryMinus(),
 			this.getModulePositions(),
 			pose);
 	}
 
 	public void resetOdometry(Pose2d newPose) {
 		this.pose.resetPosition(
-			getRobotAngle(),
+			getRobotAngle().unaryMinus(),
 			this.getModulePositions(),
 			newPose);
 	}
@@ -246,8 +246,8 @@ public class Drivetrain extends SubsystemBase {
 		}
 		
 		// Update the odometry pose
-		this.pose.update(getRobotAngle(), this.getModulePositions());
-		this.poseEstimator.update(getRobotAngle(), this.getModulePositions());
+		this.pose.update(getRobotAngle().unaryMinus(), this.getModulePositions());
+		this.poseEstimator.update(getRobotAngle().unaryMinus(), this.getModulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
 		updatePoseEstimatorWithVision();
