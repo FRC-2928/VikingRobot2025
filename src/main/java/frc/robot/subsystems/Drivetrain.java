@@ -34,7 +34,7 @@ public class Drivetrain extends SubsystemBase {
 	// Used to track odometry
 	public final SwerveDriveOdometry pose;
 	public final SwerveDrivePoseEstimator poseEstimator;
-	private final Limelight limelight = new Limelight("limelight");
+	public final Limelight limelight = new Limelight("limelight");
 
 	private final SysIdRoutine sysId;
 	
@@ -183,6 +183,10 @@ public class Drivetrain extends SubsystemBase {
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 
 	public SwerveDriveKinematics getKinematics() {return this.kinematics;}
+
+	public double getTargetRange() {
+		return this.limelight.getTargetVerticalOffset();
+	}
 
 	// ----------------------------------------------------------
     // Odometry

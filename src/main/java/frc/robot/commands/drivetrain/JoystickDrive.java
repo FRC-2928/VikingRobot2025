@@ -31,7 +31,8 @@ public class JoystickDrive extends Command {
 
 	@Override
 	public void execute() {
-		final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
+		// final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
+		final double mul = 1;
 
 		// 1. CONVERT JOYSTICK VALUES
 		Translation2d linearVelocity = getLinearVelocity(mul); // Meters per/sec
@@ -69,8 +70,17 @@ public class JoystickDrive extends Command {
 		// Left Axis
 
 		// Get joystick inputs and apply deadbands
-		final double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
-		final double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+		double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
+		double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+
+		double alignTriggerValue = MathUtil.applyDeadband(this.oi.alignShooter.get(), 0.1);
+		SmartDashboard.putNumber("alignTriggerValue", alignTriggerValue);
+		if (alignTriggerValue > 0) {
+			double range = MathUtil.interpolate(-0.5, 0.5, this.drivetrain.limelight.getTargetVerticalOffset());
+			// double range = Math.signum(this.drivetrain.limelight.getTargetVerticalOffset());
+			SmartDashboard.putNumber("range", range);
+			axial = axial + range;
+		}
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));

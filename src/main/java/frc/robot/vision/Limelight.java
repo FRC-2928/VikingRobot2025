@@ -47,6 +47,7 @@ public class Limelight {
 	}
 
 	// Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees | LL2: -24.85 to 24.85 degrees)
+	@AutoLogOutput(key = "Limelight/Vertical Offset")
 	public double getTargetVerticalOffset() {
 		return this.nt.getEntry("ty").getDouble(0.0);
 	}
