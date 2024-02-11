@@ -58,13 +58,13 @@ public class Drivetrain extends SubsystemBase {
 		poseEstimator = new SwerveDrivePoseEstimator( this.kinematics,
 													getRobotAngle(),
 													this.getModulePositions(),
-													new Pose2d() 	
+													new Pose2d()
 													);
 
 		pose = new SwerveDriveOdometry( this.kinematics,
 										getRobotAngle(),
 										this.getModulePositions(),
-										new Pose2d() 	
+										new Pose2d()
 										);
 
 		// Configure SysId
@@ -176,9 +176,9 @@ public class Drivetrain extends SubsystemBase {
 	 * 
 	 * @return the continuous rotations and partial rotations
 	 */
-	public double getGyroRotations() {
-		return getRobotAngle().getRotations();
-	}
+	// public double getGyroRotations() {
+	// 	return getRobotAngle().getRotations();
+	// }
 
 	public SwerveModule[] getSwerveModules() {return this.modules;}
 

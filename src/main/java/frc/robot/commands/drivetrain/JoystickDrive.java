@@ -108,7 +108,8 @@ public class JoystickDrive extends Command {
 			SmartDashboard.putNumber("absoluteTarget", absoluteTarget.getDegrees());
 
 			// Run a PID loop to calculate the angular rate of change of the robot
-			double measurement = Constants.mod(this.drivetrain.getGyroRotations(),1) - 0.5;
+			// Why does the below line have - 0.5 ?
+			double measurement = Constants.mod(this.drivetrain.getPose().getRotation().getRotations(),1);
 			double setpoint = this.absoluteTarget.getRotations();
 			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
 			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
