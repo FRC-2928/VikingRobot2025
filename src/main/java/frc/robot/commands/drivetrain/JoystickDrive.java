@@ -27,6 +27,7 @@ public class JoystickDrive extends Command {
 		this.addRequirements(drivetrain);
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
+		this.absoluteTarget = this.drivetrain.getPose().getRotation();
 	}
 
 	@Override
