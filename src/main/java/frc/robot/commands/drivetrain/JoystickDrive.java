@@ -19,6 +19,7 @@ public class JoystickDrive extends Command {
 	public Rotation2d absoluteTarget = new Rotation2d();
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
+	private final PIDController targetVerticalController = Constants.Drivetrain.targetVerticalControllerPID.createController();
 
 	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
@@ -27,7 +28,7 @@ public class JoystickDrive extends Command {
 		this.addRequirements(drivetrain);
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
-		this.absoluteTarget = this.drivetrain.getPose().getRotation();
+		// this.absoluteTarget = this.drivetrain.getPose().getRotation();
 	}
 
 	@Override
@@ -35,19 +36,26 @@ public class JoystickDrive extends Command {
 		// final double mul = MathUtil.interpolate(1, 0.5, this.oi.slow.get());
 		final double mul = 1;
 
-		// 1. CONVERT JOYSTICK VALUES
-		Translation2d linearVelocity = getLinearVelocity(mul); // Meters per/sec
-		SmartDashboard.putNumber("Linear Velocity X", linearVelocity.getX());
-		SmartDashboard.putNumber("Linear Velocity Y", linearVelocity.getY());
+		Translation2d linearVelocity;
+		double omegaRadPerSec = 0;
 
-		// Calculate the desired angle rate of change
-		double omegaRadPerSec = getOmega(mul); // Radians per/sec
-		SmartDashboard.putNumber("Omega Rad Per/Sec", omegaRadPerSec);
+		// Check if we're aligning the shooter with the target (rightTriggerAxis)
+		double alignTriggerValue = MathUtil.applyDeadband(this.oi.alignShooter.get(), 0.1);
+		SmartDashboard.putNumber("JoystickDrive/alignTriggerValue", alignTriggerValue);
+
+		if (alignTriggerValue > 0) {
+			// Align robot with target	
+			linearVelocity = getAlignTarget();
+		} else {
+			// 1. CONVERT JOYSTICK VALUES
+			linearVelocity = getLinearVelocity(mul); // Meters per/sec
+			omegaRadPerSec = getOmega(mul); // Radians per/sec		
+		}	
 
 		// 2 CONVERT TO CHASSIS SPEEDS	
 		ChassisSpeeds desired = new ChassisSpeeds(linearVelocity.getX(), linearVelocity.getY(), omegaRadPerSec);
 
-		// Compensate for wheel rotation while driving and rotating. Rotate 0.35 radians (20 degrees).
+		// Compensate for wheel rotation while driving and rotating.
 		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
 
 		// 3. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
@@ -62,26 +70,17 @@ public class JoystickDrive extends Command {
 	}
 
 	/**
+	 * Uses the Joystick Left Axis
 	 * 
 	 * @param mul - joystick input to slow the speed
 	 * 
 	 * @return the velocity in meters per/sec
 	 */
 	private Translation2d getLinearVelocity(final double mul) {
-		// Left Axis
-
+		
 		// Get joystick inputs and apply deadbands
 		double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
 		double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
-
-		double alignTriggerValue = MathUtil.applyDeadband(this.oi.alignShooter.get(), 0.1);
-		SmartDashboard.putNumber("alignTriggerValue", alignTriggerValue);
-		if (alignTriggerValue > 0) {
-			double range = MathUtil.interpolate(-0.5, 0.5, this.drivetrain.limelight.getTargetVerticalOffset());
-			// double range = Math.signum(this.drivetrain.limelight.getTargetVerticalOffset());
-			SmartDashboard.putNumber("range", range);
-			axial = axial + range;
-		}
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
@@ -97,38 +96,42 @@ public class JoystickDrive extends Command {
 		// Convert to meters per/sec
 		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
 		double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+		SmartDashboard.putNumber("JoystickDrive/Linear Velocity X", vxMetersPerSecond);
+		SmartDashboard.putNumber("JoystickDrive/Linear Velocity Y", vyMetersPerSecond);
 
 		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
 	}
 
+	/**
+	 * Uses the Joystick Right Axis
+	 * 
+	 * @param mul - joystick input to slow the speed
+	 * 
+	 * @return omega radians per second
+	 */
 	private double getOmega(final double mul) {
-		// Right Axis
+		
 		double omega;
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
 			final double rotX = this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
 
 			this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
-			SmartDashboard.putNumber("absoluteTargetMagnitude", absoluteTargetMagnitude);
+			SmartDashboard.putNumber("JoystickDrive/absoluteTargetMagnitude", absoluteTargetMagnitude);
 
 			// Get a new rotation target if joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
 			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
 
-			SmartDashboard.putNumber("absoluteTarget", absoluteTarget.getDegrees());
+			SmartDashboard.putNumber("JoystickDrive/absoluteTarget", absoluteTarget.getDegrees());
 
 			// Run a PID loop to calculate the angular rate of change of the robot
+			// double measurement = Constants.mod(this.drivetrain.getRobotAngle().getRotations(),1) - 0.5;
 			double measurement = Constants.mod(this.drivetrain.getPose().getRotation().getRotations(),1);
 			double setpoint = this.absoluteTarget.getRotations();
 			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
 			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
-
-			// omega = MathUtil.applyDeadband(
-			// 			MathUtil
-			// 				.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5),
-			// 			rotateRobot ? 0.075 : 0.25
-			// 		);
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
@@ -138,6 +141,29 @@ public class JoystickDrive extends Command {
 		}
 
 		double omegaRadiansPerSecond = omega * Constants.Drivetrain.maxAngularVelocityRadPerSec * mul;
+		SmartDashboard.putNumber("JoystickDrive/Omega Rad PerSec", omegaRadiansPerSecond);
 		return omegaRadiansPerSecond;
+	}
+
+	/**
+	 * Control the robot based on range from target
+	 * 
+	 * @return The required X and Y translation
+	 */
+	private Translation2d getAlignTarget() {
+
+		double measurement = this.drivetrain.limelight.getTargetVerticalOffset();
+		double xSpeed = this.targetVerticalController.calculate(measurement, 0);
+		// xSpeed should end up between -1 and 1
+		SmartDashboard.putNumber("JoystickDrive/Target align xSpeed", xSpeed);
+		xSpeed = MathUtil.clamp(xSpeed, 0, 1); // Make it a unit value?
+
+		double ySpeed = 0;
+		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+		double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+		SmartDashboard.putNumber("JoystickDrive/Align Target X", vxMetersPerSecond);
+		SmartDashboard.putNumber("JoystickDrive/Align Target Y", vyMetersPerSecond);
+
+		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
 	}
 }

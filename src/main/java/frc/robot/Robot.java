@@ -37,8 +37,9 @@ public class Robot extends LoggedRobot {
 
 		switch(Constants.currentMode) {
 		case REAL:
-			// Running on a real robot, log to a USB stick
-			Logger.addDataReceiver(new WPILOGWriter("/home/admin/logs"));
+			// Running on a real robot, log to a USB stick ("/U/logs") by default
+			// Try "/V/logs" if that doesn't work, which I think refers to the other USB port on the RoboRio
+			Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
 			Logger.addDataReceiver(new NT4Publisher());
 			break;
 
