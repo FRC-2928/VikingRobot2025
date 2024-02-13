@@ -114,7 +114,7 @@ public class JoystickDrive extends Command {
 		
 		double omega;
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
-			final double rotX = this.oi.moveRotationX.get();
+			final double rotX = -this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
 
 			this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
@@ -131,7 +131,7 @@ public class JoystickDrive extends Command {
 			// double measurement = Constants.mod(this.drivetrain.getRobotAngle().getRotations(),1) - 0.5;
 			double measurement = Constants.mod(this.drivetrain.getPose().getRotation().getRotations(),1);
 			double setpoint = this.absoluteTarget.getRotations();
-			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
+			omega = -MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
 			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
