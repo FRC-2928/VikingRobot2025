@@ -28,7 +28,7 @@ public class JoystickDrive extends Command {
 		this.addRequirements(drivetrain);
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
-		// this.absoluteTarget = this.drivetrain.getPose().getRotation();
+		this.absoluteTarget = this.drivetrain.getPose().getRotation();
 	}
 
 	@Override
@@ -80,18 +80,19 @@ public class JoystickDrive extends Command {
 		
 		// Get joystick inputs and apply deadbands
 		double axial = MathUtil.applyDeadband(this.oi.moveAxial.get(), 0.1);
-		double lateral = -MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
+		double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
-		final Rotation2d moveDirection = Rotation2d.fromRadians(Math.atan2(lateral, axial));
+		final Rotation2d coordinatePlaneMoveDirection = Rotation2d.fromRadians(Math.atan2(axial, lateral));
+		final Rotation2d fieldPlaneMoveDirection = coordinatePlaneMoveDirection.plus(new Rotation2d(Math.PI / 2));
 
 		// Calculate the move magnitude
 		double magnitude = Math.hypot(lateral, axial);
 		magnitude = MathUtil.clamp(magnitude, 0, 1); // Make it a unit value?
 		final double moveMagnitude = magnitude * magnitude; // Square values
 		
-		double xSpeed = Math.cos(moveDirection.getRadians()) * moveMagnitude * mul;
-		double ySpeed = Math.sin(moveDirection.getRadians()) * moveMagnitude * mul;
+		double xSpeed = Math.cos(fieldPlaneMoveDirection.getRadians()) * moveMagnitude * mul;
+		double ySpeed = Math.sin(fieldPlaneMoveDirection.getRadians()) * moveMagnitude * mul;
 
 		// Convert to meters per/sec
 		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
@@ -122,7 +123,7 @@ public class JoystickDrive extends Command {
 			// Get a new rotation target if joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
-			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(-rotX, rotY));
+			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, -rotY));
 
 			SmartDashboard.putNumber("JoystickDrive/absoluteTarget", absoluteTarget.getDegrees());
 
