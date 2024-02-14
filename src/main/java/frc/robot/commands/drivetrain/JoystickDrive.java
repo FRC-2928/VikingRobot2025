@@ -28,6 +28,8 @@ public class JoystickDrive extends Command {
 		this.addRequirements(drivetrain);
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
+
+		// Set the rotation target angle equal to the pose
 		this.absoluteTarget = this.drivetrain.getPose().getRotation();
 	}
 
@@ -84,13 +86,16 @@ public class JoystickDrive extends Command {
 
 		// Get the angle theta from the conversion of rectangular coordinates to polar coordinates
 		final Rotation2d coordinatePlaneMoveDirection = Rotation2d.fromRadians(Math.atan2(axial, lateral));
+
+		// Rotate this 90 degrees to align with the field direction
 		final Rotation2d fieldPlaneMoveDirection = coordinatePlaneMoveDirection.plus(new Rotation2d(Math.PI / 2));
 
 		// Calculate the move magnitude
 		double magnitude = Math.hypot(lateral, axial);
-		magnitude = MathUtil.clamp(magnitude, 0, 1); // Make it a unit value?
-		final double moveMagnitude = magnitude * magnitude; // Square values
+		magnitude = MathUtil.clamp(magnitude, 0, 1); // Make it a unit value
+		final double moveMagnitude = magnitude * magnitude; // convert position to velocity
 		
+		// Get the X and Y components of the velocity
 		double xSpeed = Math.cos(fieldPlaneMoveDirection.getRadians()) * moveMagnitude * mul;
 		double ySpeed = Math.sin(fieldPlaneMoveDirection.getRadians()) * moveMagnitude * mul;
 
@@ -104,7 +109,9 @@ public class JoystickDrive extends Command {
 	}
 
 	/**
-	 * Uses the Joystick Right Axis
+	 * Computes the omega radians per second required to move the
+	 * robot pose to the new desired rotation angle. Omega radians per second
+	 * will be zero if the target angle is aligned with the robot pose.
 	 * 
 	 * @param mul - joystick input to slow the speed
 	 * 
@@ -114,21 +121,21 @@ public class JoystickDrive extends Command {
 		
 		double omega;
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
+			// Joystick Right Axis
 			final double rotX = -this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
 
+			// This will determine the rotation speed based on how far the joystick is moved.
 			this.absoluteTargetMagnitude = Math.sqrt(rotX * rotX + rotY * rotY);
 			SmartDashboard.putNumber("JoystickDrive/absoluteTargetMagnitude", absoluteTargetMagnitude);
 
-			// Get a new rotation target if joystick values are beyond the deadband.
+			// Get a new rotation target if right joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
 			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, -rotY));
-
 			SmartDashboard.putNumber("JoystickDrive/absoluteTarget", absoluteTarget.getDegrees());
 
-			// Run a PID loop to calculate the angular rate of change of the robot
-			// double measurement = Constants.mod(this.drivetrain.getRobotAngle().getRotations(),1) - 0.5;
+			// Run a PID loop to adjust the angular rate of change as we approach the setpoint angle
 			double measurement = Constants.mod(this.drivetrain.getPose().getRotation().getRotations(),1);
 			double setpoint = this.absoluteTarget.getRotations();
 			omega = -MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
