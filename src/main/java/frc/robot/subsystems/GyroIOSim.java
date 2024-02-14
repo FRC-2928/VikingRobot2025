@@ -1,16 +1,25 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.sim.Pigeon2SimState;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
 
 public class GyroIOSim implements GyroIO {
     Drivetrain drivetrain;
 
     private Pose2d simOdometry = new Pose2d();
     double[] lastModulePositionsRad = {0, 0, 0, 0};
+        
+    private final Pigeon2 imu = new Pigeon2(0);
+    private final Pigeon2SimState imuSim = imu.getSimState();
 
     public GyroIOSim(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
@@ -19,8 +28,12 @@ public class GyroIOSim implements GyroIO {
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         calcAngle();
+        inputs.connected = true;
+        // imuSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+        // final StatusCode yaw = imuSim.setRawYaw(this.drivetrain.getRobotAngle().getRadians());
+        // inputs.yawPosition = Rotation2d.fromRadians(yaw.value);
+
         inputs.yawPosition = simOdometry.getRotation();
-        inputs.heading = simOdometry.getRotation();
     }
 
     private void calcAngle() {
