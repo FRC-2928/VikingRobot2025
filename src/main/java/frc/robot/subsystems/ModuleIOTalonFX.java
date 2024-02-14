@@ -116,6 +116,12 @@ public class ModuleIOTalonFX implements ModuleIO {
     // turnConfig.Voltage.PeakForwardVoltage = 10;
     // turnConfig.Voltage.PeakReverseVoltage = -10;
 
+    // Supply current limits
+    turnConfig.CurrentLimits.SupplyCurrentLimit = 35;
+    turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    turnConfig.CurrentLimits.SupplyCurrentThreshold = 60;
+    turnConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+
     // Set the feedback source to be the CANcoder
     turnConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     turnConfig.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
@@ -139,10 +145,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
 
     // Supply current limits
-    // driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
-    // driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    // driveConfig.CurrentLimits.SupplyCurrentThreshold = 60;
-    // driveConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+    driveConfig.CurrentLimits.SupplyCurrentLimit = 35;
+    driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    driveConfig.CurrentLimits.SupplyCurrentThreshold = 60;
+    driveConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
 
     // driveConfig.Feedback.SensorToMechanismRatio = Constants.Drivetrain.rotationsPerMeter;
     driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
