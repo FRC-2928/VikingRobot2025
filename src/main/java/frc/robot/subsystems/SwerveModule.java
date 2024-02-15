@@ -62,10 +62,6 @@ public class SwerveModule {
     private final SimpleMotorFeedforward driveFFW = Constants.Drivetrain.driveFFW;
     private final PIDController drivePID = Constants.Drivetrain.drivePID;
 
-    // private boolean backwards = false;
-
-    // public Rotation2d targetAngle = new Rotation2d(); // Setpoint for the module angle
-    // public double targetVelocity = 0; // Setpoint for the velocity in meters per/sec
     public SwerveModuleState desiredModuleState = new SwerveModuleState();
     public SwerveModulePosition currentModulePosition = new SwerveModulePosition();
     private Rotation2d angleSetpoint = null; // Setpoint for closed loop control, null for open loop
@@ -144,7 +140,7 @@ public class SwerveModule {
      *
      * @return The drive speed and steer angle of the module
      */
-    public SwerveModulePosition getPosition() {
+    public SwerveModulePosition getModulePosition() {
         return this.currentModulePosition;
     }
 
@@ -160,30 +156,6 @@ public class SwerveModule {
         this.desiredModuleState.speedMetersPerSecond = 0;
         this.io.setTurnVoltage(0.0);
         this.io.setDriveVoltage(0.0);
-    }
-
-    /** 
-     * Use ONLY with applyTurnPosition() if the feedback sensor for angle motor is the RotaryEncoder
-     * Should NOT be used if the angle motor feedback sensor is the CANcoder
-     */
-    private double calculateRequiredAngle(Rotation2d requiredAngle) {
-        double currentAngle = inputs.turnPosition.getRadians(); // Current angle of the swerve module
-        double targetAngle = MathUtil.inputModulus(
-                requiredAngle.getRadians(),
-                0,
-                2 * Math.PI); // Target angle of the swerve module, limited to a domain between 0 and 2π.
-
-        double absoluteAngle = MathUtil.inputModulus(
-                currentAngle, 0, 2 * Math.PI); // Limiting the domain of the current angle to a domain of 0 to 2π.
-
-        double angleError = MathUtil.inputModulus(
-                targetAngle - absoluteAngle,
-                -Math.PI,
-                Math.PI); // Finding the difference in between the current and target angle (in radians).
-
-        // Adding that distance to our current angle (directly from the steer encoder). 
-        // Becomes our target angle
-        return currentAngle + angleError; 
     }
 
     /**

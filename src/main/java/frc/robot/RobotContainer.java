@@ -44,7 +44,7 @@ public class RobotContainer {
 				// Sim robot, instantiate physics sim IO implementations
 				drivetrain =
 					new Drivetrain(
-						new GyroIO() {},
+						null,
 						new ModuleIOSim(),
 						new ModuleIOSim(),
 						new ModuleIOSim(),
