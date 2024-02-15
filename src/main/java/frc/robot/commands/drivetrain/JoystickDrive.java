@@ -88,7 +88,7 @@ public class JoystickDrive extends Command {
 		final Rotation2d coordinatePlaneMoveDirection = Rotation2d.fromRadians(Math.atan2(axial, lateral));
 
 		// Rotate this 90 degrees to align with the field direction
-		final Rotation2d fieldPlaneMoveDirection = coordinatePlaneMoveDirection.plus(new Rotation2d(Math.PI / 2));
+		final Rotation2d fieldPlaneMoveDirection = coordinatePlaneMoveDirection.minus(new Rotation2d(Math.PI / 2));
 
 		// Calculate the move magnitude
 		double magnitude = Math.hypot(lateral, axial);
@@ -122,7 +122,7 @@ public class JoystickDrive extends Command {
 		double omega;
 		if(Constants.Drivetrain.Flags.absoluteRotation) {
 			// Joystick Right Axis
-			final double rotX = -this.oi.moveRotationX.get();
+			final double rotX = this.oi.moveRotationX.get();
 			final double rotY = this.oi.moveRotationY.get();
 
 			// This will determine the rotation speed based on how far the joystick is moved.
@@ -132,13 +132,16 @@ public class JoystickDrive extends Command {
 			// Get a new rotation target if right joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
-			if(rotateRobot) this.absoluteTarget = Rotation2d.fromRadians(Math.atan2(rotX, -rotY));
+			if(rotateRobot) {
+				Rotation2d joystickAngle = Rotation2d.fromRadians(Math.atan2(rotY, rotX));
+				this.absoluteTarget = joystickAngle.minus(Rotation2d.fromRadians(Math.PI / 2));
+			}
 			SmartDashboard.putNumber("JoystickDrive/absoluteTarget", absoluteTarget.getDegrees());
 
 			// Run a PID loop to adjust the angular rate of change as we approach the setpoint angle
 			double measurement = Constants.mod(this.drivetrain.getPose().getRotation().getRotations(),1);
 			double setpoint = this.absoluteTarget.getRotations();
-			omega = -MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
+			omega = MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5);
 			omega = MathUtil.applyDeadband(omega, rotateRobot ? 0.075 : 0.25); 
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;

@@ -146,19 +146,19 @@ public class Constants {
 
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelPositionRadius,
-			Rotation2d.fromDegrees(-45)
+			Rotation2d.fromDegrees(45)
 		);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelPositionRadius,
-			Rotation2d.fromDegrees(45)
+			Rotation2d.fromDegrees(-45)
 		);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelPositionRadius,
-			Rotation2d.fromDegrees(180 + 45)
+			Rotation2d.fromDegrees(180 - 45)
 		);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelPositionRadius,
-			Rotation2d.fromDegrees(180 - 45)
+			Rotation2d.fromDegrees(180 + 45)
 		);
 
 		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
