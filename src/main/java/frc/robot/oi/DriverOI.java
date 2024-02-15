@@ -11,13 +11,13 @@ public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
+		this.moveAxial = () -> -this.controller.getLeftY();
 		this.moveLateral = this.controller::getLeftX;
 		
 		if (Constants.currentMode == Mode.REAL) {
 			this.moveTheta = this.controller::getRightX;
 			this.moveRotationX = this.controller::getRightX;
-			this.moveRotationY = this.controller::getRightY;
+			this.moveRotationY = () -> -this.controller.getRightY();
 		} else {
 			this.moveTheta = () -> this.hid.getRawAxis(2);
 			this.moveRotationX = () -> this.hid.getRawAxis(2);
