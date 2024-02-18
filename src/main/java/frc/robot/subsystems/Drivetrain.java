@@ -235,15 +235,15 @@ public class Drivetrain extends SubsystemBase {
 	 * Updates the pose with vision if close to current position.
 	 */
 	public void updatePoseEstimatorWithVision() {
-		if(this.limelight.hasValidTargets()) {
+		if(this.limelight.hasValidTargets() && this.limelight.getNumberOfAprilTags() >= 2) {
 			// distance from current pose to vision estimated pose
-			double poseDifference = this.poseEstimator.getEstimatedPosition().getTranslation()
-				.getDistance(this.limelight.getPose2d().getTranslation());
-			SmartDashboard.putNumber("pose difference", poseDifference);
+			// double poseDifference = this.poseEstimator.getEstimatedPosition().getTranslation()
+			// 	.getDistance(this.limelight.getPose2d().getTranslation());
+			// SmartDashboard.putNumber("pose difference", poseDifference);
 
-			if (poseDifference < 0.5) {
-				this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-			}
+			// if (poseDifference < 0.5) {
+			this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			// }
 		}
 	}
 

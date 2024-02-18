@@ -19,7 +19,6 @@ public class JoystickDrive extends Command {
 	public Rotation2d absoluteTarget = new Rotation2d();
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
-	private final PIDController targetVerticalController = Constants.Drivetrain.targetVerticalControllerPID.createController();
 
 	public JoystickDrive(final Drivetrain drivetrain, final DriverOI oi) {
 		this.drivetrain = drivetrain;
@@ -42,12 +41,13 @@ public class JoystickDrive extends Command {
 		double omegaRadPerSec = 0;
 
 		// Check if we're aligning the shooter with the target (rightTriggerAxis)
-		double alignTriggerValue = MathUtil.applyDeadband(this.oi.alignShooter.get(), 0.1);
+		double alignTriggerValue = 0;
 		SmartDashboard.putNumber("JoystickDrive/alignTriggerValue", alignTriggerValue);
 
 		if (alignTriggerValue > 0) {
 			// Align robot with target	
-			linearVelocity = getAlignTarget();
+			// linearVelocity = getAlignTarget();
+			linearVelocity = getLinearVelocity(mul);
 		} else {
 			// 1. CONVERT JOYSTICK VALUES
 			linearVelocity = getLinearVelocity(mul); // Meters per/sec
@@ -161,20 +161,22 @@ public class JoystickDrive extends Command {
 	 * 
 	 * @return The required X and Y translation
 	 */
-	private Translation2d getAlignTarget() {
+	// private Translation2d getAlignTarget() {
 
-		double measurement = this.drivetrain.limelight.getTargetVerticalOffset();
-		double xSpeed = this.targetVerticalController.calculate(measurement, 0);
-		// xSpeed should end up between -1 and 1
-		SmartDashboard.putNumber("JoystickDrive/Target align xSpeed", xSpeed);
-		xSpeed = MathUtil.clamp(xSpeed, 0, 1); // Make it a unit value?
+	// 	double measurement = this.drivetrain.limelight.getTargetVerticalOffset();
+	// 	double xSpeed = this.targetVerticalController.calculate(measurement, 0);
+	// 	double measurementY = this.drivetrain.limelight.getTargetHorizontalOffset();
+	// 	// xSpeed should end up between -1 and 1
+	// 	SmartDashboard.putNumber("JoystickDrive/Target align xSpeed", xSpeed);
+	// 	xSpeed = MathUtil.clamp(xSpeed, 0, 1); // Make it a unit value?
+	// 	double ySpeed = this.targetHorizontalController.calculate(measurementY,0);
+	// 	SmartDashboard.putNumber("JoystickDrive/Target align ySpeed", ySpeed);
+	// 	ySpeed = MathUtil.clamp(ySpeed,0,1);
+	// 	double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+	// 	double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
+	// 	SmartDashboard.putNumber("JoystickDrive/Align Target X", vxMetersPerSecond);
+	// 	SmartDashboard.putNumber("JoystickDrive/Align Target Y", vyMetersPerSecond);
 
-		double ySpeed = 0;
-		double vxMetersPerSecond = xSpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
-		double vyMetersPerSecond = ySpeed * Constants.Drivetrain.maxVelocityMetersPerSec;
-		SmartDashboard.putNumber("JoystickDrive/Align Target X", vxMetersPerSecond);
-		SmartDashboard.putNumber("JoystickDrive/Align Target Y", vyMetersPerSecond);
-
-		return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
-	}
+	// 	return new Translation2d(vxMetersPerSecond, vyMetersPerSecond);
+	// }
 }

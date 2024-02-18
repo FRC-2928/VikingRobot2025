@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.alignTarget;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.oi.DriverOI;
@@ -72,6 +73,7 @@ public class RobotContainer {
 		// this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.gyro.setYaw(0)));
 		this.driverOI.resetFOD.whileTrue(new RunCommand(() -> this.drivetrain.resetGyro())); // Y Button
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
+		this.driverOI.alignShooter.whileTrue(new alignTarget( this.drivetrain));
 	}
 	
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }
