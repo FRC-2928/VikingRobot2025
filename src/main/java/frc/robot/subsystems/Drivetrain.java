@@ -16,12 +16,14 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
 
@@ -149,6 +151,14 @@ public class Drivetrain extends SubsystemBase {
 	public void resetGyro() {
 		gyroIO.resetGyro();
 	}
+
+	/*
+	 * Sets the pose angle to 0 while preserving translation.
+	 * This method is good for resetting field oriented drive.
+	 */
+	public void resetPoseAngle() {
+		this.resetOdometry(new Pose2d(this.pose.getPoseMeters().getTranslation(), Rotation2d.fromRadians(0d)));
+	}
 	
 	// ----------------------------------------------------------
     // Sensor Input
@@ -219,6 +229,17 @@ public class Drivetrain extends SubsystemBase {
 	/** Returns the current odometry pose. */
 	@AutoLogOutput(key = "Odometry/Pose")
 	public Pose2d getPose() {
+		return this.pose.getPoseMeters();
+	}
+
+	/*
+	 * Returns the current odometry pose, transformed to blue origin coordinates.
+	 */
+	@AutoLogOutput(key = "Odometry/BlueOriginPose")
+	public Pose2d getBlueOriginPose() {
+		if (Robot.instance.alliance.isPresent() && Robot.instance.alliance.get() == Alliance.Red) {
+			return this.pose.getPoseMeters().relativeTo(new Pose2d(Constants.FIELD_WIDTH_METERS, Constants.FIELD_HEIGHT_METERS, Rotation2d.fromRadians(Math.PI)));
+		}
 		return this.pose.getPoseMeters();
 	}
 

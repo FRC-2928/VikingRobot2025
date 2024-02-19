@@ -51,7 +51,7 @@ public class JoystickDrive extends Command {
 		} else {
 			// 1. CONVERT JOYSTICK VALUES
 			linearVelocity = getLinearVelocity(mul); // Meters per/sec
-			omegaRadPerSec = getOmega(mul); // Radians per/sec		
+			omegaRadPerSec = getOmega(mul); // Radians per/sec
 		}	
 
 		// 2 CONVERT TO CHASSIS SPEEDS	

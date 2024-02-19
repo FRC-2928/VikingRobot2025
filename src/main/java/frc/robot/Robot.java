@@ -10,8 +10,11 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.hal.HALValue;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -46,6 +49,12 @@ public class Robot extends LoggedRobot {
 		case SIM:
 			// Running a physics simulator, log to NT
 			Logger.addDataReceiver(new NT4Publisher());
+			DriverStationSim.registerAllianceStationIdCallback(
+				(String name, HALValue value) -> {
+					this.alliance = Optional.of(value.getLong() <= 3 ? Alliance.Red : Alliance.Blue);
+					System.out.println(this.alliance.get());
+				}, true
+			);
 			break;
 
 		case REPLAY:
@@ -92,7 +101,13 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void autonomousPeriodic() {}
+	public void autonomousPeriodic() {
+		switch(Constants.currentMode) {
+			case REAL:
+				this.alliance = DriverStation.getAlliance();
+				break;
+		}
+	}
 
 	@Override
 	public void autonomousExit() {}
@@ -107,7 +122,13 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void teleopPeriodic() {}
+	public void teleopPeriodic() {
+		switch(Constants.currentMode) {
+			case REAL:
+				this.alliance = DriverStation.getAlliance();
+				break;
+		}
+	}
 
 	@Override
 	public void teleopExit() {}
@@ -118,7 +139,13 @@ public class Robot extends LoggedRobot {
 	public void testInit() { CommandScheduler.getInstance().cancelAll(); }
 
 	@Override
-	public void testPeriodic() {}
+	public void testPeriodic() {
+		switch(Constants.currentMode) {
+			case REAL:
+				this.alliance = DriverStation.getAlliance();
+				break;
+		}
+	}
 
 	@Override
 	public void testExit() {}

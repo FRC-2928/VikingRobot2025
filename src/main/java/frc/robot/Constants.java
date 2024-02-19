@@ -15,6 +15,9 @@ public class Constants {
 
 	public static Mode currentMode = Mode.SIM;
 
+	public static final double FIELD_WIDTH_METERS = 16.55445;
+	public static final double FIELD_HEIGHT_METERS = 8.21;
+
 	public static enum Mode {
 		/** Running on a real robot. */
 		REAL,
