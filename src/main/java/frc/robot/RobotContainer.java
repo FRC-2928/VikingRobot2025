@@ -1,9 +1,6 @@
 package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -19,6 +16,7 @@ import frc.robot.subsystems.SwerveModule;
 import frc.robot.subsystems.ModuleIO;
 import frc.robot.subsystems.ModuleIOSim;
 import frc.robot.subsystems.ModuleIOTalonFX;
+import frc.robot.subsystems.RatchetServo;
 
 public class RobotContainer {
 
@@ -28,6 +26,7 @@ public class RobotContainer {
 	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Drivetrain drivetrain;
+	// private final RatchetServo servo = new RatchetServo(0); // PWM channel
 
 	public RobotContainer() { 
 		
@@ -76,6 +75,7 @@ public class RobotContainer {
 		this.driverOI.lock.whileTrue(new LockWheels(this.drivetrain, this.driverOI)); // Left Bumper
 		this.driverOI.alignShooter.whileTrue(new alignTarget( this.drivetrain));
 		this.driverOI.aimAtSpeaker.whileTrue(new AimAtSpeaker(this.drivetrain)); // Right Bumper
+		// this.driverOI.toggleRatchet.whileTrue(new RunCommand(() -> this.servo.toggleRatchet()));
 	}
 	
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive(this.drivetrain, this.driverOI)); }

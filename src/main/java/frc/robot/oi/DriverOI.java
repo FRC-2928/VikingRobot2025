@@ -30,6 +30,7 @@ public class DriverOI extends BaseOI {
 		this.lock = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
+		this.toggleRatchet = this.controller.a();
 
 		this.aimAtSpeaker = this.controller.rightBumper();
 	}
@@ -50,4 +51,5 @@ public class DriverOI extends BaseOI {
 	public final Trigger resetFOD;
 
 	public final Trigger aimAtSpeaker;
+	public final Trigger toggleRatchet;
 }
