@@ -30,6 +30,8 @@ public class DriverOI extends BaseOI {
 		this.lock = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
+
+		this.aimAtSpeaker = this.controller.rightBumper();
 	}
 
 	public final Supplier<Double> moveAxial;
@@ -46,4 +48,6 @@ public class DriverOI extends BaseOI {
 	public final Trigger alignShooter;
 
 	public final Trigger resetFOD;
+
+	public final Trigger aimAtSpeaker;
 }

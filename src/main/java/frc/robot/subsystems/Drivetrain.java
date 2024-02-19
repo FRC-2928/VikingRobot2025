@@ -238,7 +238,7 @@ public class Drivetrain extends SubsystemBase {
 	@AutoLogOutput(key = "Odometry/BlueOriginPose")
 	public Pose2d getBlueOriginPose() {
 		if (Robot.instance.alliance.isPresent() && Robot.instance.alliance.get() == Alliance.Red) {
-			return this.pose.getPoseMeters().relativeTo(new Pose2d(Constants.FIELD_WIDTH_METERS, Constants.FIELD_HEIGHT_METERS, Rotation2d.fromRadians(Math.PI)));
+			return this.pose.getPoseMeters().relativeTo(new Pose2d(Constants.FIELD_WIDTH_METERS, Constants.FIELD_DEPTH_METERS, Rotation2d.fromRadians(Math.PI)));
 		}
 		return this.pose.getPoseMeters();
 	}

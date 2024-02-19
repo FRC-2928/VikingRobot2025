@@ -15,8 +15,8 @@ public class Constants {
 
 	public static Mode currentMode = Mode.SIM;
 
-	public static final double FIELD_WIDTH_METERS = 16.55445;
-	public static final double FIELD_HEIGHT_METERS = 8.21;
+	public static final double FIELD_WIDTH_METERS = 16.55445; // Correlates to Field oriented x coordinate
+	public static final double FIELD_DEPTH_METERS = 8.21; // Correlates to Field oriented y coordinate
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -151,6 +151,7 @@ public class Constants {
 
 		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
 		public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
+		public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
 
 		public static final double thetaCompensationFactor = 0.1;
 

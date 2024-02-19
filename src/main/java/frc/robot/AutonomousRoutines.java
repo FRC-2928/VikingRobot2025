@@ -70,14 +70,11 @@ public final class AutonomousRoutines {
 				drivetrain // The subsystem(s) to require, typically your drive subsystem only
 			);
 
-			// Construct initial auto pose based on current pose angle and choreo starting translation
-			Pose2d initialPose = new Pose2d(getPoseForAlliance(traj.getInitialPose()).getTranslation(), drivetrain.getPose().getRotation());
-
 		return Commands
 			.sequence(
 				Commands.runOnce(() -> drivetrain.setModuleStates(SwerveModule.State.forward())),
 				// new WaitCommand(0.5),
-				Commands.runOnce(() -> drivetrain.resetOdometry(initialPose)),
+				Commands.runOnce(() -> drivetrain.resetOdometry(new Pose2d(getPoseForAlliance(traj.getInitialPose()).getTranslation(), drivetrain.getPose().getRotation()))),
 				swerveCommand,
 				drivetrain.run(() -> drivetrain.drive(0, 0, 0, false))
 			);
@@ -98,7 +95,7 @@ public final class AutonomousRoutines {
 		if (shouldMirror()) {
 			return new Pose2d(
 				initialPose.getX(), 
-				Constants.FIELD_HEIGHT_METERS - initialPose.getY(), 
+				Constants.FIELD_DEPTH_METERS - initialPose.getY(), 
 				initialPose.getRotation().unaryMinus()
 			);
 		}
