@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.Slot1Configs;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.*;
@@ -24,6 +23,9 @@ public class Constants {
 
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
+
+	public static final Measure<Distance> FIELD_WIDTH_METERS = Units.Meters.of(16.55445); // Correlates to Field oriented x coordinate
+	public static final Measure<Distance> FIELD_DEPTH_METERS = Units.Meters.of(8.21); // Correlates to Field oriented y coordinate
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -128,6 +130,12 @@ public class Constants {
 			public static final boolean thetaCompensation = false;
 		}
 
+		public static final class Choreo {
+			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
+			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
+			public static final PIDValues theta = new PIDValues(0.5, 0, 0, 0);
+		}
+
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
 			rotor up to the desired velocity by itself */
 		// kP = 5 An error of 1 rotation per second results in 5 amps output
@@ -165,7 +173,9 @@ public class Constants {
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 
-		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.5, 0.0, 0, 0);
+		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
+		public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
+		public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
 
 		public static final double thetaCompensationFactor = 0.1;
 

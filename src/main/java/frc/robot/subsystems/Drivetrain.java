@@ -11,13 +11,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
@@ -63,11 +61,10 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 
 	// Used to track odometry
-	public final SwerveDriveOdometry pose;
-	public final SwerveDrivePoseEstimator poseEstimator;
+	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
 
-	private final SysIdRoutine sysId;
+	public final SysIdRoutine sysId;
 
 	public Drivetrain(GyroIO gyroIO, final ModuleIO fl, final ModuleIO fr, final ModuleIO bl, final ModuleIO br) {
 		if(gyroIO == null) gyroIO = new GyroIOSim(this);
@@ -78,27 +75,19 @@ public class Drivetrain extends SubsystemBase {
 		this.modules[2] = new SwerveModule(bl, Place.BackLeft);
 		this.modules[3] = new SwerveModule(br, Place.BackRight);
 
-		this.poseEstimator = new SwerveDrivePoseEstimator(
+		this.est = new SwerveDrivePoseEstimator(
 			this.kinematics,
 			new Rotation2d(this.gyroInputs.yawPosition),
 			this.modulePositions(),
 			new Pose2d()
 		);
 
-		this.pose = new SwerveDriveOdometry(
-			this.kinematics,
-			new Rotation2d(this.gyroInputs.yawPosition),
-			this.modulePositions(),
-			new Pose2d()
-		);
-
-		// Configure SysId
 		this.sysId = new SysIdRoutine(
 			new SysIdRoutine.Config(
 				null,
 				null,
 				null,
-				state -> Logger.recordOutput("Drive/SysIdState", state.toString())
+				state -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())
 			),
 			new SysIdRoutine.Mechanism(voltage -> {
 				for(int i = 0; i < 4; i++) {
@@ -133,7 +122,7 @@ public class Drivetrain extends SubsystemBase {
 
 	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
 	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.pose.getPoseMeters().getRotation());
+		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.est.getEstimatedPosition().getRotation());
 	}
 
 	// Compensate for wheel rotation.  This prevents the robot
@@ -147,17 +136,18 @@ public class Drivetrain extends SubsystemBase {
 			);
 	}
 
-	public void resetOdometryEstimator(final Pose2d pose) {
-		this.poseEstimator.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), pose);
+	/*
+	 * Sets the pose angle to 0 while preserving translation.
+	 * This method is good for resetting field oriented drive.
+	 */
+	public void resetAngle() {
+		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
 	}
 
-	public void resetOdometry(final Pose2d newPose) {
-		this.pose.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-	}
-
-	public void reset() {
-		this.gyro.reset();
-		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = this.pose.getPoseMeters().getRotation();
+	public void reset(final Pose2d newPose) {
+		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
+		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = Units.Radians
+			.of(this.est.getEstimatedPosition().getRotation().getRadians());
 	}
 
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
@@ -175,21 +165,21 @@ public class Drivetrain extends SubsystemBase {
 		return Arrays.stream(this.modules).map(module -> module.desired).toArray(SwerveModuleState[]::new);
 	}
 
-	/**
-	 * Updates the pose with vision if close to current position.
-	 */
-	public void updatePoseEstimatorWithVision() {
-		if(this.limelight.hasValidTargets()) {
-			// distance from current pose to vision estimated pose
-			final double poseDifference = this.poseEstimator
+	// Returns the current odometry pose, transformed to blue origin coordinates.
+	@AutoLogOutput(key = "Odometry/BlueOriginPose")
+	public Pose2d blueOriginPose() {
+		if(DriverStation.getAlliance().get() == Alliance.Red) {
+			return this.est
 				.getEstimatedPosition()
-				.getTranslation()
-				.getDistance(this.limelight.getPose2d().getTranslation());
-			SmartDashboard.putNumber("pose difference", poseDifference);
-
-			if(poseDifference < 0.5) {
-				this.poseEstimator.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-			}
+				.relativeTo(
+					new Pose2d(
+						Constants.FIELD_WIDTH_METERS,
+						Constants.FIELD_DEPTH_METERS,
+						Rotation2d.fromRadians(Math.PI)
+					)
+				);
+		} else {
+			return this.est.getEstimatedPosition();
 		}
 	}
 
@@ -202,27 +192,27 @@ public class Drivetrain extends SubsystemBase {
 			module.periodic();
 
 		// Update the odometry pose
-		this.pose.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
-		this.poseEstimator.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		this.updatePoseEstimatorWithVision();
+		if(this.limelight.hasValidTargets() && this.limelight.getNumberOfAprilTags() >= 2) {
+			// distance from current pose to vision estimated pose
+			// double poseDifference = this.poseEstimator
+			// 	.getEstimatedPosition()
+			//	.getTranslation()
+			// 	.getDistance(this.limelight.getPose2d().getTranslation());
 
-		Logger.recordOutput("Drivetrain/Pose", this.poseEstimator.getEstimatedPosition());
-	}
+			// if (poseDifference < 0.5) {
+			this.est.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			// }
+		}
 
-	/** Returns a command to run a quasistatic test in the specified direction. */
-	public Command sysIdQuasistatic(final SysIdRoutine.Direction direction) {
-		return this.sysId.quasistatic(direction);
-	}
-
-	/** Returns a command to run a dynamic test in the specified direction. */
-	public Command sysIdDynamic(final SysIdRoutine.Direction direction) {
-		return this.sysId.dynamic(direction);
+		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 	}
 
 	public boolean getHasValidTargetsSim() {
-		final double heading = this.poseEstimator.getEstimatedPosition().getRotation().getDegrees();
+		final double heading = this.est.getEstimatedPosition().getRotation().getDegrees();
 
 		return heading > 135 || heading < -135;
 	}

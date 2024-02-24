@@ -18,8 +18,8 @@ import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class Diagnostics extends SubsystemBase {
-	public final class Lockout extends Command {
-		public Lockout() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.shooter, Robot.cont.climber); }
+	public final class SystemOverride extends Command {
+		public SystemOverride() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.shooter, Robot.cont.climber); }
 
 		@Override
 		public void end(final boolean interrupted) { CommandScheduler.getInstance().cancelAll(); }

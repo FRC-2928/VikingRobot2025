@@ -100,7 +100,7 @@ public class ModuleIOReal implements ModuleIO {
 		this.azimuth.getConfigurator().apply(azimuthConfig);
 		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
 
-		final var driveConfig = new TalonFXConfiguration();
+		final TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 		// Peak output amps
 		driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
 		driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;

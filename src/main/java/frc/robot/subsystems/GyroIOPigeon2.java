@@ -18,7 +18,7 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import edu.wpi.first.units.Units;
+import edu.wpi.first.units.*;
 import frc.robot.Constants;
 
 /** IO implementation for Pigeon2 */

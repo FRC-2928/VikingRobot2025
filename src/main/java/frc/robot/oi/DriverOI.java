@@ -12,13 +12,13 @@ public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
+		this.moveAxial = () -> -this.controller.getLeftY();
 		this.moveLateral = this.controller::getLeftX;
 
 		if(Constants.mode == Mode.REAL) {
 			this.moveTheta = this.controller::getRightX;
 			this.moveRotationX = this.controller::getRightX;
-			this.moveRotationY = this.controller::getRightY;
+			this.moveRotationY = () -> -this.controller.getRightY();
 		} else {
 			this.moveTheta = () -> this.hid.getRawAxis(2);
 			this.moveRotationX = () -> this.hid.getRawAxis(2);
@@ -26,9 +26,11 @@ public class DriverOI extends BaseOI {
 		}
 
 		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getRightTriggerAxis());
-		this.alignShooter = this.controller::getRightTriggerAxis;
 
-		this.lock = this.controller.leftBumper();
+		this.shootFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.5);
+		this.shootRear = this.controller.rightBumper();
+
+		this.lockWheels = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
 	}
@@ -42,9 +44,11 @@ public class DriverOI extends BaseOI {
 	public final Supplier<Double> moveRotationY;
 
 	public final Supplier<Double> slow;
-	public final Supplier<Double> alignShooter;
 
-	public final Trigger lock;
+	public final Trigger shootFront;
+	public final Trigger shootRear;
+
+	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
 }

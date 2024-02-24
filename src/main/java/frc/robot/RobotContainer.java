@@ -89,7 +89,7 @@ public class RobotContainer {
 
 		this.autonomousChooser = new LoggedDashboardChooser<>(
 			"Autonomous Routine",
-			AutonomousRoutines.createAutonomousChooser(this.drivetrain)
+			AutonomousRoutines.createAutonomousChooser()
 		);
 
 		this.configureDriverControls();
@@ -98,8 +98,9 @@ public class RobotContainer {
 	}
 
 	private void configureDriverControls() {
-		this.driverOI.resetFOD.onTrue(new RunCommand(this.drivetrain::reset)); // Y Button
-		this.driverOI.lock.whileTrue(new LockWheels()); // Left Bumper
+		this.driverOI.lockWheels.whileTrue(new LockWheels());
+
+		this.driverOI.resetFOD.onTrue(new RunCommand(this.drivetrain::resetAngle));
 	}
 
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive()); }
