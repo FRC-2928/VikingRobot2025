@@ -6,6 +6,7 @@ import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggedDriverStation;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
@@ -17,50 +18,43 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
-	public Optional<DriverStation.Alliance> alliance;
+	public static RobotContainer cont;
+
+	public RobotContainer container;
 
 	private Command autonomousCommand;
-	private RobotContainer container;
 
 	public Robot() {
 		super();
 		Robot.instance = this;
+		Robot.cont = new RobotContainer();
 	}
 
 	@Override
 	public void robotInit() {
-		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.pdh, ModuleType.kRev.value);
+		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.Misc.pdh, ModuleType.kRev.value);
 
-		if(Robot.isReal()){
-			Constants.currentMode = Constants.Mode.REAL;
-		}
-
-		switch(Constants.currentMode) {
-		case REAL:
+		switch(Constants.mode) {
+		case REAL ->
 			// Running on a real robot, log to a USB stick ("/U/logs") by default
 			// Try "/V/logs" if that doesn't work, which I think refers to the other USB port on the RoboRio
 			// Logger.addDataReceiver(new WPILOGWriter());
 			Logger.addDataReceiver(new NT4Publisher());
-			break;
 
-		case SIM:
+		case SIM ->
 			// Running a physics simulator, log to NT
 			Logger.addDataReceiver(new NT4Publisher());
-			break;
 
-		case REPLAY:
+		case REPLAY -> {
 			// Replaying a log, set up replay source
-			setUseTiming(false); // Run as fast as possible
-			String logPath = LogFileUtil.findReplayLog();
+			this.setUseTiming(false); // Run as fast as possible
+			final String logPath = LogFileUtil.findReplayLog();
 			Logger.setReplaySource(new WPILOGReader(logPath));
 			Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
-			break;
+		}
 		}
 
 		Logger.start();
-
-		this.alliance = DriverStation.getAlliance();
-		this.container = new RobotContainer();
 	}
 
 	@Override

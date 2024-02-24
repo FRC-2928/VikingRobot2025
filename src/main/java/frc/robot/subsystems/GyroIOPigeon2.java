@@ -18,32 +18,30 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Units;
 import frc.robot.Constants;
+
 /** IO implementation for Pigeon2 */
 public class GyroIOPigeon2 implements GyroIO {
-  private final Pigeon2 pigeon = new Pigeon2(Constants.CAN.pigeon, "canivore");
-  private final StatusSignal<Double> yaw = pigeon.getYaw();
-  private final StatusSignal<Double> yawVelocity = pigeon.getAngularVelocityZWorld();
+	private final Pigeon2 pigeon = new Pigeon2(Constants.CAN.CTRE.pigeon, Constants.CAN.CTRE.bus);
+	private final StatusSignal<Double> yaw = this.pigeon.getYaw();
+	private final StatusSignal<Double> yawVelocity = this.pigeon.getAngularVelocityZWorld();
 
-  public GyroIOPigeon2() {
-    pigeon.getConfigurator().apply(new Pigeon2Configuration());
-    pigeon.getConfigurator().setYaw(0.0);
-    yaw.setUpdateFrequency(100.0);
-    yawVelocity.setUpdateFrequency(100.0);
-    pigeon.optimizeBusUtilization();
-  }
+	public GyroIOPigeon2() {
+		this.pigeon.getConfigurator().apply(new Pigeon2Configuration());
+		this.pigeon.getConfigurator().setYaw(0);
+		this.yaw.setUpdateFrequency(100);
+		this.yawVelocity.setUpdateFrequency(100);
+		this.pigeon.optimizeBusUtilization();
+	}
 
-  @Override
-  public void updateInputs(GyroIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
-    inputs.yawPosition = Rotation2d.fromDegrees(yaw.getValueAsDouble());
-    inputs.yawVelocityRadPerSec = Units.degreesToRadians(yawVelocity.getValueAsDouble());
-  }
-  
-  @Override
-  public void resetGyro(){
-    pigeon.reset();
-  }
+	@Override
+	public void updateInputs(final GyroIOInputs inputs) {
+		inputs.connected = StatusCode.OK.equals(BaseStatusSignal.refreshAll(this.yaw, this.yawVelocity));
+		inputs.yawPosition = Units.Degrees.of(this.yaw.getValueAsDouble());
+		inputs.yawVelocityRadPerSec = Units.DegreesPerSecond.of(this.yawVelocity.getValueAsDouble());
+	}
+
+	@Override
+	public void reset() { this.pigeon.reset(); }
 }

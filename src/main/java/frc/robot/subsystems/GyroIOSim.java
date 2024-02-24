@@ -8,59 +8,56 @@ import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Constants;
+import frc.robot.Robot;
 
 public class GyroIOSim implements GyroIO {
-    Drivetrain drivetrain;
+	Drivetrain drivetrain;
 
-    private Pose2d simOdometry = new Pose2d();
-    double[] lastModulePositionsRad = {0, 0, 0, 0};
-        
-    private final Pigeon2 imu = new Pigeon2(0);
-    private final Pigeon2SimState imuSim = imu.getSimState();
+	private Pose2d simOdometry = new Pose2d();
+	double[] lastModulePositions = { 0, 0, 0, 0 };
 
-    public GyroIOSim(Drivetrain drivetrain) {
-        this.drivetrain = drivetrain;
-    }
+	private final Pigeon2 imu = new Pigeon2(0);
+	private final Pigeon2SimState imuSim = this.imu.getSimState();
 
-    @Override
-    public void updateInputs(GyroIOInputs inputs) {
-        calcAngle();
-        inputs.connected = true;
-        // imuSim.setSupplyVoltage(RobotController.getBatteryVoltage());
-        // final StatusCode yaw = imuSim.setRawYaw(this.drivetrain.getRobotAngle().getRadians());
-        // inputs.yawPosition = Rotation2d.fromRadians(yaw.value);
+	public GyroIOSim(final Drivetrain drivetrain) { this.drivetrain = drivetrain; }
 
-        inputs.yawPosition = simOdometry.getRotation();
-    }
+	@Override
+	public void updateInputs(final GyroIOInputs inputs) {
+		this.calcAngle();
+		inputs.connected = true;
+		inputs.yawPosition = Units.Rotations.of(this.simOdometry.getRotation().getRotations());
+	}
 
-    private void calcAngle() {
-        drivetrain.getSwerveModules();
+	private void calcAngle() {
+		final Measure<Angle>[] azimuthPositions = new ImmutableMeasure[4];
+		for(int i = 0; i < 4; i++) {
+			azimuthPositions[i] = Robot.cont.drivetrain.modules[i].inputs.angle;
+		}
 
-        Rotation2d[] turnPositions = new Rotation2d[4];
-        for (int i = 0; i < 4; i++) {
-            turnPositions[i] = drivetrain.getSwerveModules()[i].getTurnPosition();
-        }
+		final SwerveModuleState[] measuredStatesDiff = new SwerveModuleState[4];
+		for(int i = 0; i < 4; i++) {
+			measuredStatesDiff[i] = new SwerveModuleState(
+				Robot.cont.drivetrain.modules[i]
+					.drivePosition()
+					.times(Constants.Drivetrain.wheelCircumference.in(Units.Meters))
+					.minus(Units.Meters.of(this.lastModulePositions[i]))
+					.in(Units.Meters),
+				Rotation2d.fromRadians(azimuthPositions[i].in(Units.Radians))
+			);
+			this.lastModulePositions[i] = Robot.cont.drivetrain.modules[i].drivePosition().in(Units.Meters);
+		}
 
-        SwerveModuleState[] measuredStatesDiff = new SwerveModuleState[4];
-        for (int i = 0; i < 4; i++) {
-            measuredStatesDiff[i] = new SwerveModuleState(
-                    (drivetrain.getSwerveModules()[i].getDrivePositionMeters() - lastModulePositionsRad[i])
-                            * Units.inchesToMeters(2),
-                    turnPositions[i]);
-            lastModulePositionsRad[i] = drivetrain.getSwerveModules()[i].getDrivePositionMeters();
-        }
+		final ChassisSpeeds cs = Robot.cont.drivetrain.kinematics.toChassisSpeeds(measuredStatesDiff);
 
-        simOdometry = simOdometry.exp(new Twist2d(
-                drivetrain.getKinematics().toChassisSpeeds(measuredStatesDiff).vxMetersPerSecond,
-                drivetrain.getKinematics().toChassisSpeeds(measuredStatesDiff).vyMetersPerSecond,
-                drivetrain.getKinematics().toChassisSpeeds(measuredStatesDiff).omegaRadiansPerSecond));
-    }
+		this.simOdometry = this.simOdometry
+			.exp(new Twist2d(cs.vxMetersPerSecond, cs.vyMetersPerSecond, cs.omegaRadiansPerSecond));
+	}
 
-    @Override
-    public void resetGyro(){
-        simOdometry = new Pose2d();
-    }
+	@Override
+	public void reset() { this.simOdometry = new Pose2d(); }
 }
