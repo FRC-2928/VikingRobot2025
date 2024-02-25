@@ -16,12 +16,17 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.DrivetrainModifier;
+import frc.robot.subsystems.ShooterIO;
+import frc.robot.subsystems.ShooterIO.ShooterIOInputs;
+import frc.robot.vision.Limelight;
 
 /*
  * Adjusts the robot angle and shooter angle until the shooter is lined up to shoot at the speaker
  */
 public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	public final Drivetrain drivetrain;
+	public final ShooterIO shooter;
+	public final Limelight shooterLimelight;
 
 	private final PIDController absoluteController = Constants.Drivetrain.visionAbsoluteRotationErrorPID
 		.createController();
@@ -29,11 +34,16 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 
 	private final Measure<Angle> horizontalAngleTolerance = Units.Degrees.of(2);
 	private final Measure<Angle> verticalAngleTolerance = Units.Degrees.of(1);
+	private final Measure<Angle> standardForwardAngle = Units.Degrees.of(45);
 
-	public AimAtSpeaker(final Drivetrain drivetrain) {
+	private boolean aimBackwards; // the shooter will aim backwards
+
+	public AimAtSpeaker(final Drivetrain drivetrain, final ShooterIO shooter, final Limelight shooterLimelight) {
 		super();
 
 		this.drivetrain = drivetrain;
+		this.shooter = shooter;
+		this.shooterLimelight = shooterLimelight;
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
 
@@ -84,9 +94,19 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	}
 
 	private void aimShooter() {
-		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the robot to center the apriltag in view
+		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
 			final Measure<Angle> verticalMeasurement = this.drivetrain.limelight.getTargetVerticalOffset();
-			//TODO: output voltage to the shooter angle subsystem
+
+			if(Math.abs(verticalMeasurement.in(Units.Degrees)) > this.verticalAngleTolerance.in(Units.Degrees)) {
+				final ShooterIOInputs inputs = new ShooterIOInputs();
+				this.shooter.updateInputs(inputs);
+
+				final Measure<Angle> newAngle = inputs.angle.plus(verticalMeasurement);
+				// this.shooter.rotate(newAngle);
+			}
+		} else {
+			// move shooter up to angle where tag can be seen
+			// this.shooter.rotate(standardForwardAngle);
 		}
 	}
 
