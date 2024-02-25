@@ -2,8 +2,9 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.LockWheels;
@@ -13,8 +14,10 @@ import frc.robot.subsystems.ClimberIO;
 import frc.robot.subsystems.ClimberIOReal;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.DrivetrainModifier;
+import frc.robot.subsystems.DrivetrainModifier.Modification;
 import frc.robot.subsystems.GyroIO;
-import frc.robot.subsystems.GyroIOPigeon2;
+import frc.robot.subsystems.GyroIOReal;
 import frc.robot.subsystems.SwerveModule;
 import frc.robot.subsystems.ModuleIO;
 import frc.robot.subsystems.ModuleIOSim;
@@ -32,6 +35,7 @@ public class RobotContainer {
 	public final Diagnostics diag;
 
 	public final Drivetrain drivetrain;
+	public final DrivetrainModifier mod;
 	public final Shooter shooter;
 	public final Climber climber;
 
@@ -39,53 +43,16 @@ public class RobotContainer {
 		Robot.instance.container = this;
 		Robot.cont = this;
 
-		switch(Constants.mode) {
-		case REAL -> {
-			this.diag = new Diagnostics();
+		this.diag = new Diagnostics();
+		this.drivetrain = new Drivetrain();
+		this.shooter = new Shooter();
+		this.climber = new Climber();
 
-			this.drivetrain = new Drivetrain(
-				new GyroIOPigeon2(),
-				new ModuleIOReal(SwerveModule.Place.FrontLeft),
-				new ModuleIOReal(SwerveModule.Place.FrontRight),
-				new ModuleIOReal(SwerveModule.Place.BackLeft),
-				new ModuleIOReal(SwerveModule.Place.BackRight)
-			);
-			this.shooter = new Shooter(new ShooterIOReal());
-			this.climber = new Climber(new ClimberIOReal());
-		}
-		case SIM -> {
-			this.diag = null;
-
-			this.drivetrain = new Drivetrain(
-				null,
-				new ModuleIOSim(),
-				new ModuleIOSim(),
-				new ModuleIOSim(),
-				new ModuleIOSim()
-			);
-			this.shooter = null;
-			this.climber = null;
-		}
-		case REPLAY -> {
-			this.diag = null;
-
-			this.drivetrain = new Drivetrain(new GyroIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			}, new ModuleIO() {
-			});
-			this.shooter = new Shooter(new ShooterIO() {
-
-			});
-			this.climber = new Climber(new ClimberIO() {
-			});
-		}
-		default -> {
-			throw new Error();
-		}
-		}
-		;
+		this.mod = new DrivetrainModifier();
+		this.mod.setDefaultCommand(new Modification() {
+			@Override
+			public ChassisSpeeds modify(final ChassisSpeeds control) { return control; }
+		});
 
 		this.autonomousChooser = new LoggedDashboardChooser<>(
 			"Autonomous Routine",
@@ -100,7 +67,10 @@ public class RobotContainer {
 	private void configureDriverControls() {
 		this.driverOI.lockWheels.whileTrue(new LockWheels());
 
-		this.driverOI.resetFOD.onTrue(new RunCommand(this.drivetrain::resetAngle));
+		this.driverOI.resetFOD.onTrue(new InstantCommand(() -> {
+			this.drivetrain.resetFOD();
+			this.drivetrain.resetAngle();
+		}));
 	}
 
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive()); }

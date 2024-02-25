@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -57,23 +58,47 @@ public class Drivetrain extends SubsystemBase {
 
 	public final GyroIO gyro;
 	public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
-	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 
-	// Used to track odometry
+	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
+
+	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
 
+	public Measure<Angle> fodOffset = Units.Radians.zero();
+
 	public final SysIdRoutine sysId;
 
-	public Drivetrain(GyroIO gyroIO, final ModuleIO fl, final ModuleIO fr, final ModuleIO bl, final ModuleIO br) {
-		if(gyroIO == null) gyroIO = new GyroIOSim(this);
-
-		this.gyro = gyroIO;
-		this.modules[0] = new SwerveModule(fl, Place.FrontLeft);
-		this.modules[1] = new SwerveModule(fr, Place.FrontRight);
-		this.modules[2] = new SwerveModule(bl, Place.BackLeft);
-		this.modules[3] = new SwerveModule(br, Place.BackRight);
+	public Drivetrain() {
+		switch(Constants.mode) {
+		case REAL -> {
+			this.gyro = new GyroIOReal();
+			this.modules[0] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.FrontLeft), Place.FrontLeft);
+			this.modules[1] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.FrontRight), Place.FrontRight);
+			this.modules[2] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.BackLeft), Place.BackLeft);
+			this.modules[3] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.BackRight), Place.BackRight);
+		}
+		case SIM -> {
+			this.gyro = new GyroIOSim(this);
+			this.modules[0] = new SwerveModule(new ModuleIOSim(), Place.FrontLeft);
+			this.modules[1] = new SwerveModule(new ModuleIOSim(), Place.FrontRight);
+			this.modules[2] = new SwerveModule(new ModuleIOSim(), Place.BackLeft);
+			this.modules[3] = new SwerveModule(new ModuleIOSim(), Place.BackRight);
+		}
+		case REPLAY -> {
+			this.gyro = new GyroIO() {
+			};
+			this.modules[0] = new SwerveModule(new ModuleIO() {
+			}, Place.FrontLeft);
+			this.modules[1] = new SwerveModule(new ModuleIO() {
+			}, Place.FrontRight);
+			this.modules[2] = new SwerveModule(new ModuleIO() {
+			}, Place.BackLeft);
+			this.modules[3] = new SwerveModule(new ModuleIO() {
+			}, Place.BackRight);
+		}
+		default -> throw new Error();
+		}
 
 		this.est = new SwerveDrivePoseEstimator(
 			this.kinematics,
@@ -98,19 +123,25 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void control(ChassisSpeeds speeds) {
-		speeds = ChassisSpeeds.discretize(speeds, 0.02);
-
 		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
+
+		speeds = ChassisSpeeds
+			.discretize(
+				ChassisSpeeds
+					.fromFieldRelativeSpeeds(
+						Robot.cont.mod.modify(speeds),
+						new Rotation2d(this.gyroInputs.yawPosition.minus(this.fodOffset))
+					),
+				0.02
+			);
 
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
 	public void control(final SwerveModuleState[] states) {
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
-
-		Logger.recordOutput("Drivetrain/States/desired", states);
 
 		for(int i = 0; i < this.modules.length; i++)
 			this.modules[i].control(states[i]);
@@ -119,11 +150,6 @@ public class Drivetrain extends SubsystemBase {
 	public void control(final Drivetrain.State state) { this.control(state.states); }
 
 	public void halt() { this.control(State.locked()); }
-
-	// Convert field-relative ChassisSpeeds to robot-relative ChassisSpeeds.
-	public ChassisSpeeds fieldOrientedDrive(final ChassisSpeeds field) {
-		return ChassisSpeeds.fromFieldRelativeSpeeds(field, this.est.getEstimatedPosition().getRotation());
-	}
 
 	// Compensate for wheel rotation.  This prevents the robot
 	// from drifting to one side while driving and rotating
@@ -142,6 +168,11 @@ public class Drivetrain extends SubsystemBase {
 	 */
 	public void resetAngle() {
 		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
+	}
+
+	public void resetFOD() {
+		this.fodOffset = this.gyroInputs.yawPosition;
+		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = Units.Radians.zero();
 	}
 
 	public void reset(final Pose2d newPose) {
@@ -168,16 +199,10 @@ public class Drivetrain extends SubsystemBase {
 	// Returns the current odometry pose, transformed to blue origin coordinates.
 	@AutoLogOutput(key = "Odometry/BlueOriginPose")
 	public Pose2d blueOriginPose() {
-		if(DriverStation.getAlliance().get() == Alliance.Red) {
+		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
 			return this.est
 				.getEstimatedPosition()
-				.relativeTo(
-					new Pose2d(
-						Constants.FIELD_WIDTH_METERS,
-						Constants.FIELD_DEPTH_METERS,
-						Rotation2d.fromRadians(Math.PI)
-					)
-				);
+				.relativeTo(new Pose2d(Constants.fieldWidth, Constants.fieldDepth, Rotation2d.fromRadians(Math.PI)));
 		} else {
 			return this.est.getEstimatedPosition();
 		}
@@ -192,7 +217,6 @@ public class Drivetrain extends SubsystemBase {
 			module.periodic();
 
 		// Update the odometry pose
-		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
@@ -209,6 +233,7 @@ public class Drivetrain extends SubsystemBase {
 		}
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
+		Logger.recordOutput("Drivetrain/FieldForward", this.gyroInputs.yawPosition.minus(this.fodOffset));
 	}
 
 	public boolean getHasValidTargetsSim() {

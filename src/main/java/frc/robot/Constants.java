@@ -24,8 +24,8 @@ public class Constants {
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
 
-	public static final Measure<Distance> FIELD_WIDTH_METERS = Units.Meters.of(16.55445); // Correlates to Field oriented x coordinate
-	public static final Measure<Distance> FIELD_DEPTH_METERS = Units.Meters.of(8.21); // Correlates to Field oriented y coordinate
+	public static final Measure<Distance> fieldWidth = Units.Meters.of(16.55445); // Correlates to Field oriented x coordinate
+	public static final Measure<Distance> fieldDepth = Units.Meters.of(8.21); // Correlates to Field oriented y coordinate
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -120,12 +120,12 @@ public class Constants {
 			private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }
 
 			/// Field-oriented drive
-			public static final boolean fod = false;
+			public static final boolean fod = true;
 			/// Absolute rotation (point right stick in direction to face)
 			public static final boolean absoluteRotation = false;
 
 			/// Optimize wheel rotation to only rotate less than 90deg per turn
-			public static final boolean wheelOptimization = false;
+			public static final boolean wheelOptimization = true;
 			/// Compensate for wheel rotation while driving and rotating
 			public static final boolean thetaCompensation = false;
 		}
@@ -173,8 +173,8 @@ public class Constants {
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 
-		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
-		public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0.0, 0, 0);
+		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
+		public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0, 0, 0);
 		public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
 
 		public static final double thetaCompensationFactor = 0.1;
@@ -184,23 +184,23 @@ public class Constants {
 
 		public static final Measure<Angle> swerveFrontLeftOffset = Units.Rotations.of(-0.42138671875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
-			Constants.Drivetrain.trackWidth.negate(),
-			Constants.Drivetrain.wheelBase
+			Constants.Drivetrain.wheelBase,
+			Constants.Drivetrain.trackWidth
 		);
 		public static final Measure<Angle> swerveFrontRightOffset = Units.Rotations.of(0.2978515625);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
-			Constants.Drivetrain.trackWidth,
-			Constants.Drivetrain.wheelBase
+			Constants.Drivetrain.wheelBase,
+			Constants.Drivetrain.trackWidth.negate()
 		);
 		public static final Measure<Angle> swerveBackLeftOffset = Units.Rotations.of(0.027587890625);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
-			Constants.Drivetrain.trackWidth.negate(),
-			Constants.Drivetrain.wheelBase.negate()
+			Constants.Drivetrain.wheelBase.negate(),
+			Constants.Drivetrain.trackWidth
 		);
 		public static final Measure<Angle> swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
-			Constants.Drivetrain.trackWidth,
-			Constants.Drivetrain.wheelBase.negate()
+			Constants.Drivetrain.wheelBase.negate(),
+			Constants.Drivetrain.trackWidth.negate()
 		);
 
 		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
@@ -217,10 +217,10 @@ public class Constants {
 		public static final Measure<Distance> wheelRadius = Units.Inches.of(2);
 		public static final Measure<Distance> wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(5.0);
+		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(5);
 
 		// max angular velocity computes to 6.41 radians per second
-		public static final Measure<Velocity<Angle>> maxAngularVelocityRadPerSec = Units.RotationsPerSecond
+		public static final Measure<Velocity<Angle>> maxAngularVelocity = Units.RotationsPerSecond
 			.of(
 				Drivetrain.maxVelocity.in(Units.MetersPerSecond)
 					/ (2
@@ -252,7 +252,7 @@ public class Constants {
 		public static final Measure<Angle> readyShootRear = Units.Rotations.of(0.25);
 
 		// max angle before exiting allowed extension range
-		public static final Measure<Angle> max = Units.Rotations.of(0.4);
+		public static final Measure<Angle> max = Units.Rotations.of(0.37);
 	}
 
 	public static class Climber {

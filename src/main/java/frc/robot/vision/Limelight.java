@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -38,12 +39,12 @@ public class Limelight {
 	public int getTargetAprilTagID() { return (int) LimelightHelpers.getFiducialID(this.limelightName); }
 
 	// Horizontal Offset From Crosshair To Target (LL1: -27 degrees to 27 degrees | LL2: -29.8 to 29.8 degrees)
-	@AutoLogOutput(key = "Limelight/Horizontal Offset")
-	public double getTargetHorizontalOffset() { return this.nt.getEntry("tx").getDouble(0.0); }
+	//@AutoLogOutput(key = "Limelight/Horizontal Offset")
+	public Measure<Angle> getTargetHorizontalOffset() { return Units.Degrees.of(this.nt.getEntry("tx").getDouble(0)); }
 
 	// Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees | LL2: -24.85 to 24.85 degrees)
-	@AutoLogOutput(key = "Limelight/Vertical Offset")
-	public double getTargetVerticalOffset() { return this.nt.getEntry("ty").getDouble(0.0); }
+	//@AutoLogOutput(key = "Limelight/Vertical Offset")
+	public Measure<Angle> getTargetVerticalOffset() { return Units.Degrees.of(this.nt.getEntry("ty").getDouble(0)); }
 
 	public int getNumberOfAprilTags() {
 		final LimelightResults reultsOfJson = LimelightHelpers.getLatestResults(this.limelightName);
@@ -51,7 +52,7 @@ public class Limelight {
 	}
 
 	// Target Area (0% of image to 100% of image)
-	public double getTargetArea() { return this.nt.getEntry("ta").getDouble(0.0); }
+	public double getTargetArea() { return this.nt.getEntry("ta").getDouble(0); }
 
 	public double getTargetSkew() { return this.nt.getEntry("ts").getDouble(0); }
 
@@ -59,18 +60,18 @@ public class Limelight {
 	public Pose3d getPose3d() { return LimelightHelpers.getBotPose3d(this.limelightName); }
 
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
-	@AutoLogOutput(key = "Odometry/Limelight")
+	//@AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {
 		// Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
 		// This should do the same thing as the commented out line above, without need for manual coordinate transformation
-		if(DriverStation.getAlliance().get() == Alliance.Red) {
+		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
 			return LimelightHelpers.getBotPose2d_wpiRed(this.limelightName);
 		} else {
 			return LimelightHelpers.getBotPose2d_wpiBlue(this.limelightName);
 		}
 	}
 
-	@AutoLogOutput(key = "Odometry/BotPose")
+	//@AutoLogOutput(key = "Odometry/BotPose")
 	public Pose2d getBotPose2d() { return LimelightHelpers.getBotPose2d(this.limelightName); }
 
 	// Robot transform in field-space (blue driverstation WPILIB origin). Translation (X,Y,Z) Rotation(X,Y,Z)
@@ -84,7 +85,7 @@ public class Limelight {
 	public Pose3d getRedPose3d() { return LimelightHelpers.getBotPose3d_wpiRed(this.limelightName); }
 
 	// 3D transform of the primary in-view AprilTag in the coordinate system of the Robot (array (6))
-	@AutoLogOutput(key = "limelight/Pose3d")
+	//@AutoLogOutput(key = "limelight/Pose3d")
 	public Pose3d getRobotTagPose3d() { return LimelightHelpers.getTargetPose3d_RobotSpace(this.limelightName); }
 
 	// 3D transform of the primary in-view AprilTag in the coordinate system of the Camera (array (6))

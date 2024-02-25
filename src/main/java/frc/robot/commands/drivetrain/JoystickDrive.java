@@ -38,26 +38,10 @@ public class JoystickDrive extends Command {
 	public void execute() {
 		final Translation2d translation = this.translation();
 
-		final Measure<Velocity<Angle>> theta = this.theta();
-
-		ChassisSpeeds desired = new ChassisSpeeds(
-			translation.getX(),
-			translation.getY(),
-			theta.in(Units.RadiansPerSecond)
-		);
-
-		// Compensate for wheel rotation while driving and rotating.
-		if(Constants.Drivetrain.Flags.thetaCompensation) desired = this.drivetrain.compensate(desired);
-
-		// 3. CONVERT FROM FIELD RELATIVE SPEED TO ROBOT RELATIVE CHASSIS SPEEDS
-		if(Constants.Drivetrain.Flags.fod) desired = this.drivetrain.fieldOrientedDrive(desired);
-
-		// 4. CONVERT CHASSIS SPEEDS TO MODULE SPEEDS
-		// ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(desired, 0.02);
-		final SwerveModuleState[] setpointStates = this.drivetrain.kinematics.toSwerveModuleStates(desired);
-
-		// Set the required speed and angle of each wheel.
-		this.drivetrain.control(setpointStates);
+		this.drivetrain
+			.control(
+				new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond))
+			);
 	}
 
 	private Translation2d translation() {
@@ -116,7 +100,7 @@ public class JoystickDrive extends Command {
 			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);
 		}
 
-		return Constants.Drivetrain.maxAngularVelocityRadPerSec
+		return Constants.Drivetrain.maxAngularVelocity
 			.times(
 				theta
 					* this.oi.slow.get()

@@ -74,6 +74,8 @@ public class SwerveModule {
 	}
 
 	public void control(final SwerveModuleState state) {
+		state.speedMetersPerSecond = -state.speedMetersPerSecond;
+
 		if(
 			Constants.Drivetrain.Flags.wheelOptimization
 				&& Math

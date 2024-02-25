@@ -64,7 +64,7 @@ public final class AutonomousRoutines {
 					Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
 					Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
 					Robot.cont.drivetrain::control,
-					() -> DriverStation.getAlliance().get() == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+					() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
 					Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
 				),
 			new LockWheels()
@@ -75,10 +75,10 @@ public final class AutonomousRoutines {
 	 * Returns the original or mirrored pose depending on alliance color (since the field is flipped)
 	 */
 	private static Pose2d getPoseForAlliance(final Pose2d initialPose) {
-		if(DriverStation.getAlliance().get() == Alliance.Red) {
+		if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
 			return new Pose2d(
 				initialPose.getX(),
-				Constants.FIELD_DEPTH_METERS.in(Units.Meters) - initialPose.getY(),
+				Constants.fieldDepth.in(Units.Meters) - initialPose.getY(),
 				initialPose.getRotation().unaryMinus()
 			);
 		} else return initialPose;

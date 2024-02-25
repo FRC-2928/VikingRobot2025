@@ -46,9 +46,8 @@ public class ModuleIOSim implements ModuleIO {
 	@Override
 	public void setDriveVoltage(final double volts) { this.drive.setInputVoltage(MathUtil.clamp(volts, -12.0, 12.0)); }
 
-	// Voltage is reversed since azimuth motors isInverted is false
 	@Override
 	public void setAzimuthVoltage(final double volts) {
-		this.azimuth.setInputVoltage(MathUtil.clamp(-volts, -12.0, 12.0));
+		this.azimuth.setInputVoltage(MathUtil.clamp(volts, -12.0, 12.0));
 	}
 }
