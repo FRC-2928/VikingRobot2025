@@ -87,7 +87,8 @@ public class JoystickDrive extends Command {
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-			final double measurement = Constants.mod(this.drivetrain.gyroInputs.yawPosition.in(Units.Rotations), 1)
+			final double measurement = Constants
+				.mod(this.drivetrain.gyroInputs.yawPosition.minus(this.drivetrain.fodOffset).in(Units.Rotations), 1)
 				- 0.5;
 			final double setpoint = this.absoluteTarget.in(Units.Rotations);
 

@@ -2,20 +2,23 @@ package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
@@ -32,37 +35,60 @@ public class ShooterIOReal implements ShooterIO {
 		this.encoder.optimizeBusUtilization();
 		this.flywheels.optimizeBusUtilization();
 
-		this.sensors = this.launcher.getSensorCollection();
-
-		this.intake.setNeutralMode(NeutralMode.Coast);
+		this.sensors = this.feeder.getSensorCollection();
 
 		final TalonFXConfiguration pivot = new TalonFXConfiguration();
-		this.pivot.getConfigurator().refresh(pivot);
 		pivot.Feedback.FeedbackRemoteSensorID = Constants.CAN.CTRE.shooterPivot;
 		pivot.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intake.in(Units.Rotations);
+		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotConfig);
 		this.pivot.getConfigurator().apply(pivot);
 		this.pivot.setNeutralMode(NeutralModeValue.Brake);
 
 		this.flywheels.setNeutralMode(NeutralModeValue.Coast);
-		this.launcher.setNeutralMode(NeutralMode.Coast);
+		this.flywheels.setInverted(true);
+		this.feeder.setNeutralMode(NeutralMode.Coast);
+		this.feeder.setInverted(true);
+		this.intake.setNeutralMode(NeutralMode.Coast);
+		this.intake.setInverted(true);
 
 		this.sysIdPivot = new SysIdRoutine(
-			/*
-			new SysIdRoutine.Config(
-				null,
-				null,
-				Units.Seconds.of(8),
-				state -> Logger.recordOutput("SysId/Pivot/State", state)
-			),
-			*/
-			new SysIdRoutine.Config(),
+			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1.0), Units.Volts.of(7.0), null, state -> {
+				Logger.recordOutput("SysId/Shooter/Pivot/State", state.toString());
+				//this.sysIdPivot.recordState(state);
+
+				BaseStatusSignal
+					.setUpdateFrequencyForAll(
+						state != State.kNone ? 100 : 0, // don't update unless currently running sysid
+						this.pivot.getMotorVoltage(),
+						this.pivot.getPosition(),
+						this.pivot.getVelocity()
+					);
+			}),
 			new SysIdRoutine.Mechanism(
 				voltage -> this.pivot.setControl(new VoltageOut(voltage.in(Units.Volts), true, false, false, false)),
 				log -> {
+					//*
+					Logger
+						.recordOutput(
+							"SysId/Shooter/Pivot/Voltage",
+							Units.Volts.of(this.pivot.getSupplyVoltage().getValueAsDouble())
+						);
+					Logger
+						.recordOutput(
+							"SysId/Shooter/Pivot/Position",
+							Units.Rotations.of(this.pivot.getPosition().getValueAsDouble())
+						);
+					Logger
+						.recordOutput(
+							"SysId/Shooter/Pivot/Velocity",
+							Units.RotationsPerSecond.of(this.pivot.getVelocity().getValueAsDouble())
+						);
+					//*/
+					/*
 					log
 						.motor("pivot")
 						.voltage(Units.Volts.of(this.pivot.getMotorVoltage().getValueAsDouble()))
@@ -74,6 +100,7 @@ public class ShooterIOReal implements ShooterIO {
 								.per(Units.Second)
 								.of(this.pivot.getAcceleration().getValueAsDouble())
 						);
+					*/
 				},
 				shooter
 			)
@@ -81,7 +108,7 @@ public class ShooterIOReal implements ShooterIO {
 
 		SmartDashboard
 			.putData(
-				"SysId/Pivot/Quasistatic/Forward",
+				"SysId/Shooter/Pivot/Quasistatic/Forward",
 				this.sysIdPivot
 					.quasistatic(Direction.kForward)
 					.until(
@@ -90,7 +117,7 @@ public class ShooterIOReal implements ShooterIO {
 			);
 		SmartDashboard
 			.putData(
-				"SysId/Pivot/Quasistatic/Reverse",
+				"SysId/Shooter/Pivot/Quasistatic/Reverse",
 				this.sysIdPivot
 					.quasistatic(Direction.kReverse)
 					.until(
@@ -100,7 +127,7 @@ public class ShooterIOReal implements ShooterIO {
 			);
 		SmartDashboard
 			.putData(
-				"SysId/Pivot/Dynamic/Forward",
+				"SysId/Shooter/Pivot/Dynamic/Forward",
 				this.sysIdPivot
 					.dynamic(Direction.kForward)
 					.until(
@@ -109,7 +136,7 @@ public class ShooterIOReal implements ShooterIO {
 			);
 		SmartDashboard
 			.putData(
-				"SysId/Pivot/Dynamic/Reverse",
+				"SysId/Shooter/Pivot/Dynamic/Reverse",
 				this.sysIdPivot
 					.dynamic(Direction.kReverse)
 					.until(
@@ -119,38 +146,49 @@ public class ShooterIOReal implements ShooterIO {
 			);
 	}
 
-	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
-
 	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterEncoder, Constants.CAN.CTRE.bus);
 
 	public final STalonFX flywheels = new STalonFX(Constants.CAN.CTRE.shooterFlywheels, Constants.CAN.CTRE.bus);
-	public final TalonSRX launcher = new TalonSRX(Constants.CAN.Misc.shooterLauncher);
+	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
+	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
 
 	public final StatusSignal<Double> absolutePosition;
 	public final StatusSignal<Double> velocity;
 	public final SensorCollection sensors;
 
-	public final ArmFeedforward ffw = Constants.Shooter.ffw;
+	//public final ArmFeedforward flywheelFeedforward = Constants.Shooter.flywheelFeedforward;
 
 	public final SysIdRoutine sysIdPivot;
 
-	public void applyRotation(final double rotation) {
-		this.pivot
+	@Override
+	public void rotate(final Measure<Angle> target) {
+		Logger.recordOutput("Shooter/Pivot/Desired", target);
+		this.pivot.setControl(new PositionDutyCycle(target.in(Units.Rotations)));
+	}
+
+	@Override
+	public void runFlywheels(final Measure<Velocity<Angle>> demand) {
+		/*
+		this.flywheels
 			.setControl(
 				new VoltageOut(
-					this.ffw
+					this.flywheelFeedforward
 						.calculate(
 							Units.Rotations.of(this.absolutePosition.getValueAsDouble()).in(Units.Radians),
-							rotation
+							demand.in(Units.RotationsPerSecond)
 						)
 				)
 			);
+		*/
+		this.flywheels.set(demand.in(Units.RotationsPerSecond) / 90.0);
 	}
 
-	public void intake(final boolean intake) {
+	@Override
+	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }
 
-	}
+	@Override
+	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir); }
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {

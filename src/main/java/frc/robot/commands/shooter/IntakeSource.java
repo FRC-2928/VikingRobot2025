@@ -1,5 +1,7 @@
 package frc.robot.commands.shooter;
 
-public class IntakeSource {
+import edu.wpi.first.wpilibj2.command.Command;
+
+public class IntakeSource extends Command {
 
 }

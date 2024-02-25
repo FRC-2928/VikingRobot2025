@@ -4,10 +4,13 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.ShootSpeaker;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.ClimberIO;
@@ -65,6 +68,11 @@ public class RobotContainer {
 	}
 
 	private void configureDriverControls() {
+		this.driverOI.shootFront
+			.whileTrue(
+				new ConditionalCommand(new ShootSpeaker(), new IntakeGround(), () -> this.shooter.inputs.holdingNote)
+			);
+
 		this.driverOI.lockWheels.whileTrue(new LockWheels());
 
 		this.driverOI.resetFOD.onTrue(new InstantCommand(() -> {
@@ -75,11 +83,5 @@ public class RobotContainer {
 
 	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive()); }
 
-	/**
-	 * Use this to pass the autonomous command to the main {@link Robot} class.
-	 *
-	 * @return the command to run in autonomous
-	 */
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
-
 }

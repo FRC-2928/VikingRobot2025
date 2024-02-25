@@ -12,5 +12,21 @@ public interface ShooterIO {
 		public Measure<Velocity<Angle>> flywheelSpeed;
 	}
 
+	public static enum Demand {
+		Reverse(-1), Halt(0), Forward(1);
+
+		private Demand(final double dir) { this.dir = dir; }
+
+		public final double dir;
+	}
+
+	public default void rotate(final Measure<Angle> target) {}
+
+	public default void runFlywheels(final Measure<Velocity<Angle>> demand) {}
+
+	public default void runFeeder(final Demand demand) {}
+
+	public default void runIntake(final Demand demand) {}
+
 	public default void updateInputs(final ShooterIOInputs inputs) {}
 }

@@ -18,8 +18,6 @@ public class Shooter extends SubsystemBase {
 	public final ShooterIO io;
 	public final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
 
-	private final PIDController pid = Constants.Shooter.pid.createController();
-
 	public void apply(final Measure<Angle> angle) {
 		// todo
 	}

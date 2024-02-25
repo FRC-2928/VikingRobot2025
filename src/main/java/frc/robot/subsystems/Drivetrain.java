@@ -140,14 +140,14 @@ public class Drivetrain extends SubsystemBase {
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
+	public void control(final Drivetrain.State state) { this.control(state.states); }
+
 	public void control(final SwerveModuleState[] states) {
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Drivetrain.maxVelocity);
 
 		for(int i = 0; i < this.modules.length; i++)
 			this.modules[i].control(states[i]);
 	}
-
-	public void control(final Drivetrain.State state) { this.control(state.states); }
 
 	public void halt() { this.control(State.locked()); }
 
@@ -177,8 +177,6 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = Units.Radians
-			.of(this.est.getEstimatedPosition().getRotation().getRadians());
 	}
 
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")

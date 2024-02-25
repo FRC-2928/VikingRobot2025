@@ -1,5 +1,7 @@
 package frc.robot.commands.shooter;
 
-public class ShootAmp {
+import edu.wpi.first.wpilibj2.command.Command;
+
+public class ShootAmp extends Command {
 
 }

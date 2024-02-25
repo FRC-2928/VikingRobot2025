@@ -4,6 +4,8 @@ import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.SlotConfigs;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
@@ -71,7 +73,7 @@ public class Constants {
 		public static final class Misc {
 			public static final int pdh = 0;
 
-			public static final int shooterLauncher = 0;
+			public static final int feederLauncher = 0;
 			public static final int intakeRoller = 3;
 		}
 
@@ -122,7 +124,7 @@ public class Constants {
 			/// Field-oriented drive
 			public static final boolean fod = true;
 			/// Absolute rotation (point right stick in direction to face)
-			public static final boolean absoluteRotation = false;
+			public static final boolean absoluteRotation = true;
 
 			/// Optimize wheel rotation to only rotate less than 90deg per turn
 			public static final boolean wheelOptimization = true;
@@ -236,8 +238,11 @@ public class Constants {
 	public static class Shooter {
 		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
 
-		public static final ArmFeedforward ffw = new ArmFeedforward(0, 0, 1, 0);
-		public static final PIDValues pid = new PIDValues(0.1, 0, 0, 0);
+		public static final SlotConfigs pivotConfig = new SlotConfigs()
+			.withGravityType(GravityTypeValue.Arm_Cosine)
+			.withKS(0.025)
+			.withKG(0.015)
+			.withKP(3);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(85);
 
@@ -248,7 +253,7 @@ public class Constants {
 		// min angle before hitting floor
 		public static final Measure<Angle> intake = Units.Rotations.of(-0.115);
 
-		public static final Measure<Angle> readyShootFront = Units.Rotations.of(0.05);
+		public static final Measure<Angle> readyShootFront = Units.Rotations.of(1.0 / 12.0);
 		public static final Measure<Angle> readyShootRear = Units.Rotations.of(0.25);
 
 		// max angle before exiting allowed extension range
