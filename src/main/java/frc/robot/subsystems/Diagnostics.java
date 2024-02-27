@@ -105,8 +105,8 @@ public class Diagnostics extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		Logger.recordOutput("Diagnostics/Release", this.releaseInput.get());
-		Logger.recordOutput("Diagnostics/Lockout", this.lockoutInput.get());
+		Logger.recordOutput("Diagnostics/Release", !this.releaseInput.get());
+		Logger.recordOutput("Diagnostics/Lockout", !this.lockoutInput.get());
 
 		if(this.chirps.size() > 0) {
 			final Chirp chirp = this.chirps.get(0);
