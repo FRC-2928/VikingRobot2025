@@ -97,6 +97,8 @@ public class ModuleIOReal implements ModuleIO {
 		azimuthConfig.CurrentLimits.SupplyCurrentThreshold = 60;
 		azimuthConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
 
+		azimuthConfig.Audio = Constants.talonFXAudio;
+
 		this.azimuth.getConfigurator().apply(azimuthConfig);
 		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
 
@@ -119,6 +121,8 @@ public class ModuleIOReal implements ModuleIO {
 		// PID values
 		driveConfig.Slot0 = Constants.Drivetrain.driveGainsSlot0;
 		driveConfig.Slot1 = Constants.Drivetrain.driveGainsSlot1;
+
+		driveConfig.Audio = Constants.talonFXAudio;
 
 		this.drive.getConfigurator().apply(driveConfig);
 		this.drive.setNeutralMode(NeutralModeValue.Brake);

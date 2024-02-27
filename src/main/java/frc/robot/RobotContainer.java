@@ -2,32 +2,13 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.drivetrain.JoystickDrive;
-import frc.robot.commands.drivetrain.LockWheels;
-import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.ShootSpeaker;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.ClimberIO;
-import frc.robot.subsystems.ClimberIOReal;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.DrivetrainModifier;
-import frc.robot.subsystems.DrivetrainModifier.Modification;
-import frc.robot.subsystems.GyroIO;
-import frc.robot.subsystems.GyroIOReal;
-import frc.robot.subsystems.SwerveModule;
-import frc.robot.subsystems.ModuleIO;
-import frc.robot.subsystems.ModuleIOSim;
-import frc.robot.subsystems.ModuleIOReal;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.ShooterIO;
-import frc.robot.subsystems.ShooterIOReal;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;
@@ -38,7 +19,6 @@ public class RobotContainer {
 	public final Diagnostics diag;
 
 	public final Drivetrain drivetrain;
-	public final DrivetrainModifier mod;
 	public final Shooter shooter;
 	public final Climber climber;
 
@@ -51,37 +31,15 @@ public class RobotContainer {
 		this.shooter = new Shooter();
 		this.climber = new Climber();
 
-		this.mod = new DrivetrainModifier();
-		this.mod.setDefaultCommand(new Modification() {
-			@Override
-			public ChassisSpeeds modify(final ChassisSpeeds control) { return control; }
-		});
-
 		this.autonomousChooser = new LoggedDashboardChooser<>(
 			"Autonomous Routine",
 			AutonomousRoutines.createAutonomousChooser()
 		);
 
-		this.configureDriverControls();
+		this.driverOI.configureControls();
 
-		this.diag.release.whileTrue(this.diag.new Release());
+		this.diag.configureControls();
 	}
-
-	private void configureDriverControls() {
-		this.driverOI.shootFront
-			.whileTrue(
-				new ConditionalCommand(new ShootSpeaker(), new IntakeGround(), () -> this.shooter.inputs.holdingNote)
-			);
-
-		this.driverOI.lockWheels.whileTrue(new LockWheels());
-
-		this.driverOI.resetFOD.onTrue(new InstantCommand(() -> {
-			this.drivetrain.resetFOD();
-			this.drivetrain.resetAngle();
-		}));
-	}
-
-	public void teleop() { this.drivetrain.setDefaultCommand(new JoystickDrive()); }
 
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
 }

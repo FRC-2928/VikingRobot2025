@@ -38,18 +38,31 @@ public class ShooterIOReal implements ShooterIO {
 		this.sensors = this.feeder.getSensorCollection();
 
 		final TalonFXConfiguration pivot = new TalonFXConfiguration();
+
 		pivot.Feedback.FeedbackRemoteSensorID = Constants.CAN.CTRE.shooterPivot;
 		pivot.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intake.in(Units.Rotations);
+
 		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotConfig);
+
+		pivot.Audio = Constants.talonFXAudio;
+
 		this.pivot.getConfigurator().apply(pivot);
 		this.pivot.setNeutralMode(NeutralModeValue.Brake);
+		this.pivot.setInverted(false);
 
+		final TalonFXConfiguration flywheels = new TalonFXConfiguration();
+
+		flywheels.Audio = Constants.talonFXAudio;
+
+		this.flywheels.getConfigurator().apply(flywheels);
 		this.flywheels.setNeutralMode(NeutralModeValue.Coast);
 		this.flywheels.setInverted(true);
+
 		this.feeder.setNeutralMode(NeutralMode.Coast);
 		this.feeder.setInverted(true);
 		this.intake.setNeutralMode(NeutralMode.Coast);
@@ -188,7 +201,7 @@ public class ShooterIOReal implements ShooterIO {
 	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }
 
 	@Override
-	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir); }
+	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir * 0.9); }
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {

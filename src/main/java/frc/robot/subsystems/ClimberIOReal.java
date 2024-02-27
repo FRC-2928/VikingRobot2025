@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.HardwareLimitSwitchConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
@@ -16,19 +16,19 @@ import frc.robot.utils.STalonFX;
 
 public class ClimberIOReal implements ClimberIO {
 	public ClimberIOReal() {
-		final HardwareLimitSwitchConfigs cfg = new HardwareLimitSwitchConfigs();
-		this.actuator.getConfigurator().refresh(cfg);
-		this.actuator
-			.getConfigurator()
-			.apply(
-				cfg
-					.withReverseLimitEnable(true)
-					.withReverseLimitType(ReverseLimitTypeValue.NormallyOpen)
-					.withReverseLimitSource(ReverseLimitSourceValue.RemoteCANcoder)
-					.withReverseLimitRemoteSensorID(Constants.CAN.CTRE.climber)
-					.withReverseLimitAutosetPositionEnable(true)
-					.withReverseLimitAutosetPositionValue(0)
-			);
+		final TalonFXConfiguration actuator = new TalonFXConfiguration();
+
+		actuator.HardwareLimitSwitch.ReverseLimitEnable = true;
+		actuator.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
+		actuator.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANcoder;
+		actuator.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.climber;
+		actuator.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+		actuator.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
+
+		actuator.Audio = Constants.talonFXAudio;
+
+		this.actuator.getConfigurator().apply(actuator);
+
 		this.actuator.setInverted(true);
 		this.actuator.setNeutralMode(NeutralModeValue.Brake);
 

@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -63,11 +62,14 @@ public class Drivetrain extends SubsystemBase {
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
-	public final Limelight limelight = new Limelight("limelight");
-
-	public Measure<Angle> fodOffset = Units.Radians.zero();
+	public final Limelight limelightNote = new Limelight("limelight-note");
+	public final Limelight limelightShooter = new Limelight("limelight-shooter");
+	public final Limelight limelightBack = new Limelight("limelight-back");
 
 	public final SysIdRoutine sysId;
+
+	private final JoystickDrive joystickDrive = new JoystickDrive(this);
+	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 
 	public Drivetrain() {
 		switch(Constants.mode) {
@@ -120,6 +122,8 @@ public class Drivetrain extends SubsystemBase {
 				}
 			}, null, this)
 		);
+
+		this.setDefaultCommand(this.joystickDrive);
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -127,15 +131,9 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		speeds = ChassisSpeeds
-			.discretize(
-				ChassisSpeeds
-					.fromFieldRelativeSpeeds(
-						Robot.cont.mod.modify(speeds),
-						new Rotation2d(this.gyroInputs.yawPosition.minus(this.fodOffset))
-					),
-				0.02
-			);
+		speeds = this.fod(speeds);
+		speeds = this.compensate(speeds);
+		speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
@@ -151,8 +149,14 @@ public class Drivetrain extends SubsystemBase {
 
 	public void halt() { this.control(State.locked()); }
 
-	// Compensate for wheel rotation.  This prevents the robot
-	// from drifting to one side while driving and rotating
+	public ChassisSpeeds fod(final ChassisSpeeds speeds) {
+		return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
+	}
+
+	public ChassisSpeeds rod(final ChassisSpeeds speeds) {
+		return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, this.est.getEstimatedPosition().getRotation());
+	}
+
 	public ChassisSpeeds compensate(final ChassisSpeeds original) {
 		// using this function because its just an easy way to rotate the axial/lateral speeds
 		return ChassisSpeeds
@@ -162,16 +166,8 @@ public class Drivetrain extends SubsystemBase {
 			);
 	}
 
-	/*
-	 * Sets the pose angle to 0 while preserving translation.
-	 * This method is good for resetting field oriented drive.
-	 */
 	public void resetAngle() {
 		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
-	}
-
-	public void resetFOD() {
-		this.fodOffset = this.gyroInputs.yawPosition;
 		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = Units.Radians.zero();
 	}
 
@@ -211,6 +207,9 @@ public class Drivetrain extends SubsystemBase {
 		this.gyro.updateInputs(this.gyroInputs);
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
 
+		this.joystickSpeeds = this.joystickDrive.speeds();
+		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
+
 		for(final SwerveModule module : this.modules)
 			module.periodic();
 
@@ -218,7 +217,7 @@ public class Drivetrain extends SubsystemBase {
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		if(this.limelight.hasValidTargets() && this.limelight.getNumberOfAprilTags() >= 2) {
+		if(this.limelightShooter.hasValidTargets() && this.limelightShooter.getNumberOfAprilTags() >= 2) {
 			// distance from current pose to vision estimated pose
 			// double poseDifference = this.poseEstimator
 			// 	.getEstimatedPosition()
@@ -226,12 +225,11 @@ public class Drivetrain extends SubsystemBase {
 			// 	.getDistance(this.limelight.getPose2d().getTranslation());
 
 			// if (poseDifference < 0.5) {
-			this.est.addVisionMeasurement(this.limelight.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+			this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 			// }
 		}
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/FieldForward", this.gyroInputs.yawPosition.minus(this.fodOffset));
 	}
 
 	public boolean getHasValidTargetsSim() {

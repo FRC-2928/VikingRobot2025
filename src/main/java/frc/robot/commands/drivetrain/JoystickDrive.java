@@ -7,7 +7,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.units.*;
 import frc.robot.Constants;
@@ -16,32 +15,27 @@ import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 
 public class JoystickDrive extends Command {
-	public final Drivetrain drivetrain = Robot.cont.drivetrain;
+	public JoystickDrive(final Drivetrain drivetrain) {
+		this.drivetrain = drivetrain;
+
+		this.addRequirements(this.drivetrain);
+
+		this.absoluteController.enableContinuousInput(-0.5, 0.5);
+	}
+
+	public final Drivetrain drivetrain;
 	public final DriverOI oi = Robot.cont.driverOI;
 
 	public Measure<Angle> absoluteTarget = Units.Radians.zero();
 	public double absoluteTargetMagnitude = 0.5;
 	private final PIDController absoluteController = Constants.Drivetrain.absoluteRotationPID.createController();
 
-	public JoystickDrive() {
-		this.addRequirements(this.drivetrain);
+	// no execute method, drivetrain handles that
 
-		this.absoluteController.enableContinuousInput(-0.5, 0.5);
-	}
-
-	@Override
-	public void initialize() {
-		this.absoluteTarget = Units.Radians.of(this.drivetrain.est.getEstimatedPosition().getRotation().getRadians());
-	}
-
-	@Override
-	public void execute() {
+	// this is a separate method so that drivetrain can call it to get base speeds to modify
+	public ChassisSpeeds speeds() {
 		final Translation2d translation = this.translation();
-
-		this.drivetrain
-			.control(
-				new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond))
-			);
+		return new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond));
 	}
 
 	private Translation2d translation() {
@@ -50,12 +44,10 @@ public class JoystickDrive extends Command {
 		final double lateral = MathUtil.applyDeadband(this.oi.moveLateral.get(), 0.1);
 
 		// cartesian -> polar
-		final Rotation2d direction = Rotation2d
-			.fromRadians(Math.atan2(axial, lateral))
-			.plus(new Rotation2d(Math.PI / 2)); // why?
+		final Rotation2d direction = Rotation2d.fromRadians(Math.atan2(lateral, axial)); // why?
 
 		// Calculate the move magnitude
-		final double magnitude = Math.pow(MathUtil.clamp(Math.hypot(lateral, axial), 0, 1), 2); // get length and normalize
+		final double magnitude = Math.pow(MathUtil.clamp(Math.hypot(axial, lateral), 0, 1), 2); // get length and normalize
 
 		final double dx = Math.cos(direction.getRadians()) * magnitude * this.oi.slow.get();
 		final double dy = Math.sin(direction.getRadians()) * magnitude * this.oi.slow.get();
@@ -82,20 +74,18 @@ public class JoystickDrive extends Command {
 			// Get a new rotation target if right joystick values are beyond the deadband.
 			// Otherwise, we'll keep the old one.
 			final boolean rotateRobot = this.absoluteTargetMagnitude > 0.5;
-			if(rotateRobot) this.absoluteTarget = Units.Radians.of(Math.atan2(rotX, -rotY));
+			if(rotateRobot) this.absoluteTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
 			Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", this.absoluteTarget);
 
 			this.absoluteTargetMagnitude = this.absoluteTargetMagnitude * 0.5 + 0.5;
 
-			final double measurement = Constants
-				.mod(this.drivetrain.gyroInputs.yawPosition.minus(this.drivetrain.fodOffset).in(Units.Rotations), 1)
-				- 0.5;
+			final double measurement = this.drivetrain.est.getEstimatedPosition().getRotation().getRotations();
 			final double setpoint = this.absoluteTarget.in(Units.Rotations);
 
 			theta = MathUtil
 				.applyDeadband(
 					-MathUtil.clamp(this.absoluteController.calculate(measurement, setpoint), -0.5, 0.5), // todo: determine whether this - is ok
-					rotateRobot ? 0.075 : 0.25
+					0.075
 				);
 		} else {
 			theta = MathUtil.applyDeadband(this.oi.moveTheta.get(), 0.25);

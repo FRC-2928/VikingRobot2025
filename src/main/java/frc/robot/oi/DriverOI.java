@@ -3,16 +3,22 @@ package frc.robot.oi;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.ShootSpeaker;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = () -> -this.controller.getLeftY();
+		this.moveAxial = this.controller::getLeftY;
 		this.moveLateral = this.controller::getLeftX;
 
 		if(Constants.mode == Mode.REAL) {
@@ -51,4 +57,19 @@ public class DriverOI extends BaseOI {
 	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
+
+	public void configureControls() {
+		this.shootFront
+			.whileTrue(
+				new ConditionalCommand(
+					new ShootSpeaker(),
+					new IntakeGround(true),
+					() -> Robot.cont.shooter.inputs.holdingNote
+				)
+			);
+
+		this.lockWheels.whileTrue(new LockWheels());
+
+		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+	}
 }

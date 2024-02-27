@@ -126,11 +126,7 @@ public class Robot extends LoggedRobot {
 	// TELEOP //
 
 	@Override
-	public void teleopInit() {
-		CommandScheduler.getInstance().cancelAll();
-
-		this.container.teleop();
-	}
+	public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
 
 	@Override
 	public void teleopPeriodic() {}

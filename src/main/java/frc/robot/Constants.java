@@ -2,6 +2,7 @@ package frc.robot;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
@@ -28,6 +29,11 @@ public class Constants {
 
 	public static final Measure<Distance> fieldWidth = Units.Meters.of(16.55445); // Correlates to Field oriented x coordinate
 	public static final Measure<Distance> fieldDepth = Units.Meters.of(8.21); // Correlates to Field oriented y coordinate
+
+	public static final AudioConfigs talonFXAudio = new AudioConfigs()
+		.withAllowMusicDurDisable(true)
+		.withBeepOnBoot(true)
+		.withBeepOnConfig(false);
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -171,7 +177,7 @@ public class Constants {
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
-		public static final PIDValues absoluteRotationPID = new PIDValues(1.8, 0.01, 0, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(1.8, 0, 0, 0);
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 

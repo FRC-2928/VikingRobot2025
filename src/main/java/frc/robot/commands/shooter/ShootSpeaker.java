@@ -40,3 +40,6 @@ public class ShootSpeaker extends Command {
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 	}
 }
+
+// TODO: implement aiming
+// fwd/back based on pose

@@ -1,21 +1,16 @@
 package frc.robot.commands.drivetrain;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.DrivetrainModifier;
 import frc.robot.subsystems.ShooterIO;
 import frc.robot.subsystems.ShooterIO.ShooterIOInputs;
 import frc.robot.vision.Limelight;
@@ -23,7 +18,7 @@ import frc.robot.vision.Limelight;
 /*
  * Adjusts the robot angle and shooter angle until the shooter is lined up to shoot at the speaker
  */
-public class AimAtSpeaker extends DrivetrainModifier.Modification {
+public class AimAtSpeaker {
 	public final Drivetrain drivetrain;
 	public final ShooterIO shooter;
 	public final Limelight shooterLimelight;
@@ -52,11 +47,11 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 
 	@Override
 	public ChassisSpeeds modify(final ChassisSpeeds control) {
-		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the robot to center the apriltag in view
+		if(this.drivetrain.limelightShooter.hasValidTargets()) { // rotate the robot to center the apriltag in view
 			if(
 				Math
 					.abs(
-						this.drivetrain.limelight.getTargetHorizontalOffset().in(Units.Degrees)
+						this.drivetrain.limelightShooter.getTargetHorizontalOffset().in(Units.Degrees)
 					) > this.horizontalAngleTolerance.in(Units.Degrees)
 			) {
 				return new ChassisSpeeds(
@@ -65,7 +60,10 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 					this.ffw
 						.calculate(
 							this.absoluteController
-								.calculate(this.drivetrain.limelight.getTargetHorizontalOffset().in(Units.Rotations), 0)
+								.calculate(
+									this.drivetrain.limelightShooter.getTargetHorizontalOffset().in(Units.Rotations),
+									0
+								)
 						)
 				);
 			} else {
@@ -94,8 +92,8 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	}
 
 	private void aimShooter() {
-		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
-			final Measure<Angle> verticalMeasurement = this.drivetrain.limelight.getTargetVerticalOffset();
+		if(this.drivetrain.limelightShooter.hasValidTargets()) { // rotate the shooter to center the apriltag in view
+			final Measure<Angle> verticalMeasurement = this.drivetrain.limelightShooter.getTargetVerticalOffset();
 
 			if(Math.abs(verticalMeasurement.in(Units.Degrees)) > this.verticalAngleTolerance.in(Units.Degrees)) {
 				final ShooterIOInputs inputs = new ShooterIOInputs();

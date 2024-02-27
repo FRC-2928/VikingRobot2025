@@ -10,8 +10,10 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
@@ -91,6 +93,15 @@ public class Diagnostics extends SubsystemBase {
 	public void chirp(final boolean good) { this.chirps.add(new Chirp(good ? 500 : 125, 500)); }
 
 	public void chirp(final int freq, final int ms) { this.chirps.add(new Chirp(freq, ms)); }
+
+	public void configureControls() {
+		this.release.whileTrue(this.new Release());
+
+		SmartDashboard
+			.putData("Diagnostics/C-Stop", new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
+		SmartDashboard
+			.putData("Diagnostics/C-Stop", new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
+	}
 
 	@Override
 	public void periodic() {
