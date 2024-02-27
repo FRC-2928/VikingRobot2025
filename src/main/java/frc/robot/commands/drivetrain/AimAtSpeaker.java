@@ -27,6 +27,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	public final Drivetrain drivetrain;
 	public final ShooterIO shooter;
 	public final Limelight shooterLimelight;
+	// public final Limelight backLimelight; TODO use back limelight to find the tag faster (in case bot is facing away from speaker)
 
 	private final PIDController absoluteController = Constants.Drivetrain.visionAbsoluteRotationErrorPID
 		.createController();
@@ -35,6 +36,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	private final Measure<Angle> horizontalAngleTolerance = Units.Degrees.of(2);
 	private final Measure<Angle> verticalAngleTolerance = Units.Degrees.of(1);
 	private final Measure<Angle> standardForwardAngle = Units.Degrees.of(45);
+	private final Measure<Angle> standardBackwardsAngle = Units.Degrees.of(-45);
 
 	private boolean aimBackwards; // the shooter will aim backwards
 
@@ -52,11 +54,11 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 
 	@Override
 	public ChassisSpeeds modify(final ChassisSpeeds control) {
-		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the robot to center the apriltag in view
+		if(this.shooterLimelight.hasValidTargets()) { // rotate the robot to center the apriltag in view
 			if(
 				Math
 					.abs(
-						this.drivetrain.limelight.getTargetHorizontalOffset().in(Units.Degrees)
+						this.shooterLimelight.getTargetHorizontalOffset().in(Units.Degrees)
 					) > this.horizontalAngleTolerance.in(Units.Degrees)
 			) {
 				return new ChassisSpeeds(
@@ -65,7 +67,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 					this.ffw
 						.calculate(
 							this.absoluteController
-								.calculate(this.drivetrain.limelight.getTargetHorizontalOffset().in(Units.Rotations), 0)
+								.calculate(this.shooterLimelight.getTargetHorizontalOffset().in(Units.Rotations), 0)
 						)
 				);
 			} else {
@@ -94,8 +96,8 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	}
 
 	private void aimShooter() {
-		if(this.drivetrain.limelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
-			final Measure<Angle> verticalMeasurement = this.drivetrain.limelight.getTargetVerticalOffset();
+		if(this.shooterLimelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
+			final Measure<Angle> verticalMeasurement = this.shooterLimelight.getTargetVerticalOffset();
 
 			if(Math.abs(verticalMeasurement.in(Units.Degrees)) > this.verticalAngleTolerance.in(Units.Degrees)) {
 				final ShooterIOInputs inputs = new ShooterIOInputs();
