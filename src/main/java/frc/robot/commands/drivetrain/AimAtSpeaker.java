@@ -56,7 +56,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 			if(
 				Math
 					.abs(
-						this.shooterLimelight.getTargetHorizontalOffset().in(Units.Degrees)
+						this.shooterLimelight.getTargetVerticalOffset().in(Units.Degrees)
 					) > this.horizontalAngleTolerance.in(Units.Degrees)
 			) {
 				return new ChassisSpeeds(
@@ -65,7 +65,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 					this.ffw
 						.calculate(
 							this.absoluteController
-								.calculate(this.shooterLimelight.getTargetHorizontalOffset().in(Units.Rotations), 0)
+								.calculate(this.shooterLimelight.getTargetVerticalOffset().in(Units.Rotations), 0)
 						)
 				);
 			} else {
@@ -91,7 +91,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 
 	private void aimShooter() {
 		if(this.shooterLimelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
-			final Measure<Angle> verticalMeasurement = this.shooterLimelight.getTargetVerticalOffset();
+			final Measure<Angle> verticalMeasurement = this.shooterLimelight.getTargetHorizontalOffset().times(-1d);
 
 			if(Math.abs(verticalMeasurement.in(Units.Degrees)) > this.verticalAngleTolerance.in(Units.Degrees)) {
 				final ShooterIOInputs inputs = new ShooterIOInputs();
