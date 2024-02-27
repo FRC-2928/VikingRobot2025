@@ -27,8 +27,8 @@ public class Constants {
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
 
-	public static final Measure<Distance> fieldWidth = Units.Meters.of(16.55445); // Correlates to Field oriented x coordinate
-	public static final Measure<Distance> fieldDepth = Units.Meters.of(8.21); // Correlates to Field oriented y coordinate
+	public static final Measure<Distance> fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
+	public static final Measure<Distance> fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
 	public static final AudioConfigs talonFXAudio = new AudioConfigs()
 		.withAllowMusicDurDisable(true)

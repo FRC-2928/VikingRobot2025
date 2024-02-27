@@ -22,6 +22,7 @@ public class AimAtSpeaker {
 	public final Drivetrain drivetrain;
 	public final ShooterIO shooter;
 	public final Limelight shooterLimelight;
+	// public final Limelight backLimelight; TODO use back limelight to find the tag faster (in case bot is facing away from speaker)
 
 	private final PIDController absoluteController = Constants.Drivetrain.visionAbsoluteRotationErrorPID
 		.createController();
@@ -30,8 +31,7 @@ public class AimAtSpeaker {
 	private final Measure<Angle> horizontalAngleTolerance = Units.Degrees.of(2);
 	private final Measure<Angle> verticalAngleTolerance = Units.Degrees.of(1);
 	private final Measure<Angle> standardForwardAngle = Units.Degrees.of(45);
-
-	private boolean aimBackwards; // the shooter will aim backwards
+	private final Measure<Angle> standardBackwardsAngle = Units.Degrees.of(-45);
 
 	public AimAtSpeaker(final Drivetrain drivetrain, final ShooterIO shooter, final Limelight shooterLimelight) {
 		super();
@@ -42,16 +42,16 @@ public class AimAtSpeaker {
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
 
-		this.addRequirements(Robot.cont.shooter);
+		this.addRequirements(Robot.cont.shooter, Robot.cont.shooter);
 	}
 
 	@Override
 	public ChassisSpeeds modify(final ChassisSpeeds control) {
-		if(this.drivetrain.limelightShooter.hasValidTargets()) { // rotate the robot to center the apriltag in view
+		if(this.shooterLimelight.hasValidTargets()) { // rotate the robot to center the apriltag in view
 			if(
 				Math
 					.abs(
-						this.drivetrain.limelightShooter.getTargetHorizontalOffset().in(Units.Degrees)
+						this.shooterLimelight.getTargetVerticalOffset().in(Units.Degrees)
 					) > this.horizontalAngleTolerance.in(Units.Degrees)
 			) {
 				return new ChassisSpeeds(
@@ -60,10 +60,7 @@ public class AimAtSpeaker {
 					this.ffw
 						.calculate(
 							this.absoluteController
-								.calculate(
-									this.drivetrain.limelightShooter.getTargetHorizontalOffset().in(Units.Rotations),
-									0
-								)
+								.calculate(this.shooterLimelight.getTargetVerticalOffset().in(Units.Rotations), 0)
 						)
 				);
 			} else {
@@ -78,11 +75,7 @@ public class AimAtSpeaker {
 						this.absoluteController
 							.calculate(
 								this.drivetrain.est.getEstimatedPosition().getRotation().getRotations(),
-								this
-									.getAllianceSpeakerCoordinate()
-									.minus(this.drivetrain.est.getEstimatedPosition().getTranslation())
-									.getAngle()
-									.getRotations()
+								this.optimizedRobotFieldAngle().getRotations()
 							),
 						-1,
 						1
@@ -92,19 +85,22 @@ public class AimAtSpeaker {
 	}
 
 	private void aimShooter() {
-		if(this.drivetrain.limelightShooter.hasValidTargets()) { // rotate the shooter to center the apriltag in view
-			final Measure<Angle> verticalMeasurement = this.drivetrain.limelightShooter.getTargetVerticalOffset();
+		if(this.shooterLimelight.hasValidTargets()) { // rotate the shooter to center the apriltag in view
+			final Measure<Angle> verticalMeasurement = this.shooterLimelight.getTargetHorizontalOffset().times(-1d);
 
 			if(Math.abs(verticalMeasurement.in(Units.Degrees)) > this.verticalAngleTolerance.in(Units.Degrees)) {
 				final ShooterIOInputs inputs = new ShooterIOInputs();
 				this.shooter.updateInputs(inputs);
 
-				final Measure<Angle> newAngle = inputs.angle.plus(verticalMeasurement);
-				// this.shooter.rotate(newAngle);
+				this.shooter.rotate(inputs.angle.plus(verticalMeasurement));
 			}
 		} else {
 			// move shooter up to angle where tag can be seen
-			// this.shooter.rotate(standardForwardAngle);
+			if(this.shouldAimBackwards()) {
+				this.shooter.rotate(this.standardBackwardsAngle);
+			} else {
+				this.shooter.rotate(this.standardForwardAngle);
+			}
 		}
 	}
 
@@ -117,5 +113,29 @@ public class AimAtSpeaker {
 		} else {
 			return new Translation2d(0, 5.547868); // Blue speaker coordinate
 		}
+	}
+
+	/*
+	 * Whether the robot should aim forwards or backwards
+	 */
+	private boolean shouldAimBackwards() {
+		return Math
+			.abs(
+				this.drivetrain.est.getEstimatedPosition().getRotation().minus(this.robotToSpeakerAngle()).getDegrees()
+			) > 90;
+	}
+
+	private Rotation2d optimizedRobotFieldAngle() {
+		if(this.shouldAimBackwards()) {
+			return this.robotToSpeakerAngle().plus(Rotation2d.fromRotations(0.5));
+		}
+		return this.robotToSpeakerAngle();
+	}
+
+	private Rotation2d robotToSpeakerAngle() {
+		return this
+			.getAllianceSpeakerCoordinate()
+			.minus(this.drivetrain.est.getEstimatedPosition().getTranslation())
+			.getAngle();
 	}
 }
