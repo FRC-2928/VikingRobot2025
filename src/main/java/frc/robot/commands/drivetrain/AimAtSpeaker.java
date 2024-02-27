@@ -38,8 +38,6 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 	private final Measure<Angle> standardForwardAngle = Units.Degrees.of(45);
 	private final Measure<Angle> standardBackwardsAngle = Units.Degrees.of(-45);
 
-	private boolean aimBackwards; // the shooter will aim backwards
-
 	public AimAtSpeaker(final Drivetrain drivetrain, final ShooterIO shooter, final Limelight shooterLimelight) {
 		super();
 
@@ -49,7 +47,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
 
-		this.addRequirements(Robot.cont.shooter);
+		this.addRequirements(Robot.cont.shooter, Robot.cont.shooter);
 	}
 
 	@Override
@@ -82,11 +80,7 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 						this.absoluteController
 							.calculate(
 								this.drivetrain.est.getEstimatedPosition().getRotation().getRotations(),
-								this
-									.getAllianceSpeakerCoordinate()
-									.minus(this.drivetrain.est.getEstimatedPosition().getTranslation())
-									.getAngle()
-									.getRotations()
+								this.optimizedRobotFieldAngle().getRotations()
 							),
 						-1,
 						1
@@ -103,12 +97,15 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 				final ShooterIOInputs inputs = new ShooterIOInputs();
 				this.shooter.updateInputs(inputs);
 
-				final Measure<Angle> newAngle = inputs.angle.plus(verticalMeasurement);
-				// this.shooter.rotate(newAngle);
+				this.shooter.rotate(inputs.angle.plus(verticalMeasurement));
 			}
 		} else {
 			// move shooter up to angle where tag can be seen
-			// this.shooter.rotate(standardForwardAngle);
+			if(this.shouldAimBackwards()) {
+				this.shooter.rotate(this.standardBackwardsAngle);
+			} else {
+				this.shooter.rotate(this.standardForwardAngle);
+			}
 		}
 	}
 
@@ -121,5 +118,29 @@ public class AimAtSpeaker extends DrivetrainModifier.Modification {
 		} else {
 			return new Translation2d(0, 5.547868); // Blue speaker coordinate
 		}
+	}
+
+	/*
+	 * Whether the robot should aim forwards or backwards
+	 */
+	private boolean shouldAimBackwards() {
+		return Math
+			.abs(
+				this.drivetrain.est.getEstimatedPosition().getRotation().minus(this.robotToSpeakerAngle()).getDegrees()
+			) > 90;
+	}
+
+	private Rotation2d optimizedRobotFieldAngle() {
+		if(this.shouldAimBackwards()) {
+			return this.robotToSpeakerAngle().plus(Rotation2d.fromRotations(0.5));
+		}
+		return this.robotToSpeakerAngle();
+	}
+
+	private Rotation2d robotToSpeakerAngle() {
+		return this
+			.getAllianceSpeakerCoordinate()
+			.minus(this.drivetrain.est.getEstimatedPosition().getTranslation())
+			.getAngle();
 	}
 }
