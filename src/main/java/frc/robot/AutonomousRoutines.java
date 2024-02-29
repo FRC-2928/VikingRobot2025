@@ -25,32 +25,37 @@ public final class AutonomousRoutines {
 		chooser
 			.addOption(
 				"Drive test trajectory",
-				new SequentialCommandGroup(AutonomousRoutines.choreo(Choreo.getTrajectory("test")))
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("test")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("test"))
+				)
 			);
 
 		chooser
 			.addOption(
 				"Four Note Close",
 				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
 					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.1")),
 					new IntakeGround(true),
 					new ParallelCommandGroup(
-											AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
-											new ShootSpeaker()
-					),					
+						AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
+						new ShootSpeaker()
+					),
 					new IntakeGround(true),
 					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.3")),
 					new IntakeGround(true),
 					new ShootSpeaker()
-					)
+				)
 			);
 
 		chooser
 			.addOption(
 				"Two Note Center D",
 				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("TwoNoteCenterD.1")),
 					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.1")),
 					new IntakeGround(true),
@@ -62,8 +67,8 @@ public final class AutonomousRoutines {
 		return chooser;
 	}
 
-	public static Command choreo(final ChoreoTrajectory trajectory) {
-		return Commands.sequence(Commands.runOnce(() -> {
+	public static Command setInitialPose(final ChoreoTrajectory trajectory) {
+		return Commands.runOnce(() -> {
 			Robot.cont.drivetrain
 				.reset(
 					new Pose2d(
@@ -75,20 +80,21 @@ public final class AutonomousRoutines {
 			Logger.recordOutput("Drivetrain/Choreo/x0", trajectory.getInitialPose().getX());
 			Logger.recordOutput("Drivetrain/Choreo/y0", trajectory.getInitialPose().getY());
 			Logger.recordOutput("Drivetrain/Choreo/r0", trajectory.getInitialPose().getRotation().getDegrees());
-		}),
-			Choreo
-				.choreoSwerveCommand(
-					trajectory,
-					Robot.cont.drivetrain::blueOriginPose, // A function that returns the current field-relative pose of the robot:
-					Constants.Drivetrain.Choreo.x.createController(), // PID to correct for field-relative X error
-					Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
-					Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
-					Robot.cont.drivetrain::control,
-					() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
-					Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
-				)
-			// new LockWheels()
-		);
+		});
+	}
+
+	public static Command choreo(final ChoreoTrajectory trajectory) {
+		return Choreo
+			.choreoSwerveCommand(
+				trajectory,
+				Robot.cont.drivetrain::blueOriginPose, // A function that returns the current field-relative pose of the robot:
+				Constants.Drivetrain.Choreo.x.createController(), // PID to correct for field-relative X error
+				Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
+				Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
+				Robot.cont.drivetrain::control,
+				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+				Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
+			);
 	}
 
 	/*
