@@ -47,6 +47,18 @@ public final class AutonomousRoutines {
 					)
 			);
 
+		chooser
+			.addOption(
+				"Two Note Center D",
+				new SequentialCommandGroup(
+					new ShootSpeaker(),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.1")),
+					new IntakeGround(true),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.2")),
+					new ShootSpeaker()
+				)
+			);
+
 		return chooser;
 	}
 
