@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.ShootSpeaker;
 import frc.robot.subsystems.Drivetrain;
 
 import org.littletonrobotics.junction.Logger;
@@ -28,16 +30,22 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
-				"Drive SysId (Quasistatic Forward)",
-				drivetrain.sysId.quasistatic(SysIdRoutine.Direction.kForward)
+				"Four Note Close",
+				new SequentialCommandGroup(
+					new ShootSpeaker(),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.1")),
+					new IntakeGround(true),
+					new ParallelCommandGroup(
+											AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
+											new ShootSpeaker()
+					),					
+					new IntakeGround(true),
+					new ShootSpeaker(),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.3")),
+					new IntakeGround(true),
+					new ShootSpeaker()
+					)
 			);
-		chooser
-			.addOption(
-				"Drive SysId (Quasistatic Reverse)",
-				drivetrain.sysId.quasistatic(SysIdRoutine.Direction.kReverse)
-			);
-		chooser.addOption("Drive SysId (Dynamic Forward)", drivetrain.sysId.dynamic(SysIdRoutine.Direction.kForward));
-		chooser.addOption("Drive SysId (Dynamic Reverse)", drivetrain.sysId.dynamic(SysIdRoutine.Direction.kReverse));
 
 		return chooser;
 	}
@@ -66,8 +74,8 @@ public final class AutonomousRoutines {
 					Robot.cont.drivetrain::control,
 					() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
 					Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
-				),
-			new LockWheels()
+				)
+			// new LockWheels()
 		);
 	}
 
