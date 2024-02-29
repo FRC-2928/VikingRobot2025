@@ -15,7 +15,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
@@ -168,7 +167,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public void resetAngle() {
 		this.reset(new Pose2d(this.est.getEstimatedPosition().getTranslation(), Rotation2d.fromRadians(0)));
-		((JoystickDrive) this.getDefaultCommand()).absoluteTarget = Units.Radians.zero();
+		((JoystickDrive) this.getDefaultCommand()).forTarget = Units.Radians.zero();
 	}
 
 	public void reset(final Pose2d newPose) {
@@ -216,6 +215,7 @@ public class Drivetrain extends SubsystemBase {
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
+		/*
 		// Fuse odometry pose with vision data if we have it.
 		if(this.limelightShooter.hasValidTargets() && this.limelightShooter.getNumberOfAprilTags() >= 2) {
 			// distance from current pose to vision estimated pose
@@ -223,11 +223,12 @@ public class Drivetrain extends SubsystemBase {
 			// 	.getEstimatedPosition()
 			//	.getTranslation()
 			// 	.getDistance(this.limelight.getPose2d().getTranslation());
-
+		
 			// if (poseDifference < 0.5) {
 			this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 			// }
 		}
+		*/
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 	}

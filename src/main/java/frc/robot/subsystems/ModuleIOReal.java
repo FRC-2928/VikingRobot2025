@@ -156,14 +156,10 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setDriveVoltage(final double volts) {
-		this.drive.setControl(new VoltageOut(volts, true, false, false, false));
-	}
+	public void setDriveVoltage(final double volts) { this.drive.setControl(new VoltageOut(volts)); }
 
 	@Override
-	public void setAzimuthVoltage(final double volts) {
-		this.azimuth.setControl(new VoltageOut(volts, true, false, false, false));
-	}
+	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {

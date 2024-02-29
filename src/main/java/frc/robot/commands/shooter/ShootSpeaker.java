@@ -1,5 +1,10 @@
 package frc.robot.commands.shooter;
 
+import org.littletonrobotics.junction.Logger;
+
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -16,15 +21,39 @@ public class ShootSpeaker extends Command {
 
 	@Override
 	public void execute() {
-		Robot.cont.shooter.io.rotate(Constants.Shooter.readyShootFront);
+		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
+		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
+
 		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.of(90));
-		if(
-			Robot.cont.shooter.inputs.flywheelSpeed
-				.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold.in(Units.RotationsPerSecond)
-				|| this.fired
-		) {
-			Robot.cont.shooter.io.runFeeder(Demand.Forward);
-			this.fired = true;
+
+		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
+		if(Robot.cont.drivetrain.limelightShooter.hasValidTargets() && forward == current) {
+			final Measure<Angle> po = Robot.cont.drivetrain.limelightShooter.getTargetHorizontalOffset();
+			final Measure<Angle> yo = Robot.cont.drivetrain.limelightShooter.getTargetVerticalOffset();
+
+			if(Math.abs(po.in(Units.Degrees)) >= 2.5 && !this.fired) {
+				Robot.cont.shooter.io.rotate(Robot.cont.shooter.inputs.angle.minus(po));
+				Robot.cont.drivetrain
+					.control(
+						Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0)))
+					);
+			} else {
+				if(
+					Robot.cont.shooter.inputs.flywheelSpeed
+						.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
+							.in(Units.RotationsPerSecond)
+						|| this.fired
+				) {
+					Robot.cont.shooter.io.runFeeder(Demand.Forward);
+					this.fired = true;
+				}
+
+				Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
+			}
+		} else {
+			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
+			Robot.cont.shooter.io
+				.rotate(forward ? Constants.Shooter.readyShootFront : Constants.Shooter.readyShootRear);
 		}
 	}
 
@@ -32,9 +61,7 @@ public class ShootSpeaker extends Command {
 	public void end(final boolean interrupted) {
 		Robot.cont.shooter.io
 			.rotate(
-				Robot.cont.shooter.inputs.holdingNote
-					? Constants.Shooter.readyShootFront
-					: Constants.Shooter.readyIntake
+				Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
 			);
 		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.zero());
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);

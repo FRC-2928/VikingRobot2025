@@ -20,16 +20,6 @@ import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class Diagnostics extends SubsystemBase {
-	public final class SystemOverride extends Command {
-		public SystemOverride() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.shooter, Robot.cont.climber); }
-
-		@Override
-		public void end(final boolean interrupted) { CommandScheduler.getInstance().cancelAll(); }
-
-		@Override
-		public InterruptionBehavior getInterruptionBehavior() { return InterruptionBehavior.kCancelIncoming; }
-	}
-
 	public final class Release extends Command {
 		public Release() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.shooter, Robot.cont.climber); }
 
@@ -46,7 +36,8 @@ public class Diagnostics extends SubsystemBase {
 			climber.actuator.setNeutralMode(NeutralModeValue.Coast);
 			//climber.lock.set(0);
 
-			Diagnostics.this.chirp(400, 500);
+			Diagnostics.this.chirp(1000, 100);
+			Diagnostics.this.chirp(800, 500);
 		}
 
 		@Override
@@ -62,7 +53,8 @@ public class Diagnostics extends SubsystemBase {
 			climber.actuator.setNeutralMode(NeutralModeValue.Brake);
 			//climber.lock.set(0);
 
-			Diagnostics.this.chirp(800, 500);
+			Diagnostics.this.chirp(800, 100);
+			Diagnostics.this.chirp(1000, 500);
 		}
 
 		@Override
@@ -87,9 +79,6 @@ public class Diagnostics extends SubsystemBase {
 	public final DigitalInput releaseInput = new DigitalInput(0);
 	public final Trigger release = new Trigger(() -> DriverStation.isDisabled() && !this.releaseInput.get());
 
-	public final DigitalInput lockoutInput = new DigitalInput(1);
-	public final Trigger lockout = new Trigger(() -> DriverStation.isTestEnabled() && !this.lockoutInput.get());
-
 	public void chirp(final boolean good) { this.chirps.add(new Chirp(good ? 500 : 125, 500)); }
 
 	public void chirp(final int freq, final int ms) { this.chirps.add(new Chirp(freq, ms)); }
@@ -106,7 +95,6 @@ public class Diagnostics extends SubsystemBase {
 	@Override
 	public void periodic() {
 		Logger.recordOutput("Diagnostics/Release", !this.releaseInput.get());
-		Logger.recordOutput("Diagnostics/Lockout", !this.lockoutInput.get());
 
 		if(this.chirps.size() > 0) {
 			final Chirp chirp = this.chirps.get(0);

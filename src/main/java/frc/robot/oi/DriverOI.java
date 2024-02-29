@@ -12,60 +12,66 @@ import frc.robot.Robot;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.IntakeSource;
+import frc.robot.commands.shooter.ShootAmp;
 import frc.robot.commands.shooter.ShootSpeaker;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.moveAxial = this.controller::getLeftY;
-		this.moveLateral = this.controller::getLeftX;
+		this.driveAxial = this.controller::getLeftY;
+		this.driveLateral = this.controller::getLeftX;
 
 		if(Constants.mode == Mode.REAL) {
-			this.moveTheta = this.controller::getRightX;
-			this.moveRotationX = this.controller::getRightX;
-			this.moveRotationY = () -> -this.controller.getRightY();
+			this.driveFORX = this.controller::getRightX;
+			this.driveFORY = () -> -this.controller.getRightY();
 		} else {
-			this.moveTheta = () -> this.hid.getRawAxis(2);
-			this.moveRotationX = () -> this.hid.getRawAxis(2);
-			this.moveRotationY = () -> this.hid.getRawAxis(3);
+			this.driveFORX = () -> this.hid.getRawAxis(2);
+			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
 
-		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getRightTriggerAxis());
+		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getLeftTriggerAxis());
 
-		this.shootFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.5);
-		this.shootRear = this.controller.rightBumper();
+		this.aimFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.1);
+		this.shootFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.9);
+		this.aimRear = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.1);
+		this.shootAmp = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.9);
 
 		this.lockWheels = this.controller.leftBumper();
 
 		this.resetFOD = this.controller.y();
 	}
 
-	public final Supplier<Double> moveAxial;
-	public final Supplier<Double> moveLateral;
+	public final Supplier<Double> driveAxial;
+	public final Supplier<Double> driveLateral;
 
-	public final Supplier<Double> moveTheta;
-
-	public final Supplier<Double> moveRotationX;
-	public final Supplier<Double> moveRotationY;
+	public final Supplier<Double> driveFORX;
+	public final Supplier<Double> driveFORY;
 
 	public final Supplier<Double> slow;
 
+	public final Trigger aimFront;
 	public final Trigger shootFront;
-	public final Trigger shootRear;
+	public final Trigger aimRear;
+	public final Trigger shootAmp;
 
 	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
 
 	public void configureControls() {
-		this.shootFront
+		this.aimFront
 			.whileTrue(
 				new ConditionalCommand(
 					new ShootSpeaker(),
 					new IntakeGround(true),
 					() -> Robot.cont.shooter.inputs.holdingNote
 				)
+			);
+		this.aimRear
+			.whileTrue(
+				new ConditionalCommand(new ShootAmp(), new IntakeSource(), () -> Robot.cont.shooter.inputs.holdingNote)
 			);
 
 		this.lockWheels.whileTrue(new LockWheels());
