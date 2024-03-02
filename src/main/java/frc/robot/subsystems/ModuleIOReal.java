@@ -25,7 +25,10 @@ import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
-import edu.wpi.first.units.*;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Voltage;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -47,6 +50,7 @@ public class ModuleIOReal implements ModuleIO {
 	public final StatusSignal<Double> angle;
 
 	public final Measure<Angle> absoluteEncoderOffset;
+	public Measure<Voltage> driveVoltage;
 
 	public ModuleIOReal(final Place place) {
 		this.place = place;
@@ -156,7 +160,10 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setDriveVoltage(final double volts) { this.drive.setControl(new VoltageOut(volts)); }
+	public void setDriveVoltage(final double volts) { 
+		this.drive.setControl(new VoltageOut(volts)); 
+		this.driveVoltage = Units.Volts.of(volts);
+	}
 
 	@Override
 	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
