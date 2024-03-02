@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
@@ -232,9 +233,13 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 	}
 
-	public boolean getHasValidTargetsSim() {
-		final double heading = this.est.getEstimatedPosition().getRotation().getDegrees();
+	/** Returns a command to run a quasistatic test in the specified direction. */
+	public Command sysIdQuasistatic(final SysIdRoutine.Direction direction) {
+		return this.sysId.quasistatic(direction);
+	}
 
-		return heading > 135 || heading < -135;
+	/** Returns a command to run a dynamic test in the specified direction. */
+	public Command sysIdDynamic(final SysIdRoutine.Direction direction) {
+		return this.sysId.dynamic(direction);
 	}
 }
