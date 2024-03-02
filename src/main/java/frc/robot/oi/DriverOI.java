@@ -12,7 +12,6 @@ import frc.robot.Robot;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.IntakeSource;
 import frc.robot.commands.shooter.ShootAmp;
 import frc.robot.commands.shooter.ShootSpeaker;
 
@@ -31,14 +30,11 @@ public class DriverOI extends BaseOI {
 			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
 
-		this.slow = () -> MathUtil.interpolate(1, 0.5, this.controller.getLeftTriggerAxis());
+		this.shootSpeaker = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.5);
+		this.shootAmp = this.controller.leftBumper();
+		this.intakeShoot = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.5);
 
-		this.aimFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.1);
-		this.shootFront = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.9);
-		this.aimRear = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.1);
-		this.shootAmp = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.9);
-
-		this.lockWheels = this.controller.leftBumper();
+		this.lockWheels = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
 	}
@@ -49,30 +45,18 @@ public class DriverOI extends BaseOI {
 	public final Supplier<Double> driveFORX;
 	public final Supplier<Double> driveFORY;
 
-	public final Supplier<Double> slow;
-
-	public final Trigger aimFront;
-	public final Trigger shootFront;
-	public final Trigger aimRear;
+	public final Trigger shootSpeaker;
 	public final Trigger shootAmp;
+	public final Trigger intakeShoot;
 
 	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
 
 	public void configureControls() {
-		this.aimFront
-			.whileTrue(
-				new ConditionalCommand(
-					new ShootSpeaker(),
-					new IntakeGround(true),
-					() -> Robot.cont.shooter.inputs.holdingNote
-				)
-			);
-		this.aimRear
-			.whileTrue(
-				new ConditionalCommand(new ShootAmp(), new IntakeSource(), () -> Robot.cont.shooter.inputs.holdingNote)
-			);
+		this.shootSpeaker.whileTrue(new ShootSpeaker());
+		this.shootAmp.whileTrue(new ShootAmp(true));
+		this.intakeShoot.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());
 

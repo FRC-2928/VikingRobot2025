@@ -27,8 +27,6 @@ public class Robot extends LoggedRobot {
 
 	private Command autonomousCommand;
 
-	private double lastAutoCheck = 0;
-
 	public Robot() {
 		super();
 		Robot.instance = this;
@@ -74,31 +72,7 @@ public class Robot extends LoggedRobot {
 	public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
 
 	@Override
-	public void disabledPeriodic() {
-		if(DriverStation.getMatchType() == MatchType.None && Timer.getFPGATimestamp() - this.lastAutoCheck >= 1) {
-			boolean good;
-
-			try {
-				final Field field = LoggedDashboardChooser.class.getDeclaredField("selectedValue");
-				field.setAccessible(true);
-				String name = (String) field.get(Robot.cont.autonomousChooser);
-				if(name == null) name = "<none>";
-				good = !name.contains("[comp]");
-			} catch(final Exception e) {
-				throw new Error(e);
-			}
-
-			if(good) {
-				System.err.println("CRITICAL: CURRENT AUTONOMOUS ROUTINE IS NOT SUITED FOR COMPETITION");
-				this.container.diag.chirp(2000, 100);
-				this.container.diag.chirp(1000, 100);
-			}
-
-			Logger.recordOutput("Checks/AutonomousRoutineGood", good);
-
-			this.lastAutoCheck = Timer.getFPGATimestamp();
-		}
-	}
+	public void disabledPeriodic() {}
 
 	@Override
 	public void disabledExit() {}

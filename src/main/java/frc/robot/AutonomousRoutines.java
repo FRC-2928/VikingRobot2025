@@ -22,7 +22,7 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
-				"Drive test trajectory",
+				"[comp] Drive test trajectory",
 				new SequentialCommandGroup(AutonomousRoutines.choreo(Choreo.getTrajectory("test")))
 			);
 

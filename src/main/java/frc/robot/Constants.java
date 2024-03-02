@@ -169,12 +169,12 @@ public class Constants {
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
-		public static final PIDValues absoluteRotationPID = new PIDValues(1.75, 0, 0, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(2, 0, 0, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
-			1.75
+			15
 		);
-		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(1, 1);
+		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 
@@ -259,13 +259,14 @@ public class Constants {
 		// a little above intake height to avoid hitting floor but to be ready
 		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.1);
 		// min angle before hitting floor
-		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.115);
-		public static final Measure<Angle> intakeSource = Units.Rotations.of(0.33);
+		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(130);
-		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
+		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
+
+		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
 		// max angle before exiting allowed extension range
 		public static final Measure<Angle> max = Units.Rotations.of(0.37);

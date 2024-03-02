@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class ShooterIOReal implements ShooterIO {
@@ -69,6 +70,9 @@ public class ShooterIOReal implements ShooterIO {
 		this.feeder.setInverted(true);
 		this.intake.setNeutralMode(NeutralMode.Coast);
 		this.intake.setInverted(true);
+
+		Robot.cont.diag.motors.add(this.pivot);
+		Robot.cont.diag.motors.add(this.flywheels);
 
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {

@@ -50,8 +50,8 @@ public class JoystickDrive extends Command {
 		// Calculate the move magnitude
 		final double magnitude = Math.pow(MathUtil.clamp(Math.hypot(axial, lateral), 0, 1), 2); // get length and normalize
 
-		final double dx = Math.cos(direction.getRadians()) * magnitude * this.oi.slow.get();
-		final double dy = Math.sin(direction.getRadians()) * magnitude * this.oi.slow.get();
+		final double dx = Math.cos(direction.getRadians()) * magnitude;
+		final double dy = Math.sin(direction.getRadians()) * magnitude;
 
 		// Convert to m/s
 		final Measure<Velocity<Distance>> vx = Constants.Drivetrain.maxVelocity.times(dx);
@@ -88,6 +88,6 @@ public class JoystickDrive extends Command {
 				0.075
 			);
 
-		return Constants.Drivetrain.maxAngularVelocity.times(theta * this.oi.slow.get() * this.forMagnitude);
+		return Constants.Drivetrain.maxAngularVelocity.times(theta * this.forMagnitude);
 	}
 }
