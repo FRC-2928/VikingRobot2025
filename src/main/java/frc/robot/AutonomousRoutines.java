@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
 import frc.robot.subsystems.Drivetrain;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import org.littletonrobotics.junction.Logger;
 
