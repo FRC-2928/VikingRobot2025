@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.lang.reflect.Field;
+
 import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -25,8 +27,6 @@ public class Robot extends LoggedRobot {
 
 	private Command autonomousCommand;
 
-	private double lastAutoCheck = 0;
-
 	public Robot() {
 		super();
 		Robot.instance = this;
@@ -39,19 +39,15 @@ public class Robot extends LoggedRobot {
 
 		switch(Constants.mode) {
 		case REAL -> {
-			// Running on a real robot, log to a USB stick ("/U/logs") by default
-			// Try "/V/logs" if that doesn't work, which I think refers to the other USB port on the RoboRio
 			Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
 			Logger.addDataReceiver(new NT4Publisher());
 		}
 
 		case SIM -> {
-			// Running a physics simulator, log to NT
 			Logger.addDataReceiver(new NT4Publisher());
 		}
 
 		case REPLAY -> {
-			// Replaying a log, set up replay source
 			this.setUseTiming(false); // Run as fast as possible
 			final String logPath = LogFileUtil.findReplayLog();
 			Logger.setReplaySource(new WPILOGReader(logPath));
@@ -68,7 +64,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
-		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
+		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev).periodic();
 	}
 
 	// DISABLED //
@@ -76,28 +72,7 @@ public class Robot extends LoggedRobot {
 	public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
 
 	@Override
-	public void disabledPeriodic() {
-		if(DriverStation.getMatchType() != MatchType.None && Timer.getFPGATimestamp() - this.lastAutoCheck >= 1) {
-			boolean good;
-
-			try {
-				good = !((String) LoggedDashboardChooser.class
-					.getField("selectedValue")
-					.get(Robot.cont.autonomousChooser)).contains("[comp]");
-			} catch(final Exception e) {
-				throw new Error(e);
-			}
-
-			if(good) {
-				System.err.println("CRITICAL: CURRENT AUTONOMOUS ROUTINE IS NOT SUITED FOR COMPETITION");
-				this.container.diag.chirp(400, 500);
-			}
-
-			Logger.recordOutput("Checks/AutonomousRoutineGood", good);
-
-			this.lastAutoCheck = Timer.getFPGATimestamp();
-		}
-	}
+	public void disabledPeriodic() {}
 
 	@Override
 	public void disabledExit() {}

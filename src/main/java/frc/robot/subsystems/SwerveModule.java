@@ -76,13 +76,7 @@ public class SwerveModule {
 	public void control(final SwerveModuleState state) {
 		state.speedMetersPerSecond = -state.speedMetersPerSecond;
 
-		if(
-			Constants.Drivetrain.Flags.wheelOptimization
-				&& Math
-					.abs(
-						state.angle.minus(Rotation2d.fromDegrees(this.inputs.angle.in(Units.Degrees))).getDegrees()
-					) > 90
-		) {
+		if(Math.abs(state.angle.minus(Rotation2d.fromDegrees(this.inputs.angle.in(Units.Degrees))).getDegrees()) > 90) {
 			state.speedMetersPerSecond = -state.speedMetersPerSecond;
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}

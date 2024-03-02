@@ -12,6 +12,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class ClimberIOReal implements ClimberIO {
@@ -34,6 +35,8 @@ public class ClimberIOReal implements ClimberIO {
 
 		this.ticks = this.actuator.getPosition();
 		this.limit = this.actuator.getReverseLimit();
+
+		Robot.cont.diag.motors.add(this.actuator);
 	}
 
 	public final STalonFX actuator = new STalonFX(Constants.CAN.CTRE.climber, Constants.CAN.CTRE.bus);

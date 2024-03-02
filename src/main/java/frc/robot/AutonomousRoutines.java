@@ -6,8 +6,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
 import frc.robot.subsystems.Drivetrain;
@@ -24,7 +22,7 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
-				"Drive test trajectory",
+				"[comp] Drive test trajectory",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("test")),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("test"))

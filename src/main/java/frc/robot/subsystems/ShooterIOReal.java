@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class ShooterIOReal implements ShooterIO {
@@ -45,9 +47,10 @@ public class ShooterIOReal implements ShooterIO {
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intake.in(Units.Rotations);
+		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
 
-		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotConfig);
+		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotPositionConfig);
+		pivot.Slot1 = Slot1Configs.from(Constants.Shooter.pivotVelocityConfig);
 
 		pivot.Audio = Constants.talonFXAudio;
 
@@ -68,8 +71,11 @@ public class ShooterIOReal implements ShooterIO {
 		this.intake.setNeutralMode(NeutralMode.Coast);
 		this.intake.setInverted(true);
 
+		Robot.cont.diag.motors.add(this.pivot);
+		Robot.cont.diag.motors.add(this.flywheels);
+
 		this.sysIdPivot = new SysIdRoutine(
-			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1.0), Units.Volts.of(7.0), null, state -> {
+			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {
 				Logger.recordOutput("SysId/Shooter/Pivot/State", state.toString());
 				//this.sysIdPivot.recordState(state);
 
@@ -82,7 +88,7 @@ public class ShooterIOReal implements ShooterIO {
 					);
 			}),
 			new SysIdRoutine.Mechanism(
-				voltage -> this.pivot.setControl(new VoltageOut(voltage.in(Units.Volts), true, false, false, false)),
+				voltage -> this.pivot.setControl(new VoltageOut(voltage.in(Units.Volts))),
 				log -> {
 					//*
 					Logger
@@ -100,20 +106,6 @@ public class ShooterIOReal implements ShooterIO {
 							"SysId/Shooter/Pivot/Velocity",
 							Units.RotationsPerSecond.of(this.pivot.getVelocity().getValueAsDouble())
 						);
-					//*/
-					/*
-					log
-						.motor("pivot")
-						.voltage(Units.Volts.of(this.pivot.getMotorVoltage().getValueAsDouble()))
-						.current(Units.Amps.of(this.pivot.getTorqueCurrent().getValueAsDouble()))
-						.angularPosition(Units.Rotations.of(this.pivot.getPosition().getValueAsDouble()))
-						.angularVelocity(Units.RotationsPerSecond.of(this.pivot.getVelocity().getValueAsDouble()))
-						.angularAcceleration(
-							Units.RotationsPerSecond
-								.per(Units.Second)
-								.of(this.pivot.getAcceleration().getValueAsDouble())
-						);
-					*/
 				},
 				shooter
 			)
@@ -134,7 +126,7 @@ public class ShooterIOReal implements ShooterIO {
 				this.sysIdPivot
 					.quasistatic(Direction.kReverse)
 					.until(
-						() -> this.pivot.getPosition().getValueAsDouble() <= Constants.Shooter.intake
+						() -> this.pivot.getPosition().getValueAsDouble() <= Constants.Shooter.intakeGround
 							.in(Units.Rotations)
 					)
 			);
@@ -153,7 +145,7 @@ public class ShooterIOReal implements ShooterIO {
 				this.sysIdPivot
 					.dynamic(Direction.kReverse)
 					.until(
-						() -> this.pivot.getPosition().getValueAsDouble() <= Constants.Shooter.intake
+						() -> this.pivot.getPosition().getValueAsDouble() <= Constants.Shooter.intakeGround
 							.in(Units.Rotations)
 					)
 			);
@@ -176,32 +168,20 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void rotate(final Measure<Angle> target) {
-		Logger.recordOutput("Shooter/Pivot/Desired", target);
+		Logger.recordOutput("Shooter/Pivot/ControlPosition", target.in(Units.Degrees));
 		this.pivot.setControl(new PositionDutyCycle(target.in(Units.Rotations)));
 	}
 
 	@Override
 	public void runFlywheels(final Measure<Velocity<Angle>> demand) {
-		/*
-		this.flywheels
-			.setControl(
-				new VoltageOut(
-					this.flywheelFeedforward
-						.calculate(
-							Units.Rotations.of(this.absolutePosition.getValueAsDouble()).in(Units.Radians),
-							demand.in(Units.RotationsPerSecond)
-						)
-				)
-			);
-		*/
-		this.flywheels.set(demand.in(Units.RotationsPerSecond) / 90.0);
+		this.flywheels.set(demand.in(Units.RotationsPerSecond) / 90);
 	}
 
 	@Override
 	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }
 
 	@Override
-	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir * 0.9); }
+	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir); }
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {

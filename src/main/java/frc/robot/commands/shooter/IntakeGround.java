@@ -19,14 +19,15 @@ public class IntakeGround extends Command {
 
 	@Override
 	public void execute() {
-		Robot.cont.shooter.io.rotate(Constants.Shooter.intake);
+		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
 		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.of(-60));
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
 		Robot.cont.shooter.io
 			.runIntake(
 				Math
 					.abs(
-						Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.intake.in(Units.Degrees)
+						Robot.cont.shooter.inputs.angle.in(Units.Degrees)
+							- Constants.Shooter.intakeGround.in(Units.Degrees)
 					) <= 3 ? Demand.Reverse : Demand.Halt
 			);
 
@@ -38,14 +39,14 @@ public class IntakeGround extends Command {
 							Robot.cont.drivetrain
 								.rod(
 									new ChassisSpeeds(
+										-0.5,
 										Robot.cont.drivetrain.limelightNote
 											.getTargetHorizontalOffset()
-											.in(Units.Rotations),
-										1,
+											.in(Units.Rotations)
+											* 8,
 										0
 									)
 								)
-								.times(0)
 						)
 				);
 		}
@@ -55,9 +56,7 @@ public class IntakeGround extends Command {
 	public void end(final boolean interrupted) {
 		Robot.cont.shooter.io
 			.rotate(
-				Robot.cont.shooter.inputs.holdingNote
-					? Constants.Shooter.readyShootFront
-					: Constants.Shooter.readyIntake
+				Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
 			);
 		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.zero());
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);

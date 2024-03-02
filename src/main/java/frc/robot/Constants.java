@@ -10,9 +10,11 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.*;
 
 public class Constants {
@@ -57,6 +59,10 @@ public class Constants {
 
 	public static record PIDValues(double p, double i, double d, double f) {
 		public final PIDController createController() { return new PIDController(this.p, this.i, this.d); }
+
+		public final ProfiledPIDController createProfiledController(final TrapezoidProfile.Constraints profile) {
+			return new ProfiledPIDController(this.p, this.i, this.d, profile);
+		}
 	}
 
 	public static record Ratio<U extends Unit<U>>(double factor) {
@@ -124,20 +130,6 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
-		public static final class Flags {
-			private Flags() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain.Flags`"); }
-
-			/// Field-oriented drive
-			public static final boolean fod = true;
-			/// Absolute rotation (point right stick in direction to face)
-			public static final boolean absoluteRotation = true;
-
-			/// Optimize wheel rotation to only rotate less than 90deg per turn
-			public static final boolean wheelOptimization = true;
-			/// Compensate for wheel rotation while driving and rotating
-			public static final boolean thetaCompensation = false;
-		}
-
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
 			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
@@ -177,7 +169,12 @@ public class Constants {
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
-		public static final PIDValues absoluteRotationPID = new PIDValues(1.8, 0, 0, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(2, 0, 0, 0);
+		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
+			1,
+			15
+		);
+		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 
@@ -244,11 +241,16 @@ public class Constants {
 	public static class Shooter {
 		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
 
-		public static final SlotConfigs pivotConfig = new SlotConfigs()
+		public static final SlotConfigs pivotPositionConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
 			.withKG(0.015)
 			.withKP(3);
+		public static final SlotConfigs pivotVelocityConfig = new SlotConfigs()
+			.withGravityType(GravityTypeValue.Arm_Cosine)
+			.withKS(0.025)
+			.withKG(0.015)
+			.withKP(0.6);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(85);
 
@@ -257,10 +259,14 @@ public class Constants {
 		// a little above intake height to avoid hitting floor but to be ready
 		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.1);
 		// min angle before hitting floor
-		public static final Measure<Angle> intake = Units.Rotations.of(-0.115);
+		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
 
-		public static final Measure<Angle> readyShootFront = Units.Rotations.of(1.0 / 12.0);
-		public static final Measure<Angle> readyShootRear = Units.Rotations.of(0.25);
+		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
+		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
+		public static final Measure<Angle> readyShootRear = Units.Degrees.of(130);
+		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
+
+		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
 		// max angle before exiting allowed extension range
 		public static final Measure<Angle> max = Units.Rotations.of(0.37);
