@@ -33,6 +33,7 @@ public interface ModuleIO {
 
 		public Measure<Angle> angle = Units.Degrees.zero();
 		public Measure<Current> azimuthCurrent = Units.Amps.zero();
+		public Measure<Voltage> azimuthVoltage = Units.Volts.zero();
 	}
 
 	public default void setDriveVoltage(final double volts) {}
