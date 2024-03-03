@@ -68,7 +68,7 @@ public class ShooterIOReal implements ShooterIO {
 
 		this.flywheels.getConfigurator().apply(flywheelsConfig);
 		this.flywheels.setNeutralMode(NeutralModeValue.Coast);
-		this.flywheels.setInverted(true);
+		this.flywheels.setInverted(false);
 
 		this.flywheelsFollower.getConfigurator().apply(flywheelsConfig);
 		this.flywheelsFollower.setNeutralMode(NeutralModeValue.Coast);

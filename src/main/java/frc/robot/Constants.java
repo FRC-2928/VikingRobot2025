@@ -249,15 +249,15 @@ public class Constants {
 		public static final SlotConfigs pivotPositionConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
-			.withKG(0.015)
+			.withKG(0.0175)
 			.withKP(3);
 		public static final SlotConfigs pivotVelocityConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
-			.withKG(0.015)
+			.withKG(0.0175)
 			.withKP(0.6);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(85);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(78);
 
 		// todo: fill angles
 
