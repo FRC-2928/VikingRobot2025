@@ -11,18 +11,21 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.units.*;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Velocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
@@ -36,35 +39,40 @@ public class ShooterIOReal implements ShooterIO {
 		this.pivot.optimizeBusUtilization();
 		this.encoder.optimizeBusUtilization();
 		this.flywheels.optimizeBusUtilization();
+		this.flywheelsFollower.optimizeBusUtilization();
 
 		this.sensors = this.feeder.getSensorCollection();
 
-		final TalonFXConfiguration pivot = new TalonFXConfiguration();
+		final TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
 
-		pivot.Feedback.FeedbackRemoteSensorID = Constants.CAN.CTRE.shooterPivot;
-		pivot.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+		pivotConfig.Feedback.FeedbackRemoteSensorID = Constants.CAN.CTRE.shooterPivot;
+		pivotConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
 
-		pivot.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-		pivot.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
-		pivot.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
+		pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+		pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
+		pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+		pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
 
-		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotPositionConfig);
-		pivot.Slot1 = Slot1Configs.from(Constants.Shooter.pivotVelocityConfig);
+		pivotConfig.Slot0 = Slot0Configs.from(Constants.Shooter.pivotPositionConfig);
+		pivotConfig.Slot1 = Slot1Configs.from(Constants.Shooter.pivotVelocityConfig);
 
-		pivot.Audio = Constants.talonFXAudio;
+		pivotConfig.Audio = Constants.talonFXAudio;
 
-		this.pivot.getConfigurator().apply(pivot);
+		this.pivot.getConfigurator().apply(pivotConfig);
 		this.pivot.setNeutralMode(NeutralModeValue.Brake);
 		this.pivot.setInverted(false);
 
-		final TalonFXConfiguration flywheels = new TalonFXConfiguration();
+		final TalonFXConfiguration flywheelsConfig = new TalonFXConfiguration();
 
-		flywheels.Audio = Constants.talonFXAudio;
+		flywheelsConfig.Audio = Constants.talonFXAudio;
 
-		this.flywheels.getConfigurator().apply(flywheels);
+		this.flywheels.getConfigurator().apply(flywheelsConfig);
 		this.flywheels.setNeutralMode(NeutralModeValue.Coast);
 		this.flywheels.setInverted(true);
+
+		this.flywheelsFollower.getConfigurator().apply(flywheelsConfig);
+		this.flywheelsFollower.setNeutralMode(NeutralModeValue.Coast);
+		this.flywheelsFollower.setControl(new Follower(this.flywheels.getDeviceID(), true));
 
 		this.feeder.setNeutralMode(NeutralMode.Coast);
 		this.feeder.setInverted(true);
@@ -155,6 +163,7 @@ public class ShooterIOReal implements ShooterIO {
 	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterEncoder, Constants.CAN.CTRE.bus);
 
 	public final STalonFX flywheels = new STalonFX(Constants.CAN.CTRE.shooterFlywheels, Constants.CAN.CTRE.bus);
+	public final STalonFX flywheelsFollower = new STalonFX(Constants.CAN.CTRE.shooterFlywheelsFollower, Constants.CAN.CTRE.bus);
 	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
 	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
 
