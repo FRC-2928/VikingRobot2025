@@ -32,6 +32,15 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
+				"Manual SysId trajectory",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
+				)
+			);
+
+		chooser
+			.addOption(
 				"Four Note Close",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
@@ -64,17 +73,19 @@ public final class AutonomousRoutines {
 			);
 
 		// Set up SysId routines
-		chooser.addOption(
-			"Drive SysId (Quasistatic Forward)",
-			drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-		chooser.addOption(
-			"Drive SysId (Quasistatic Reverse)",
-			drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-		chooser.addOption(
-			"Drive SysId (Dynamic Forward)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
-		chooser.addOption(
-			"Drive SysId (Dynamic Reverse)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-   
+		chooser
+			.addOption(
+				"Drive SysId (Quasistatic Forward)",
+				drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward)
+			);
+		chooser
+			.addOption(
+				"Drive SysId (Quasistatic Reverse)",
+				drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)
+			);
+		chooser.addOption("Drive SysId (Dynamic Forward)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+		chooser.addOption("Drive SysId (Dynamic Reverse)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
 		return chooser;
 	}
 
@@ -102,7 +113,7 @@ public final class AutonomousRoutines {
 				Constants.Drivetrain.Choreo.x.createController(), // PID to correct for field-relative X error
 				Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
 				Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
-				Robot.cont.drivetrain::control,
+				Robot.cont.drivetrain::controlRobotOriented,
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
 				Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
 			);

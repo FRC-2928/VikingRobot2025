@@ -138,6 +138,14 @@ public class Drivetrain extends SubsystemBase {
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
+	public void controlRobotOriented(final ChassisSpeeds speeds) {
+		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
+
+		this.control(this.kinematics.toSwerveModuleStates(speeds));
+	}
+
 	public void control(final Drivetrain.State state) { this.control(state.states); }
 
 	public void control(final SwerveModuleState[] states) {
