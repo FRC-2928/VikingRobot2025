@@ -15,7 +15,7 @@ import frc.robot.subsystems.ShooterIO.Demand;
 public class ShootSpeaker extends Command {
 	public ShootSpeaker() { this.addRequirements(Robot.cont.shooter); }
 
-	private boolean fired;
+	protected boolean fired;
 	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 10);
 
 	@Override

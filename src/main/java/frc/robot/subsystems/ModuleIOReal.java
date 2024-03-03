@@ -51,6 +51,7 @@ public class ModuleIOReal implements ModuleIO {
 
 	public final Measure<Angle> absoluteEncoderOffset;
 	public Measure<Voltage> driveVoltage;
+	public Measure<Voltage> azimuthVoltage;
 
 	public ModuleIOReal(final Place place) {
 		this.place = place;
@@ -166,7 +167,10 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
+	public void setAzimuthVoltage(final double volts) { 
+		this.azimuth.setControl(new VoltageOut(volts)); 
+		this.azimuthVoltage = Units.Volts.of(volts);
+	}
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {

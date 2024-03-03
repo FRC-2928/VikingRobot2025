@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.ShootSpeaker;
+import frc.robot.commands.shooter.ShootSpeakerAuto;
 import frc.robot.subsystems.Drivetrain;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -32,30 +32,39 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
-				"Manual SysId trajectory",
+				"Four Note Middle",
 				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4NoteMiddle.1")),
+					new ShootSpeakerAuto().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.1")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeakerAuto().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeakerAuto().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.3")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeakerAuto().withTimeout(3)
 				)
 			);
 
 		chooser
 			.addOption(
-				"Four Note Close",
+				"Four Note Amp side",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
-					new ShootSpeaker(),
+					new ShootSpeakerAuto(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.1")),
 					new IntakeGround(true),
 					new ParallelCommandGroup(
 						AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
-						new ShootSpeaker()
+						new ShootSpeakerAuto()
 					),
 					new IntakeGround(true),
-					new ShootSpeaker(),
+					new ShootSpeakerAuto(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.3")),
 					new IntakeGround(true),
-					new ShootSpeaker()
+					new ShootSpeakerAuto()
 				)
 			);
 
@@ -64,11 +73,11 @@ public final class AutonomousRoutines {
 				"Two Note Center D",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("TwoNoteCenterD.1")),
-					new ShootSpeaker(),
+					new ShootSpeakerAuto(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.1")),
 					new IntakeGround(true),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.2")),
-					new ShootSpeaker()
+					new ShootSpeakerAuto()
 				)
 			);
 
