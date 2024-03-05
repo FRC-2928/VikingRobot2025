@@ -138,7 +138,7 @@ public class Constants {
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
 			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues theta = new PIDValues(0.5, 0, 0, 0);
+			public static final PIDValues theta = new PIDValues(0.1, 0, 0, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the

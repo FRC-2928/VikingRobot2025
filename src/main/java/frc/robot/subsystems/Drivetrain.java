@@ -143,7 +143,17 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		this.control(this.kinematics.toSwerveModuleStates(speeds));
+		this
+			.control(
+				this.kinematics
+					.toSwerveModuleStates(
+						new ChassisSpeeds(
+							-speeds.vxMetersPerSecond,
+							-speeds.vyMetersPerSecond,
+							speeds.omegaRadiansPerSecond
+						)
+					)
+			);
 	}
 
 	public void control(final Drivetrain.State state) { this.control(state.states); }

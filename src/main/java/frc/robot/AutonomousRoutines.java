@@ -25,8 +25,8 @@ public final class AutonomousRoutines {
 			.addOption(
 				"[comp] Drive test trajectory",
 				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("test")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("test"))
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
 				)
 			);
 
