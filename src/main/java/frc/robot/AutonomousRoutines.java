@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
-import frc.robot.subsystems.Drivetrain;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -17,7 +16,6 @@ import com.choreo.lib.ChoreoTrajectory;
 
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
-		final Drivetrain drivetrain = Robot.cont.drivetrain;
 		final SendableChooser<Command> chooser = new SendableChooser<>();
 
 		chooser

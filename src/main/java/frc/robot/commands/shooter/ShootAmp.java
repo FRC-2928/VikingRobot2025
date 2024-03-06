@@ -41,6 +41,8 @@ public class ShootAmp extends Command {
 			Robot.cont.shooter.io.runFeeder(Demand.Forward);
 			this.fired = true;
 		}
+
+		// todo: auto align
 	}
 
 	@Override
@@ -58,6 +60,3 @@ public class ShootAmp extends Command {
 	@Override
 	public InterruptionBehavior getInterruptionBehavior() { return InterruptionBehavior.kCancelIncoming; }
 }
-
-// TODO: implement aiming
-// fwd/back based on pose

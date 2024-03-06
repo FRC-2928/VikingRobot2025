@@ -1,12 +1,11 @@
 package frc.robot.commands.shooter;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -15,11 +14,11 @@ import frc.robot.subsystems.ShooterIO.Demand;
 public class ShootSpeaker extends Command {
 	public ShootSpeaker() { this.addRequirements(Robot.cont.shooter); }
 
-	private boolean fired;
+	private double fired;
 	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 10);
 
 	@Override
-	public void initialize() { this.fired = false; }
+	public void initialize() { this.fired = -1; }
 
 	@Override
 	public void execute() {
@@ -49,17 +48,17 @@ public class ShootSpeaker extends Command {
 							)
 					);
 
-				if(Math.abs(po.in(Units.Degrees)) >= 2.5 && !this.fired) {
+				if(Math.abs(po.in(Units.Degrees)) >= 2.5 && this.fired == -1) {
 					Robot.cont.shooter.io.rotate(Robot.cont.shooter.inputs.angle.minus(po));
 				} else {
 					if(
 						(Robot.cont.shooter.inputs.flywheelSpeed
 							.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
 								.in(Units.RotationsPerSecond)
-							&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired
+							&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired != -1
 					) {
 						Robot.cont.shooter.io.runFeeder(Demand.Forward);
-						this.fired = true;
+						this.fired = Timer.getFPGATimestamp();
 					}
 				}
 			} else Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
@@ -81,8 +80,8 @@ public class ShootSpeaker extends Command {
 	}
 
 	@Override
+	public boolean isFinished() { return Timer.getFPGATimestamp() - this.fired >= Constants.Shooter.fireTimeout; }
+
+	@Override
 	public InterruptionBehavior getInterruptionBehavior() { return InterruptionBehavior.kCancelIncoming; }
 }
-
-// TODO: implement aiming
-// fwd/back based on pose

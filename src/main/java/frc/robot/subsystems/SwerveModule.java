@@ -20,9 +20,17 @@ public class SwerveModule {
 		public final int index;
 	}
 
-	public SwerveModule(final ModuleIO io, final Place place) {
-		this.io = io;
+	public SwerveModule(final Place place) {
 		this.place = place;
+
+		this.io = switch(Constants.mode) {
+		case REAL -> new ModuleIOReal(this);
+		case SIM -> new ModuleIOSim();
+		case REPLAY -> new ModuleIO() {
+		};
+		default -> throw new Error();
+		};
+
 		this.azimuthPID.enableContinuousInput(-180, 180);
 	}
 

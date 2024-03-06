@@ -9,14 +9,15 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
@@ -50,7 +51,6 @@ public class ShooterIOReal implements ShooterIO {
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
 
 		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotPositionConfig);
-		pivot.Slot1 = Slot1Configs.from(Constants.Shooter.pivotVelocityConfig);
 
 		pivot.Audio = Constants.talonFXAudio;
 
@@ -168,13 +168,19 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void rotate(final Measure<Angle> target) {
-		Logger.recordOutput("Shooter/Pivot/ControlPosition", target.in(Units.Degrees));
-		this.pivot.setControl(new PositionDutyCycle(target.in(Units.Rotations)));
+		final double rot = MathUtil
+			.clamp(
+				target.in(Units.Rotations),
+				Constants.Shooter.intakeGround.in(Units.Rotations),
+				Constants.Shooter.max.in(Units.Rotations)
+			);
+		Logger.recordOutput("Shooter/PivotControl", rot);
+		this.pivot.setControl(new PositionDutyCycle(rot));
 	}
 
 	@Override
 	public void runFlywheels(final Measure<Velocity<Angle>> demand) {
-		this.flywheels.set(demand.in(Units.RotationsPerSecond) / 90);
+		this.flywheels.setControl(new VelocityDutyCycle(demand.in(Units.RotationsPerSecond)));
 	}
 
 	@Override

@@ -13,7 +13,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.RobotController.RadioLEDState;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -164,6 +163,7 @@ public class Diagnostics extends SubsystemBase {
 				);
 			this.badVoltage.set(badVoltage);
 
+			// todo: check note in shooter, check swerve angles
 			final boolean ready = !(invalidAutoRoutine || setupJumperPresent || startingConfiguration);
 
 			Logger.recordOutput("Diagnostics/ReadyForCompetition", ready);

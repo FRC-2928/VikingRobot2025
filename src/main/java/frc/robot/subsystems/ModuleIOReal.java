@@ -48,10 +48,10 @@ public class ModuleIOReal implements ModuleIO {
 
 	public final Measure<Angle> absoluteEncoderOffset;
 
-	public ModuleIOReal(final Place place) {
-		this.place = place;
+	public ModuleIOReal(final SwerveModule module) {
+		this.place = module.place;
 
-		switch(place) {
+		switch(this.place) {
 		case FrontLeft:
 			this.azimuth = new STalonFX(Constants.CAN.CTRE.swerveFrontLeftAzimuth, Constants.CAN.CTRE.bus);
 			this.drive = new STalonFX(Constants.CAN.CTRE.swerveFrontLeftDrive, Constants.CAN.CTRE.bus);
@@ -127,7 +127,7 @@ public class ModuleIOReal implements ModuleIO {
 		this.drive.getConfigurator().apply(driveConfig);
 		this.drive.setNeutralMode(NeutralModeValue.Brake);
 
-		if(place == Place.FrontRight || place == Place.BackRight) this.drive.setInverted(true);
+		if(this.place == Place.FrontRight || this.place == Place.BackRight) this.drive.setInverted(true);
 
 		final CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
 		encoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;

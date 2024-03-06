@@ -2,18 +2,18 @@ package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import edu.wpi.first.units.*;
-
 public interface ClimberIO {
 	@AutoLog
 	public class ClimberIOInputs {
-		public double ticks;
-		public boolean limit;
+		public double position;
+		public boolean home;
 	}
 
-	public default void drive(final Measure<Velocity<Distance>> velocity) {}
+	public default void set(final double position, final boolean fast) {}
 
-	public default void zero() {}
+	public default void offset(final double offset, final boolean fast) {}
+
+	public default void overrideLock(final boolean engaged) {}
 
 	public default void updateInputs(final ClimberIOInputs inputs) {}
 }

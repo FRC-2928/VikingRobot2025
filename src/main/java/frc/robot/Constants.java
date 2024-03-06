@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -246,11 +245,8 @@ public class Constants {
 			.withKS(0.025)
 			.withKG(0.015)
 			.withKP(3);
-		public static final SlotConfigs pivotVelocityConfig = new SlotConfigs()
-			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKS(0.025)
-			.withKG(0.015)
-			.withKP(0.6);
+
+		public static final SlotConfigs flywheelVelocityConfig = new SlotConfigs().withKP(0.01);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(85);
 
@@ -270,19 +266,21 @@ public class Constants {
 
 		// max angle before exiting allowed extension range
 		public static final Measure<Angle> max = Units.Rotations.of(0.37);
+
+		public static final double fireTimeout = 0.3;
 	}
 
 	public static class Climber {
 		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
 
-		public static final SimpleMotorFeedforward ffw = new SimpleMotorFeedforward(0, 1, 0);
-		public static final PIDValues pid = new PIDValues(0.1, 0, 0, 0);
+		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
+		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.025);
 
 		public static final Measure<Angle> ratchetLocked = Units.Degrees.of(84);
 		public static final Measure<Angle> ratchetFree = Units.Degrees.of(93);
 
-		// todo: fill
-
-		public static final Measure<Angle> max = Units.Rotations.of(129);
+		public static final double max = 129;
+		public static final double disengageDistance = 0.5;
+		public static final double initializeRaiseDistance = 2;
 	}
 }
