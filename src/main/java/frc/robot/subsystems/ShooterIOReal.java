@@ -158,7 +158,7 @@ public class ShooterIOReal implements ShooterIO {
 	}
 
 	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
-	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterEncoder, Constants.CAN.CTRE.bus);
+	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 
 	public final STalonFX flywheelA = new STalonFX(Constants.CAN.CTRE.shooterFlywheelA, Constants.CAN.CTRE.bus);
 	public final STalonFX flywheelB = new STalonFX(Constants.CAN.CTRE.shooterFlywheelB, Constants.CAN.CTRE.bus);

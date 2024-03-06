@@ -106,7 +106,6 @@ public class Constants {
 			public static final int swerveBackRightDrive = 16;
 
 			public static final int shooterPivot = 12;
-			public static final int shooterEncoder = 12;
 			public static final int shooterFlywheelA = 1;
 			public static final int shooterFlywheelB = 4;
 
