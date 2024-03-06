@@ -22,14 +22,32 @@ public final class AutonomousRoutines {
 			.addOption(
 				"[comp] Drive test trajectory",
 				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("test")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("test"))
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
 				)
 			);
 
 		chooser
 			.addOption(
-				"Four Note Close",
+				"Four Note Middle",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4NoteMiddle.1")),
+					new ShootSpeaker().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.1")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeaker().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeaker().withTimeout(3),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.3")),
+					new IntakeGround(true).withTimeout(2),
+					new ShootSpeaker().withTimeout(3)
+				)
+			);
+
+		chooser
+			.addOption(
+				"Four Note Amp side",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
 					new ShootSpeaker(),
@@ -87,7 +105,7 @@ public final class AutonomousRoutines {
 				Constants.Drivetrain.Choreo.x.createController(), // PID to correct for field-relative X error
 				Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
 				Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
-				Robot.cont.drivetrain::control,
+				Robot.cont.drivetrain::controlRobotOriented,
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
 				Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
 			);

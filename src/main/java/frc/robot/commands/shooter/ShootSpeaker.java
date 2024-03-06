@@ -25,7 +25,7 @@ public class ShootSpeaker extends Command {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
 
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.of(90));
+		Robot.cont.shooter.io.runFlywheels(1);
 
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
 		if(forward == current) {
@@ -75,12 +75,14 @@ public class ShootSpeaker extends Command {
 			.rotate(
 				Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
 			);
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.zero());
+		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 	}
 
 	@Override
-	public boolean isFinished() { return Timer.getFPGATimestamp() - this.fired >= Constants.Shooter.fireTimeout; }
+	public boolean isFinished() {
+		return this.fired != -1 && Timer.getFPGATimestamp() - this.fired >= Constants.Shooter.fireTimeout;
+	}
 
 	@Override
 	public InterruptionBehavior getInterruptionBehavior() { return InterruptionBehavior.kCancelIncoming; }

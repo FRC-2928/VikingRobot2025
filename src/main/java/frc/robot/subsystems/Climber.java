@@ -20,5 +20,7 @@ public class Climber extends SubsystemBase {
 	public void periodic() {
 		this.io.updateInputs(this.inputs);
 		Logger.processInputs("Climber", this.inputs);
+
+		this.io.periodic();
 	}
 }

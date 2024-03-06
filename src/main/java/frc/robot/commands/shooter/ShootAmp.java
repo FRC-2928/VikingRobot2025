@@ -25,7 +25,7 @@ public class ShootAmp extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.shootAmp);
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.of(15));
+		Robot.cont.shooter.io.runFlywheels(0.25);
 
 		Robot.cont.drivetrain
 			.control(Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0))));
@@ -35,7 +35,6 @@ public class ShootAmp extends Command {
 				.abs(
 					Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.shootAmp.in(Units.Degrees)
 				) <= 20.5
-				&& Robot.cont.shooter.inputs.flywheelSpeed.in(Units.RotationsPerSecond) >= 10
 				&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired
 		) {
 			Robot.cont.shooter.io.runFeeder(Demand.Forward);
@@ -53,7 +52,7 @@ public class ShootAmp extends Command {
 					? Constants.Shooter.startingConfiguration
 					: Constants.Shooter.readyIntake
 			);
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.zero());
+		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 	}
 

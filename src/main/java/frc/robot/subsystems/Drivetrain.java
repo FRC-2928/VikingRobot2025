@@ -15,7 +15,9 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -101,6 +103,24 @@ public class Drivetrain extends SubsystemBase {
 		speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
+	}
+
+	public void controlRobotOriented(final ChassisSpeeds speeds) {
+		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
+		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
+
+		this
+			.control(
+				this.kinematics
+					.toSwerveModuleStates(
+						new ChassisSpeeds(
+							-speeds.vxMetersPerSecond,
+							-speeds.vyMetersPerSecond,
+							speeds.omegaRadiansPerSecond
+						)
+					)
+			);
 	}
 
 	public void control(final Drivetrain.State state) { this.control(state.states); }
@@ -197,11 +217,5 @@ public class Drivetrain extends SubsystemBase {
 		*/
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-	}
-
-	public boolean getHasValidTargetsSim() {
-		final double heading = this.est.getEstimatedPosition().getRotation().getDegrees();
-
-		return heading > 135 || heading < -135;
 	}
 }

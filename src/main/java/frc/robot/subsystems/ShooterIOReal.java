@@ -10,6 +10,8 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -23,7 +25,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
@@ -31,12 +32,13 @@ import frc.robot.utils.STalonFX;
 public class ShooterIOReal implements ShooterIO {
 	public ShooterIOReal(final Shooter shooter) {
 		this.absolutePosition = this.encoder.getAbsolutePosition();
-		this.velocity = this.flywheels.getVelocity();
+		this.velocity = this.flywheelA.getVelocity();
 
 		BaseStatusSignal.setUpdateFrequencyForAll(100, this.absolutePosition, this.velocity);
 		this.pivot.optimizeBusUtilization();
 		this.encoder.optimizeBusUtilization();
-		this.flywheels.optimizeBusUtilization();
+		this.flywheelA.optimizeBusUtilization();
+		this.flywheelB.optimizeBusUtilization();
 
 		this.sensors = this.feeder.getSensorCollection();
 
@@ -50,7 +52,7 @@ public class ShooterIOReal implements ShooterIO {
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
 		pivot.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
 
-		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotPositionConfig);
+		pivot.Slot0 = Slot0Configs.from(Constants.Shooter.pivotConfig);
 
 		pivot.Audio = Constants.talonFXAudio;
 
@@ -62,9 +64,13 @@ public class ShooterIOReal implements ShooterIO {
 
 		flywheels.Audio = Constants.talonFXAudio;
 
-		this.flywheels.getConfigurator().apply(flywheels);
-		this.flywheels.setNeutralMode(NeutralModeValue.Coast);
-		this.flywheels.setInverted(true);
+		this.flywheelA.getConfigurator().apply(flywheels);
+		this.flywheelA.setNeutralMode(NeutralModeValue.Coast);
+		this.flywheelA.setInverted(false);
+
+		this.flywheelB.getConfigurator().apply(flywheels);
+		this.flywheelB.setNeutralMode(NeutralModeValue.Coast);
+		this.flywheelB.setControl(new Follower(this.flywheelA.getDeviceID(), true));
 
 		this.feeder.setNeutralMode(NeutralMode.Coast);
 		this.feeder.setInverted(true);
@@ -72,7 +78,7 @@ public class ShooterIOReal implements ShooterIO {
 		this.intake.setInverted(true);
 
 		Robot.cont.diag.motors.add(this.pivot);
-		Robot.cont.diag.motors.add(this.flywheels);
+		Robot.cont.diag.motors.add(this.flywheelA);
 
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {
@@ -154,15 +160,14 @@ public class ShooterIOReal implements ShooterIO {
 	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterEncoder, Constants.CAN.CTRE.bus);
 
-	public final STalonFX flywheels = new STalonFX(Constants.CAN.CTRE.shooterFlywheels, Constants.CAN.CTRE.bus);
+	public final STalonFX flywheelA = new STalonFX(Constants.CAN.CTRE.shooterFlywheelA, Constants.CAN.CTRE.bus);
+	public final STalonFX flywheelB = new STalonFX(Constants.CAN.CTRE.shooterFlywheelB, Constants.CAN.CTRE.bus);
 	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
 	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
 
 	public final StatusSignal<Double> absolutePosition;
 	public final StatusSignal<Double> velocity;
 	public final SensorCollection sensors;
-
-	//public final ArmFeedforward flywheelFeedforward = Constants.Shooter.flywheelFeedforward;
 
 	public final SysIdRoutine sysIdPivot;
 
@@ -179,9 +184,7 @@ public class ShooterIOReal implements ShooterIO {
 	}
 
 	@Override
-	public void runFlywheels(final Measure<Velocity<Angle>> demand) {
-		this.flywheels.setControl(new VelocityDutyCycle(demand.in(Units.RotationsPerSecond)));
-	}
+	public void runFlywheels(final double demand) { this.flywheelA.setControl(new DutyCycleOut(demand)); }
 
 	@Override
 	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }

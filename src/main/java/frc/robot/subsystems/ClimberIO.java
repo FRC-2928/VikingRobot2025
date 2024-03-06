@@ -16,4 +16,6 @@ public interface ClimberIO {
 	public default void overrideLock(final boolean engaged) {}
 
 	public default void updateInputs(final ClimberIOInputs inputs) {}
+
+	public default void periodic() {}
 }

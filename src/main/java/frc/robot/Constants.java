@@ -107,7 +107,8 @@ public class Constants {
 
 			public static final int shooterPivot = 12;
 			public static final int shooterEncoder = 12;
-			public static final int shooterFlywheels = 1;
+			public static final int shooterFlywheelA = 1;
+			public static final int shooterFlywheelB = 4;
 
 			public static final int climber = 17;
 		}
@@ -132,7 +133,7 @@ public class Constants {
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
 			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues theta = new PIDValues(0.5, 0, 0, 0);
+			public static final PIDValues theta = new PIDValues(0.1, 0, 0, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -240,15 +241,13 @@ public class Constants {
 	public static class Shooter {
 		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
 
-		public static final SlotConfigs pivotPositionConfig = new SlotConfigs()
+		public static final SlotConfigs pivotConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
-			.withKG(0.015)
+			.withKG(0.0175)
 			.withKP(3);
 
-		public static final SlotConfigs flywheelVelocityConfig = new SlotConfigs().withKP(0.01);
-
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(85);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
 
 		// todo: fill angles
 
@@ -276,8 +275,8 @@ public class Constants {
 		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
 		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.025);
 
-		public static final Measure<Angle> ratchetLocked = Units.Degrees.of(84);
-		public static final Measure<Angle> ratchetFree = Units.Degrees.of(93);
+		public static final double ratchetLocked = 84;
+		public static final double ratchetFree = 93;
 
 		public static final double max = 129;
 		public static final double disengageDistance = 0.5;
