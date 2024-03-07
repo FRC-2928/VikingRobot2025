@@ -35,13 +35,22 @@ public final class AutonomousRoutines {
 					new ShootSpeaker().withTimeout(3),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.1")),
 					new IntakeGround(true).withTimeout(2),
-					new ShootSpeaker().withTimeout(3),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2")),
-					new IntakeGround(true).withTimeout(2),
-					new ShootSpeaker().withTimeout(3),
+					new ParallelCommandGroup(
+						new ShootSpeaker().withTimeout(3),
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2"))
+					),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.3")),
 					new IntakeGround(true).withTimeout(2),
-					new ShootSpeaker().withTimeout(3)
+					new ParallelCommandGroup(
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.4")),
+						new ShootSpeaker().withTimeout(3)
+					),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.5")),
+					new IntakeGround(true).withTimeout(2),
+					new ParallelCommandGroup(
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.6")),
+						new ShootSpeaker().withTimeout(3)
+					)
 				)
 			);
 
