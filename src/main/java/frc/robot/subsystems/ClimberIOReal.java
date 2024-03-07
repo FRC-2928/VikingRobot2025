@@ -13,9 +13,7 @@ import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
 import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
 
-import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
@@ -39,43 +37,42 @@ public class ClimberIOReal implements ClimberIO {
 
 		this.actuator.setInverted(true);
 		this.actuator.setNeutralMode(NeutralModeValue.Brake);
+		this.actuator.setPosition(0);
 
 		this.position = this.actuator.getPosition();
 		this.home = this.actuator.getReverseLimit();
 
 		Robot.cont.diag.motors.add(this.actuator);
 
-		this.overrideLock(true);
+		this.lock(true);
 	}
 
 	public final STalonFX actuator = new STalonFX(Constants.CAN.CTRE.climber, Constants.CAN.CTRE.bus);
 
-	public final Servo lock = new Servo(0);
+	public final Servo lock = new Servo(9);
 
 	public final StatusSignal<Double> position;
 	public final StatusSignal<ReverseLimitValue> home;
 
 	private boolean disengaging;
-	private double targetDisengagePosition;
+	private double beginDisengagePosition;
 
 	private double demand;
-	private boolean demandFast;
 
 	@Override
-	public void set(final double position, final boolean fast) {
-		this.demand = position;
-		this.demandFast = fast;
-	}
+	public void set(final double position) { this.demand = position; }
 
 	@Override
-	public void offset(final double offset, final boolean fast) {
-		this.set(this.position.getValueAsDouble() + offset, fast);
-	}
+	public void offset(final double offset) { this.set(this.position.getValueAsDouble() + offset); }
 
 	@Override
-	public void overrideLock(final boolean engaged) {
-		this.lock.setAngle(engaged ? Constants.Climber.ratchetLocked : Constants.Climber.ratchetFree);
-		Logger.recordOutput("Climber/LockEngaged", engaged);
+	public void fast(final boolean fast) {
+		final TalonFXConfiguration actuator = new TalonFXConfiguration();
+		this.actuator.getConfigurator().refresh(actuator);
+
+		actuator.MotorOutput.PeakForwardDutyCycle = fast ? 1 : 0.5;
+
+		this.actuator.getConfigurator().apply(actuator);
 	}
 
 	@Override
@@ -91,44 +88,47 @@ public class ClimberIOReal implements ClimberIO {
 		Logger.recordOutput("Climber/DriveUp", this.demand == 129);
 		Logger.recordOutput("Climber/Disengaging", this.disengaging);
 		Logger.recordOutput("Climber/RatchetLocked", this.lock.getAngle() == Constants.Climber.ratchetLocked);
-		Logger.recordOutput("Climber/Tick", Timer.getFPGATimestamp());
 
-		if(this.demand <= this.position.getValueAsDouble()) {
-			this.setpos(this.demand);
+		if(Math.abs(this.demand - this.position.getValueAsDouble()) < 0.1) {
+			this.lock(true);
+			this.control(this.position.getValueAsDouble());
+		} else if(this.demand - 0.1 <= this.position.getValueAsDouble()) {
+			this.lock(false);
+			this.control(this.demand);
 
-			this.overrideLock(true);
 			this.disengaging = false;
 
 			Logger.recordOutput("Climber/State", "Eng");
 		} else {
 			if(this.disengaging) {
 				if(
-					this.position.getValueAsDouble() < this.targetDisengagePosition
+					this.position.getValueAsDouble() < this.beginDisengagePosition - Constants.Climber.disengageDistance
 						|| this.home.getValue() == ReverseLimitValue.ClosedToGround
 				) {
-					this.disengaging = false;
+					this.lock(false);
+					this.control(this.demand);
 
-					this.setpos(this.demand);
+					this.disengaging = false;
 
 					Logger.recordOutput("Climber/State", "DisFin");
 				} else {
-					this.setpos(this.targetDisengagePosition);
+					this.lock(false);
+					this.control(this.beginDisengagePosition - Constants.Climber.disengageDistance * 2);
 
 					Logger.recordOutput("Climber/State", "DisMove");
 				}
 			} else {
 				if(this.lock.getAngle() == Constants.Climber.ratchetLocked) {
-					this.overrideLock(false);
+					this.lock(false);
+					this.control(this.beginDisengagePosition - Constants.Climber.disengageDistance * 2);
 
 					this.disengaging = true;
-					this.targetDisengagePosition = this.position.getValueAsDouble()
-						- Constants.Climber.disengageDistance;
-
-					this.setpos(this.targetDisengagePosition);
+					this.beginDisengagePosition = this.position.getValueAsDouble();
 
 					Logger.recordOutput("Climber/State", "BegDis");
 				} else {
-					this.setpos(this.demand);
+					this.lock(false);
+					this.control(this.demand);
 
 					Logger.recordOutput("Climber/State", "AlreadyDis");
 				}
@@ -136,8 +136,13 @@ public class ClimberIOReal implements ClimberIO {
 		}
 	}
 
-	private void setpos(final double target) {
-		this.actuator.setControl(new PositionDutyCycle(target).withSlot(this.demandFast ? 0 : 1));
+	private void control(final double target) {
+		this.actuator.setControl(new PositionDutyCycle(target));
 		Logger.recordOutput("Climber/TargetPosition", target);
+	}
+
+	private void lock(final boolean engaged) {
+		this.lock.setAngle(engaged ? Constants.Climber.ratchetLocked : Constants.Climber.ratchetFree);
+		Logger.recordOutput("Climber/LockEngaged", engaged);
 	}
 }

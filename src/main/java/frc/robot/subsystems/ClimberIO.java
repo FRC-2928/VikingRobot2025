@@ -9,11 +9,11 @@ public interface ClimberIO {
 		public boolean home;
 	}
 
-	public default void set(final double position, final boolean fast) {}
+	public default void set(final double position) {}
 
-	public default void offset(final double offset, final boolean fast) {}
+	public default void offset(final double offset) {}
 
-	public default void overrideLock(final boolean engaged) {}
+	public default void fast(final boolean fast) {}
 
 	public default void updateInputs(final ClimberIOInputs inputs) {}
 

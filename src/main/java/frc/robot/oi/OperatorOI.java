@@ -1,6 +1,5 @@
 package frc.robot.oi;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -26,9 +25,9 @@ public class OperatorOI extends BaseOI {
 	public final Trigger initializeClimber;
 
 	public void configureControls() {
-		this.lowerClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0, true)));
-		this.raiseClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max, true)));
-		this.raiseClimberSlow.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max, false)));
+		this.lowerClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0)));
+		this.raiseClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
+		this.raiseClimberSlow.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
 
 		this.initializeClimber.onTrue(new Initialize());
 	}

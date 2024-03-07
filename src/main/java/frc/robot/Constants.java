@@ -272,7 +272,7 @@ public class Constants {
 		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
 
 		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
-		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.025);
+		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.01);
 
 		public static final double ratchetLocked = 84;
 		public static final double ratchetFree = 93;
