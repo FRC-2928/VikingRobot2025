@@ -31,9 +31,10 @@ import frc.robot.utils.STalonFX;
 public class ShooterIOReal implements ShooterIO {
 	public ShooterIOReal(final Shooter shooter) {
 		this.absolutePosition = this.encoder.getAbsolutePosition();
-		this.velocity = this.flywheelA.getVelocity();
+		this.velocityA = this.flywheelA.getRotorVelocity();
+		this.velocityB = this.flywheelB.getRotorVelocity();
 
-		BaseStatusSignal.setUpdateFrequencyForAll(100, this.absolutePosition, this.velocity);
+		BaseStatusSignal.setUpdateFrequencyForAll(100, this.absolutePosition, this.velocityA, this.velocityB);
 		this.pivot.optimizeBusUtilization();
 		this.encoder.optimizeBusUtilization();
 		this.flywheelA.optimizeBusUtilization();
@@ -69,7 +70,8 @@ public class ShooterIOReal implements ShooterIO {
 
 		this.flywheelB.getConfigurator().apply(flywheels);
 		this.flywheelB.setNeutralMode(NeutralModeValue.Coast);
-		this.flywheelB.setControl(new Follower(this.flywheelA.getDeviceID(), true));
+		this.flywheelB.setInverted(true);
+		//this.flywheelB.setControl(new Follower(this.flywheelA.getDeviceID(), true));
 
 		this.feeder.setNeutralMode(NeutralMode.Coast);
 		this.feeder.setInverted(true);
@@ -78,6 +80,7 @@ public class ShooterIOReal implements ShooterIO {
 
 		Robot.cont.diag.motors.add(this.pivot);
 		Robot.cont.diag.motors.add(this.flywheelA);
+		Robot.cont.diag.motors.add(this.flywheelB);
 
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {
@@ -165,7 +168,8 @@ public class ShooterIOReal implements ShooterIO {
 	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
 
 	public final StatusSignal<Double> absolutePosition;
-	public final StatusSignal<Double> velocity;
+	public final StatusSignal<Double> velocityA;
+	public final StatusSignal<Double> velocityB;
 	public final SensorCollection sensors;
 
 	public final SysIdRoutine sysIdPivot;
@@ -183,7 +187,10 @@ public class ShooterIOReal implements ShooterIO {
 	}
 
 	@Override
-	public void runFlywheels(final double demand) { this.flywheelA.setControl(new DutyCycleOut(demand)); }
+	public void runFlywheels(final double demand) {
+		this.flywheelA.setControl(new DutyCycleOut(demand));
+		this.flywheelB.setControl(new DutyCycleOut(demand));
+	}
 
 	@Override
 	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }
@@ -193,10 +200,11 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {
-		BaseStatusSignal.refreshAll(this.absolutePosition, this.velocity);
+		BaseStatusSignal.refreshAll(this.absolutePosition, this.velocityA);
 
 		inputs.angle = Units.Rotations.of(this.absolutePosition.getValueAsDouble());
-		inputs.flywheelSpeed = Units.RotationsPerSecond.of(this.velocity.getValueAsDouble());
+		inputs.flywheelSpeedA = Units.RotationsPerSecond.of(this.velocityA.getValueAsDouble());
+		inputs.flywheelSpeedB = Units.RotationsPerSecond.of(this.velocityB.getValueAsDouble());
 		inputs.holdingNote = !this.sensors.isFwdLimitSwitchClosed();
 	}
 }

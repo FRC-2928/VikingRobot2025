@@ -29,6 +29,15 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
+				"[comp] Tri",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("Test")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("Test"))
+				)
+			);
+
+		chooser
+			.addOption(
 				"Four Note Middle",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4NoteMiddle.1")),

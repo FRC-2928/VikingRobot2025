@@ -52,7 +52,7 @@ public class ShootSpeaker extends Command {
 					Robot.cont.shooter.io.rotate(Robot.cont.shooter.inputs.angle.minus(po));
 				} else {
 					if(
-						(Robot.cont.shooter.inputs.flywheelSpeed
+						(Robot.cont.shooter.inputs.flywheelSpeedA
 							.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
 								.in(Units.RotationsPerSecond)
 							&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired != -1

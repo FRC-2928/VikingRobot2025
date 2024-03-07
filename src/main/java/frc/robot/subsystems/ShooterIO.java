@@ -9,7 +9,8 @@ public interface ShooterIO {
 	public static class ShooterIOInputs {
 		public Measure<Angle> angle = Units.Radians.zero();
 		public boolean holdingNote;
-		public Measure<Velocity<Angle>> flywheelSpeed;
+		public Measure<Velocity<Angle>> flywheelSpeedA;
+		public Measure<Velocity<Angle>> flywheelSpeedB;
 	}
 
 	public static enum Demand {
