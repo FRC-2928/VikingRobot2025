@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.oi.DriverOI;
+import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
@@ -14,7 +15,7 @@ public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;
 
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
-	// public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
+	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
 	public final Diagnostics diag;
 
@@ -37,6 +38,7 @@ public class RobotContainer {
 		);
 
 		this.driverOI.configureControls();
+		this.operatorOI.configureControls();
 
 		this.diag.configureControls();
 	}

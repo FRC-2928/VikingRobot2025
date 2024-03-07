@@ -2,14 +2,13 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.climber.Initialize;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootAmp;
@@ -37,6 +36,8 @@ public class DriverOI extends BaseOI {
 		this.lockWheels = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
+
+		this.initializeClimber = this.controller.rightStick();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -53,6 +54,8 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger resetFOD;
 
+	public final Trigger initializeClimber;
+
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker());
 		this.shootAmp.whileTrue(new ShootAmp(true));
@@ -61,5 +64,7 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+
+		this.initializeClimber.onTrue(new Initialize());
 	}
 }

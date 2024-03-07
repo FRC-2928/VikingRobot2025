@@ -20,7 +20,7 @@ public class IntakeGround extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.of(-60));
+		Robot.cont.shooter.io.runFlywheels(-0.25);
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
 		Robot.cont.shooter.io
 			.runIntake(
@@ -58,7 +58,7 @@ public class IntakeGround extends Command {
 			.rotate(
 				Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
 			);
-		Robot.cont.shooter.io.runFlywheels(Units.RotationsPerSecond.zero());
+		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 		Robot.cont.shooter.io.runIntake(Demand.Halt);
 	}

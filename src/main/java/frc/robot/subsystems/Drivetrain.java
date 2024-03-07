@@ -15,9 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -66,61 +64,28 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
 	public final Limelight limelightBack = new Limelight("limelight-back");
 
-	public final SysIdRoutine sysId;
-
 	private final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 
 	public Drivetrain() {
-		switch(Constants.mode) {
-		case REAL -> {
-			this.gyro = new GyroIOReal();
-			this.modules[0] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.FrontLeft), Place.FrontLeft);
-			this.modules[1] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.FrontRight), Place.FrontRight);
-			this.modules[2] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.BackLeft), Place.BackLeft);
-			this.modules[3] = new SwerveModule(new ModuleIOReal(SwerveModule.Place.BackRight), Place.BackRight);
-		}
-		case SIM -> {
-			this.gyro = new GyroIOSim(this);
-			this.modules[0] = new SwerveModule(new ModuleIOSim(), Place.FrontLeft);
-			this.modules[1] = new SwerveModule(new ModuleIOSim(), Place.FrontRight);
-			this.modules[2] = new SwerveModule(new ModuleIOSim(), Place.BackLeft);
-			this.modules[3] = new SwerveModule(new ModuleIOSim(), Place.BackRight);
-		}
-		case REPLAY -> {
-			this.gyro = new GyroIO() {
-			};
-			this.modules[0] = new SwerveModule(new ModuleIO() {
-			}, Place.FrontLeft);
-			this.modules[1] = new SwerveModule(new ModuleIO() {
-			}, Place.FrontRight);
-			this.modules[2] = new SwerveModule(new ModuleIO() {
-			}, Place.BackLeft);
-			this.modules[3] = new SwerveModule(new ModuleIO() {
-			}, Place.BackRight);
-		}
+		this.gyro = switch(Constants.mode) {
+		case REAL -> new GyroIOReal();
+		case SIM -> new GyroIOSim(this);
+		case REPLAY -> new GyroIO() {
+		};
 		default -> throw new Error();
-		}
+		};
+
+		this.modules[0] = new SwerveModule(Place.FrontLeft);
+		this.modules[1] = new SwerveModule(Place.FrontRight);
+		this.modules[2] = new SwerveModule(Place.BackLeft);
+		this.modules[3] = new SwerveModule(Place.BackRight);
 
 		this.est = new SwerveDrivePoseEstimator(
 			this.kinematics,
 			new Rotation2d(this.gyroInputs.yawPosition),
 			this.modulePositions(),
 			new Pose2d()
-		);
-
-		this.sysId = new SysIdRoutine(
-			new SysIdRoutine.Config(
-				null,
-				null,
-				null,
-				state -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())
-			),
-			new SysIdRoutine.Mechanism(voltage -> {
-				for(int i = 0; i < 4; i++) {
-					this.modules[i].runCharacterization(voltage.in(Units.Volts));
-				}
-			}, null, this)
 		);
 
 		this.setDefaultCommand(this.joystickDrive);
@@ -143,7 +108,17 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		this.control(this.kinematics.toSwerveModuleStates(speeds));
+		this
+			.control(
+				this.kinematics
+					.toSwerveModuleStates(
+						new ChassisSpeeds(
+							-speeds.vxMetersPerSecond,
+							-speeds.vyMetersPerSecond,
+							speeds.omegaRadiansPerSecond
+						)
+					)
+			);
 	}
 
 	public void control(final Drivetrain.State state) { this.control(state.states); }
@@ -240,15 +215,5 @@ public class Drivetrain extends SubsystemBase {
 		*/
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-	}
-
-	/** Returns a command to run a quasistatic test in the specified direction. */
-	public Command sysIdQuasistatic(final SysIdRoutine.Direction direction) {
-		return this.sysId.quasistatic(direction);
-	}
-
-	/** Returns a command to run a dynamic test in the specified direction. */
-	public Command sysIdDynamic(final SysIdRoutine.Direction direction) {
-		return this.sysId.dynamic(direction);
 	}
 }

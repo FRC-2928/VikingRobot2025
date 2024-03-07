@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.units.*;
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -16,9 +16,11 @@ public class Climber extends SubsystemBase {
 	public final ClimberIO io;
 	public final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
-	private final PIDController pid = Constants.Climber.pid.createController();
+	@Override
+	public void periodic() {
+		this.io.updateInputs(this.inputs);
+		Logger.processInputs("Climber", this.inputs);
 
-	public void apply(final Measure<Distance> position) {
-		// todo
+		this.io.periodic();
 	}
 }

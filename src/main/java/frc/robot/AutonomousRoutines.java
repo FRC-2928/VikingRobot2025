@@ -7,9 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.ShootSpeakerAuto;
-import frc.robot.subsystems.Drivetrain;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.shooter.ShootSpeaker;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -18,15 +16,14 @@ import com.choreo.lib.ChoreoTrajectory;
 
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
-		final Drivetrain drivetrain = Robot.cont.drivetrain;
 		final SendableChooser<Command> chooser = new SendableChooser<>();
 
 		chooser
 			.addOption(
 				"[comp] Drive test trajectory",
 				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("test")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("test"))
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
 				)
 			);
 
@@ -35,16 +32,25 @@ public final class AutonomousRoutines {
 				"Four Note Middle",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4NoteMiddle.1")),
-					new ShootSpeakerAuto().withTimeout(3),
+					new ShootSpeaker().withTimeout(3),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.1")),
 					new IntakeGround(true).withTimeout(2),
-					new ShootSpeakerAuto().withTimeout(3),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2")),
-					new IntakeGround(true).withTimeout(2),
-					new ShootSpeakerAuto().withTimeout(3),
+					new ParallelCommandGroup(
+						new ShootSpeaker().withTimeout(3),
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.2"))
+					),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.3")),
 					new IntakeGround(true).withTimeout(2),
-					new ShootSpeakerAuto().withTimeout(3)
+					new ParallelCommandGroup(
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.4")),
+						new ShootSpeaker().withTimeout(3)
+					),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.5")),
+					new IntakeGround(true).withTimeout(2),
+					new ParallelCommandGroup(
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4NoteMiddle.6")),
+						new ShootSpeaker().withTimeout(3)
+					)
 				)
 			);
 
@@ -53,18 +59,18 @@ public final class AutonomousRoutines {
 				"Four Note Amp side",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
-					new ShootSpeakerAuto(),
+					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.1")),
 					new IntakeGround(true),
 					new ParallelCommandGroup(
 						AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
-						new ShootSpeakerAuto()
+						new ShootSpeaker()
 					),
 					new IntakeGround(true),
-					new ShootSpeakerAuto(),
+					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.3")),
 					new IntakeGround(true),
-					new ShootSpeakerAuto()
+					new ShootSpeaker()
 				)
 			);
 
@@ -73,27 +79,13 @@ public final class AutonomousRoutines {
 				"Two Note Center D",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("TwoNoteCenterD.1")),
-					new ShootSpeakerAuto(),
+					new ShootSpeaker(),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.1")),
 					new IntakeGround(true),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.2")),
-					new ShootSpeakerAuto()
+					new ShootSpeaker()
 				)
 			);
-
-		// Set up SysId routines
-		chooser
-			.addOption(
-				"Drive SysId (Quasistatic Forward)",
-				drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward)
-			);
-		chooser
-			.addOption(
-				"Drive SysId (Quasistatic Reverse)",
-				drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)
-			);
-		chooser.addOption("Drive SysId (Dynamic Forward)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
-		chooser.addOption("Drive SysId (Dynamic Reverse)", drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
 		return chooser;
 	}

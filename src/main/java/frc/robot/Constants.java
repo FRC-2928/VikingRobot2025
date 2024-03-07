@@ -14,12 +14,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Distance;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.*;
 
 public class Constants {
 	private static Mode currentMode() {
@@ -111,9 +106,8 @@ public class Constants {
 			public static final int swerveBackRightDrive = 16;
 
 			public static final int shooterPivot = 12;
-			public static final int shooterEncoder = 12;
-			public static final int shooterFlywheels = 1;
-			public static final int shooterFlywheelsFollower = 4;
+			public static final int shooterFlywheelA = 1;
+			public static final int shooterFlywheelB = 4;
 
 			public static final int climber = 17;
 		}
@@ -138,7 +132,7 @@ public class Constants {
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
 			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues theta = new PIDValues(0.5, 0, 0, 0);
+			public static final PIDValues theta = new PIDValues(0.1, 0, 0, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -246,16 +240,11 @@ public class Constants {
 	public static class Shooter {
 		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
 
-		public static final SlotConfigs pivotPositionConfig = new SlotConfigs()
+		public static final SlotConfigs pivotConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
 			.withKG(0.0175)
 			.withKP(3);
-		public static final SlotConfigs pivotVelocityConfig = new SlotConfigs()
-			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKS(0.025)
-			.withKG(0.0175)
-			.withKP(0.6);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
 
@@ -275,19 +264,21 @@ public class Constants {
 
 		// max angle before exiting allowed extension range
 		public static final Measure<Angle> max = Units.Rotations.of(0.37);
+
+		public static final double fireTimeout = 0.3;
 	}
 
 	public static class Climber {
 		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
 
-		public static final SimpleMotorFeedforward ffw = new SimpleMotorFeedforward(0, 1, 0);
-		public static final PIDValues pid = new PIDValues(0.1, 0, 0, 0);
+		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
+		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.025);
 
-		public static final Measure<Angle> ratchetLocked = Units.Degrees.of(84);
-		public static final Measure<Angle> ratchetFree = Units.Degrees.of(93);
+		public static final double ratchetLocked = 84;
+		public static final double ratchetFree = 93;
 
-		// todo: fill
-
-		public static final Measure<Angle> max = Units.Rotations.of(129);
+		public static final double max = 129;
+		public static final double disengageDistance = 0.5;
+		public static final double initializeRaiseDistance = 2;
 	}
 }

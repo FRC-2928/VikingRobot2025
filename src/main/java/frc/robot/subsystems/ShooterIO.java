@@ -22,7 +22,7 @@ public interface ShooterIO {
 
 	public default void rotate(final Measure<Angle> target) {}
 
-	public default void runFlywheels(final Measure<Velocity<Angle>> demand) {}
+	public default void runFlywheels(final double demand) {}
 
 	public default void runFeeder(final Demand demand) {}
 
