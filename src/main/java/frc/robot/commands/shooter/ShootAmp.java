@@ -27,8 +27,12 @@ public class ShootAmp extends Command {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.shootAmp);
 		Robot.cont.shooter.io.runFlywheels(0.25);
 
-		Robot.cont.drivetrain
-			.control(Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0))));
+		if(this.correction) {
+			Robot.cont.drivetrain
+				.control(
+					Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0)))
+				);
+		}
 
 		if(
 			(Math

@@ -73,9 +73,9 @@ public class ShooterIOReal implements ShooterIO {
 		this.flywheelB.setInverted(true);
 		//this.flywheelB.setControl(new Follower(this.flywheelA.getDeviceID(), true));
 
-		this.feeder.setNeutralMode(NeutralMode.Coast);
+		this.feeder.setNeutralMode(NeutralMode.Brake);
 		this.feeder.setInverted(true);
-		this.intake.setNeutralMode(NeutralMode.Coast);
+		this.intake.setNeutralMode(NeutralMode.Brake);
 		this.intake.setInverted(true);
 
 		Robot.cont.diag.motors.add(this.pivot);

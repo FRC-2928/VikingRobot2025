@@ -64,7 +64,7 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
 	public final Limelight limelightBack = new Limelight("limelight-back");
 
-	private final JoystickDrive joystickDrive = new JoystickDrive(this);
+	public final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 
 	public Drivetrain() {
@@ -87,8 +87,6 @@ public class Drivetrain extends SubsystemBase {
 			this.modulePositions(),
 			new Pose2d()
 		);
-
-		this.setDefaultCommand(this.joystickDrive);
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -104,6 +102,8 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void controlRobotOriented(final ChassisSpeeds speeds) {
+		speeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond * 0.45;
+
 		Logger.recordOutput("Drivetrain/dx", speeds.vxMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);

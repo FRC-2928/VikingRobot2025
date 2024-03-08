@@ -132,7 +132,7 @@ public class Constants {
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
 			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues theta = new PIDValues(0.1, 0, 0, 0);
+			public static final PIDValues theta = new PIDValues(0.0425, 0, 0.0035, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -263,7 +263,7 @@ public class Constants {
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
 		// max angle before exiting allowed extension range
-		public static final Measure<Angle> max = Units.Rotations.of(0.37);
+		public static final Measure<Angle> max = Units.Rotations.of(0.39);
 
 		public static final double fireTimeout = 0.3;
 	}

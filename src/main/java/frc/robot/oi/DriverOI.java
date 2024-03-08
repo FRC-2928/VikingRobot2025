@@ -57,7 +57,7 @@ public class DriverOI extends BaseOI {
 	public final Trigger initializeClimber;
 
 	public void configureControls() {
-		this.shootSpeaker.whileTrue(new ShootSpeaker());
+		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
 		this.shootAmp.whileTrue(new ShootAmp(true));
 		this.intakeShoot.whileTrue(new IntakeGround(true));
 

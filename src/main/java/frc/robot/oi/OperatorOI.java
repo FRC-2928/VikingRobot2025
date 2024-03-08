@@ -26,8 +26,14 @@ public class OperatorOI extends BaseOI {
 
 	public void configureControls() {
 		this.lowerClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0)));
-		this.raiseClimber.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
-		this.raiseClimberSlow.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
+		this.raiseClimber.whileTrue(new RunCommand(() -> {
+			Robot.cont.climber.io.fast(true);
+			Robot.cont.climber.io.set(Constants.Climber.max);
+		}));
+		this.raiseClimberSlow.whileTrue(new RunCommand(() -> {
+			Robot.cont.climber.io.fast(false);
+			Robot.cont.climber.io.set(Constants.Climber.max);
+		}));
 
 		this.initializeClimber.onTrue(new Initialize());
 	}

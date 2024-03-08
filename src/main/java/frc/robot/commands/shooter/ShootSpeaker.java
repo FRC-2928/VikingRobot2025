@@ -12,7 +12,12 @@ import frc.robot.Robot;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootSpeaker extends Command {
-	public ShootSpeaker() { this.addRequirements(Robot.cont.shooter); }
+	public ShootSpeaker(final boolean triggerFire) {
+		this.addRequirements(Robot.cont.shooter);
+		this.triggerFire = triggerFire;
+	}
+
+	public final boolean triggerFire;
 
 	private double fired;
 	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 10);
@@ -55,10 +60,11 @@ public class ShootSpeaker extends Command {
 						(Robot.cont.shooter.inputs.flywheelSpeedA
 							.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
 								.in(Units.RotationsPerSecond)
-							&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired != -1
+							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
+							|| this.fired != -1
 					) {
 						Robot.cont.shooter.io.runFeeder(Demand.Forward);
-						this.fired = Timer.getFPGATimestamp();
+						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 					}
 				}
 			} else Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);

@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.units.*;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.oi.DriverOI;
@@ -35,6 +36,8 @@ public class JoystickDrive extends Command {
 
 	// this is a separate method so that drivetrain can call it to get base speeds to modify
 	public ChassisSpeeds speeds() {
+		if(DriverStation.isAutonomous()) return new ChassisSpeeds();
+
 		final Translation2d translation = this.translation();
 		return new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond));
 	}

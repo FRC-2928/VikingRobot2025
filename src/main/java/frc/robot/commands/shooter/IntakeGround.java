@@ -39,11 +39,11 @@ public class IntakeGround extends Command {
 							Robot.cont.drivetrain
 								.rod(
 									new ChassisSpeeds(
-										-1,
+										-0.5,
 										Robot.cont.drivetrain.limelightNote
 											.getTargetHorizontalOffset()
 											.in(Units.Rotations)
-											* 12,
+											* 8,
 										0
 									)
 								)

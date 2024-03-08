@@ -12,6 +12,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.drivetrain.LockWheels;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
@@ -84,6 +85,8 @@ public class Robot extends LoggedRobot {
 		if(this.autonomousCommand != null) {
 			this.autonomousCommand.schedule();
 		}
+
+		this.container.drivetrain.setDefaultCommand(new LockWheels());
 	}
 
 	@Override
@@ -95,7 +98,11 @@ public class Robot extends LoggedRobot {
 	// TELEOP //
 
 	@Override
-	public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
+	public void teleopInit() {
+		CommandScheduler.getInstance().cancelAll();
+
+		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+	}
 
 	@Override
 	public void teleopPeriodic() {}
@@ -106,7 +113,11 @@ public class Robot extends LoggedRobot {
 	// TEST //
 
 	@Override
-	public void testInit() { CommandScheduler.getInstance().cancelAll(); }
+	public void testInit() {
+		CommandScheduler.getInstance().cancelAll();
+
+		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+	}
 
 	@Override
 	public void testPeriodic() {}
