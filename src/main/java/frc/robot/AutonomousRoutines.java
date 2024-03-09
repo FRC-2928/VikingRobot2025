@@ -1,19 +1,23 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
-import frc.robot.commands.drivetrain.RevTime;
+import frc.robot.commands.drivetrain.ReverseIntakeTranslation;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
 
 import org.littletonrobotics.junction.Logger;
 
 import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoControlFunction;
 import com.choreo.lib.ChoreoTrajectory;
+import com.choreo.lib.ChoreoTrajectoryState;
 
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
@@ -56,15 +60,36 @@ public final class AutonomousRoutines {
 					new ShootSpeaker(false).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
 					new IntakeGround(true).withTimeout(2),
-					new RevTime(0.4),
-					new ShootSpeaker(false).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.2")),
-					new IntakeGround(true).withTimeout(2),
-					new RevTime(0.4),
+					new ReverseIntakeTranslation(),
 					new ShootSpeaker(false).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
 					new IntakeGround(true).withTimeout(2),
-					new RevTime(0.4),
+					new ReverseIntakeTranslation(),
+					new ShootSpeaker(false).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
+					new IntakeGround(true).withTimeout(2),
+					new ReverseIntakeTranslation(),
+					new ShootSpeaker(false).withTimeout(4)
+				)
+			);
+
+		chooser
+			.addOption(
+				"[comp] Four Note RTL",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
+					new ShootSpeaker(false).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
+					new IntakeGround(true).withTimeout(2),
+					new ReverseIntakeTranslation(),
+					new ShootSpeaker(false).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.2")),
+					new IntakeGround(true).withTimeout(2),
+					new ReverseIntakeTranslation(),
+					new ShootSpeaker(false).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
+					new IntakeGround(true).withTimeout(2),
+					new ReverseIntakeTranslation(),
 					new ShootSpeaker(false).withTimeout(4)
 				)
 			);
@@ -132,17 +157,28 @@ public final class AutonomousRoutines {
 	}
 
 	public static Command choreo(final ChoreoTrajectory trajectory) {
-		return Choreo
-			.choreoSwerveCommand(
-				trajectory,
-				Robot.cont.drivetrain::blueOriginPose, // A function that returns the current field-relative pose of the robot:
+		final ChoreoControlFunction controller = Choreo
+			.choreoSwerveController(
 				Constants.Drivetrain.Choreo.x.createController(), // PID to correct for field-relative X error
 				Constants.Drivetrain.Choreo.y.createController(), // PID to correct for field-relative Y error
-				Constants.Drivetrain.Choreo.theta.createController(), // PID to correct for rotation error
-				Robot.cont.drivetrain::controlRobotOriented,
-				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
-				Robot.cont.drivetrain // The subsystem(s) to require, typically your drive subsystem only
+				Constants.Drivetrain.Choreo.theta.createController()
 			);
+
+		final Timer timer = new Timer();
+		return new FunctionalCommand(timer::restart, () -> {
+			final ChoreoTrajectoryState poseDemand = trajectory
+				.sample(timer.get(), DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
+
+			Logger.recordOutput("Choreo/DesiredPose", poseDemand.getPose());
+
+			Robot.cont.drivetrain
+				.controlRobotOriented(controller.apply(Robot.cont.drivetrain.blueOriginPose(), poseDemand));
+		}, interrupted -> {
+			timer.stop();
+			if(interrupted) {
+				Robot.cont.drivetrain.controlRobotOriented(new ChassisSpeeds());
+			}
+		}, () -> timer.hasElapsed(trajectory.getTotalTime()), Robot.cont.drivetrain);
 	}
 
 	/*
