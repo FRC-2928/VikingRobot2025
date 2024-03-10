@@ -11,6 +11,8 @@ public interface ClimberIO {
 
 	public default void set(final double position) {}
 
+	public default void override(final double dutyCycle) {}
+
 	public default void offset(final double offset) {}
 
 	public default void fast(final boolean fast) {}

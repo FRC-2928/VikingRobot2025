@@ -1,5 +1,7 @@
 package frc.robot.commands.shooter;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
@@ -38,6 +40,9 @@ public class ShootSpeaker extends Command {
 				final Measure<Angle> po = Robot.cont.drivetrain.limelightShooter.getTargetHorizontalOffset();
 				final Measure<Angle> yo = Robot.cont.drivetrain.limelightShooter.getTargetVerticalOffset();
 
+				Logger.recordOutput("Shooter/ShootSpeaker/tx", po);
+				Logger.recordOutput("Shooter/ShootSpeaker/tx", yo);
+
 				Robot.cont.drivetrain
 					.control(
 						Robot.cont.drivetrain.joystickSpeeds
@@ -57,9 +62,10 @@ public class ShootSpeaker extends Command {
 					Robot.cont.shooter.io.rotate(Robot.cont.shooter.inputs.angle.minus(po));
 				} else {
 					if(
-						(Robot.cont.shooter.inputs.flywheelSpeedA
+						((Robot.cont.shooter.inputs.flywheelSpeedA
 							.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
 								.in(Units.RotationsPerSecond)
+							|| Robot.cont.operatorOI.overrideShoot.getAsBoolean())
 							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
 							|| this.fired != -1
 					) {
@@ -67,7 +73,29 @@ public class ShootSpeaker extends Command {
 						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 					}
 				}
-			} else Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
+			} else if(!forward) {
+				Robot.cont.drivetrain
+					.control(
+						Robot.cont.drivetrain.joystickSpeeds
+							.plus(
+								Robot.cont.drivetrain
+									.rod(
+										new ChassisSpeeds(
+											0,
+											0,
+											this.rffw
+												.calculate(
+													Robot.cont.drivetrain.limelightBack
+														.getTargetHorizontalOffset()
+														.in(Units.Rotations)
+												)
+										)
+									)
+							)
+					);
+			} else {
+				Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
+			}
 		} else {
 			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
 			Robot.cont.shooter.io

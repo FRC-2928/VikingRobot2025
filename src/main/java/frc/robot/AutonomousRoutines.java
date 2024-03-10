@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
+import frc.robot.commands.drivetrain.DriveTime;
 import frc.robot.commands.drivetrain.ReverseIntakeTranslation;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
@@ -22,35 +23,6 @@ import com.choreo.lib.ChoreoTrajectoryState;
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
 		final SendableChooser<Command> chooser = new SendableChooser<>();
-
-		chooser
-			.addOption(
-				"Drive test trajectory",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("ManSysId")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("ManSysId"))
-				)
-			);
-
-		chooser
-			.addOption(
-				"Tri",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("Test")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("Test"))
-				)
-			);
-
-		chooser
-			.addOption(
-				"Spinny",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("Spinny")),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("Spinny"))
-				)
-			);
-
-		chooser.addOption("TestShoot", new SequentialCommandGroup(new IntakeGround(true), new ShootSpeaker(false)));
 
 		chooser
 			.addOption(
@@ -73,67 +45,17 @@ public final class AutonomousRoutines {
 				)
 			);
 
-		chooser
-			.addOption(
-				"[comp] Four Note RTL",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
-					new ShootSpeaker(false).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
-					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
-					new ShootSpeaker(false).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.2")),
-					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
-					new ShootSpeaker(false).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
-					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
-					new ShootSpeaker(false).withTimeout(4)
-				)
-			);
+		chooser.addOption("[comp] Drive", new SequentialCommandGroup(new DriveTime(1)));
+
+		chooser.addOption("[comp] Shoot/Drive", new SequentialCommandGroup(new ShootSpeaker(false), new DriveTime(1)));
 
 		chooser
 			.addOption(
-				"[comp] Two Note Center",
+				"[comp] Two Note",
 				new SequentialCommandGroup(
 					new ShootSpeaker(false).withTimeout(4),
 					new IntakeGround(true).withTimeout(2),
 					new ShootSpeaker(false).withTimeout(4)
-				)
-			);
-
-		chooser
-			.addOption(
-				"Four Note Amp side",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("fourNoteClose.1")),
-					new ShootSpeaker(false),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.1")),
-					new IntakeGround(true),
-					new ParallelCommandGroup(
-						AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.2")),
-						new ShootSpeaker(false)
-					),
-					new IntakeGround(true),
-					new ShootSpeaker(false),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("fourNoteClose.3")),
-					new IntakeGround(true),
-					new ShootSpeaker(false)
-				)
-			);
-
-		chooser
-			.addOption(
-				"Two Note Center D",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("TwoNoteCenterD.1")),
-					new ShootSpeaker(false),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.1")),
-					new IntakeGround(true),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("TwoNoteCenterD.2")),
-					new ShootSpeaker(false)
 				)
 			);
 

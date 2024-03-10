@@ -25,12 +25,14 @@ public class ShootAmp extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.shootAmp);
-		Robot.cont.shooter.io.runFlywheels(0.25);
+		Robot.cont.shooter.io.runFlywheels(0.3);
 
 		if(this.correction) {
 			Robot.cont.drivetrain
 				.control(
-					Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0)))
+					Robot.cont.drivetrain.joystickSpeeds
+						.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0)))
+						.div(2)
 				);
 		}
 

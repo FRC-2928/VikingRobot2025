@@ -193,10 +193,16 @@ public class ShooterIOReal implements ShooterIO {
 	}
 
 	@Override
-	public void runFeeder(final Demand demand) { this.feeder.set(ControlMode.PercentOutput, demand.dir); }
+	public void runFeeder(final Demand demand) {
+		this.feeder.set(ControlMode.PercentOutput, demand.dir);
+		Logger.recordOutput("Shooter/FeederDemand", demand.name());
+	}
 
 	@Override
-	public void runIntake(final Demand demand) { this.intake.set(ControlMode.PercentOutput, demand.dir); }
+	public void runIntake(final Demand demand) {
+		this.intake.set(ControlMode.PercentOutput, demand.dir);
+		Logger.recordOutput("Shooter/IntakeDemand", demand.name());
+	}
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {

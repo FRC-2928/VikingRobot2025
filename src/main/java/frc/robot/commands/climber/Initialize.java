@@ -23,13 +23,14 @@ public class Initialize extends Command {
 		if(this.descending) {
 			Robot.cont.climber.io.set(this.start - 1000);
 
-			Logger.recordOutput("Climber/Initialize", "Descending");
+			Logger.recordOutput("Climber/Initialize/State", "Descending");
 		} else {
 			Robot.cont.climber.io.set(this.start + 2);
+			Logger.recordOutput("Climber/Initialize/Threshold", this.start + Constants.Climber.initializeRaiseDistance);
 			if(Robot.cont.climber.inputs.position > this.start + Constants.Climber.initializeRaiseDistance)
 				this.descending = true;
 
-			Logger.recordOutput("Climber/Initialize", "Raising");
+			Logger.recordOutput("Climber/Initialize/State", "Raising");
 		}
 	}
 
@@ -37,7 +38,7 @@ public class Initialize extends Command {
 	public void end(final boolean interrupted) {
 		Robot.cont.climber.io.offset(0);
 
-		Logger.recordOutput("Climber/Initialize", "End");
+		Logger.recordOutput("Climber/Initialize/State", "End");
 	}
 
 	@Override

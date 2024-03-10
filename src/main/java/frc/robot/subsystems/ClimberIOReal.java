@@ -7,6 +7,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
@@ -63,6 +64,13 @@ public class ClimberIOReal implements ClimberIO {
 	public void set(final double position) { this.demand = position; }
 
 	@Override
+	public void override(final double dutyCycle) {
+		this.actuator.setControl(new DutyCycleOut(dutyCycle, true, true, false, false));
+
+		this.demand = this.position.getValueAsDouble();
+	}
+
+	@Override
 	public void offset(final double offset) { this.set(this.position.getValueAsDouble() + offset); }
 
 	@Override
@@ -84,15 +92,18 @@ public class ClimberIOReal implements ClimberIO {
 	}
 
 	@Override
+	@SuppressWarnings("unused")
 	public void periodic() {
+		if(true) return;
+
 		Logger.recordOutput("Climber/DriveUp", this.demand == 129);
 		Logger.recordOutput("Climber/Disengaging", this.disengaging);
 		Logger.recordOutput("Climber/RatchetLocked", this.lock.getAngle() == Constants.Climber.ratchetLocked);
 
-		if(Math.abs(this.demand - this.position.getValueAsDouble()) < 0.1) {
+		if(Math.abs(this.demand - this.position.getValueAsDouble()) < 0.1 && Constants.Climber.ratchetEnabled) {
 			this.lock(true);
 			this.control(this.position.getValueAsDouble());
-		} else if(this.demand - 0.1 <= this.position.getValueAsDouble()) {
+		} else if(this.demand - 0.1 <= this.position.getValueAsDouble() || !Constants.Climber.ratchetEnabled) {
 			this.lock(false);
 			this.control(this.demand);
 

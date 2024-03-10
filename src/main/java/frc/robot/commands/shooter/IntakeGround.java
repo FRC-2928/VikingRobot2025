@@ -26,17 +26,15 @@ public class IntakeGround extends Command {
 
 	@Override
 	public void execute() {
+		final boolean pivotReady = Math
+			.abs(
+				Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.intakeGround.in(Units.Degrees)
+			) <= 1.5;
+
 		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
 		Robot.cont.shooter.io.runFlywheels(-0.25);
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
-		Robot.cont.shooter.io
-			.runIntake(
-				Math
-					.abs(
-						Robot.cont.shooter.inputs.angle.in(Units.Degrees)
-							- Constants.Shooter.intakeGround.in(Units.Degrees)
-					) <= 2 ? Demand.Reverse : Demand.Halt
-			);
+		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Reverse : Demand.Halt);
 
 		if(this.correction) {
 			Robot.cont.drivetrain
@@ -50,9 +48,9 @@ public class IntakeGround extends Command {
 										Robot.cont.drivetrain.limelightNote
 											.getTargetHorizontalOffset()
 											.in(Units.Rotations)
-											* 14,
+											* 10,
 										0
-									)
+									).times(pivotReady ? 1 : 1)
 								)
 						)
 				);

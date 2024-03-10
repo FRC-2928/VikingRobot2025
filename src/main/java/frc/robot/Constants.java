@@ -258,7 +258,7 @@ public class Constants {
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(130);
-		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
+		public static final Measure<Angle> shootAmp = Units.Degrees.of(107);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
@@ -270,6 +270,8 @@ public class Constants {
 
 	public static class Climber {
 		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
+
+		public static final boolean ratchetEnabled = false;
 
 		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
 		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.01);
