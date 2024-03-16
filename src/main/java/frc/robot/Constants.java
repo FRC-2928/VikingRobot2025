@@ -246,12 +246,12 @@ public class Constants {
 			.withKG(0.0175)
 			.withKP(3);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(80);
 
 		// todo: fill angles
 
 		// a little above intake height to avoid hitting floor but to be ready
-		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.1);
+		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.107);
 		// min angle before hitting floor
 		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
 
