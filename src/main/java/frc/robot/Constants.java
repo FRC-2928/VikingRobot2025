@@ -168,7 +168,7 @@ public class Constants {
 		// todo: tune
 		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
-		public static final PIDValues absoluteRotationPID = new PIDValues(2, 0, 0, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
 			15
@@ -244,7 +244,7 @@ public class Constants {
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
 			.withKG(0.025)
-			.withKP(3);
+			.withKP(4);
 
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKP(0.11)
@@ -259,14 +259,14 @@ public class Constants {
 		// todo: fill angles
 
 		// a little above intake height to avoid hitting floor but to be ready
-		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.11);
+		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.113);
 		// min angle before hitting floor
 		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(130);
-		public static final Measure<Angle> shootAmp = Units.Degrees.of(107);
+		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
