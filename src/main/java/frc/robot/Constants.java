@@ -246,7 +246,7 @@ public class Constants {
 			.withKG(0.0175)
 			.withKP(3);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(80);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
 
 		// todo: fill angles
 

@@ -25,6 +25,8 @@ public interface ShooterIO {
 
 	public default void runFlywheels(final double demand) {}
 
+	public default void runFlywheelsVelocity(final double demand) {}
+
 	public default void runFeeder(final Demand demand) {}
 
 	public default void runIntake(final Demand demand) {}
