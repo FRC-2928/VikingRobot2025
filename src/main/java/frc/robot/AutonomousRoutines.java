@@ -13,12 +13,18 @@ import frc.robot.commands.drivetrain.ReverseIntakeTranslation;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
 
+import java.util.ArrayList;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.choreo.lib.ChoreoTrajectory;
 import com.choreo.lib.ChoreoTrajectoryState;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
@@ -32,15 +38,15 @@ public final class AutonomousRoutines {
 					new ShootSpeaker(false).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
 					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
+					AutonomousRoutines.onTheFlyPath("4Note.3"),
 					new ShootSpeaker(false).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
 					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
+					AutonomousRoutines.onTheFlyPath("4Note.5"),
 					new ShootSpeaker(false).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
 					new IntakeGround(true).withTimeout(2),
-					new ReverseIntakeTranslation(),
+					AutonomousRoutines.onTheFlyPath("4Note.6"),
 					new ShootSpeaker(false).withTimeout(4)
 				)
 			);
@@ -101,6 +107,27 @@ public final class AutonomousRoutines {
 				Robot.cont.drivetrain.controlRobotOriented(new ChassisSpeeds());
 			}
 		}, () -> timer.hasElapsed(trajectory.getTotalTime()), Robot.cont.drivetrain);
+	}
+
+	public Command pathPlannerLib(final String trajectory) {
+		final PathPlannerPath choreoPath = PathPlannerPath.fromChoreoTrajectory(trajectory);
+		return AutoBuilder.followPath(choreoPath);
+	}
+
+	public static Command onTheFlyPath(final String nextChoreoPath) {
+		final ChoreoTrajectory nextTrajectory = Choreo.getTrajectory(nextChoreoPath);
+		final Pose2d targetEndState = nextTrajectory.getInitialPose();
+		final PathPlannerPath path = new PathPlannerPath(
+			PathPlannerPath.bezierFromPoses(Robot.cont.drivetrain.blueOriginPose(), targetEndState),
+			new PathConstraints(
+				Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
+				2,
+				Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
+				2
+			),
+			new GoalEndState(0, targetEndState.getRotation())
+		);
+		return AutoBuilder.followPath(path);
 	}
 
 	/*

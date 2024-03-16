@@ -6,6 +6,10 @@ import java.util.Arrays;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.ReplanningConfig;
+
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -66,6 +70,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
+	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 
 	public Drivetrain() {
 		this.gyro = switch(Constants.mode) {
@@ -87,6 +92,28 @@ public class Drivetrain extends SubsystemBase {
 			this.modulePositions(),
 			new Pose2d()
 		);
+
+		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
+		AutoBuilder
+			.configureHolonomic(
+				this::blueOriginPose,
+				null,
+				() -> this.robotChassisSpeeds,
+				this::controlRobotOriented,
+				new HolonomicPathFollowerConfig(
+					Constants.fromPIDValues(Constants.Drivetrain.Choreo.x),
+					Constants.fromPIDValues(Constants.Drivetrain.Choreo.theta),
+					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
+					Math
+						.hypot(
+							Constants.Drivetrain.trackWidth.in(Units.Meters),
+							Constants.Drivetrain.wheelBase.in(Units.Meters)
+						),
+					new ReplanningConfig()
+				),
+				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+				this
+			);
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -98,6 +125,8 @@ public class Drivetrain extends SubsystemBase {
 		speeds = this.compensate(speeds);
 		speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
+		this.robotChassisSpeeds = speeds;
+
 		this.control(this.kinematics.toSwerveModuleStates(speeds));
 	}
 
@@ -108,7 +137,9 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/dy", speeds.vyMetersPerSecond);
 		Logger.recordOutput("Drivetrain/dtheta", speeds.omegaRadiansPerSecond);
 
-		this.control(this.kinematics.toSwerveModuleStates(ChassisSpeeds.discretize(speeds.unaryMinus(), 0.02)));
+		this.robotChassisSpeeds = ChassisSpeeds.discretize(speeds.unaryMinus(), 0.02);
+
+		this.control(this.kinematics.toSwerveModuleStates(this.robotChassisSpeeds));
 	}
 
 	public void control(final Drivetrain.State state) { this.control(state.states); }

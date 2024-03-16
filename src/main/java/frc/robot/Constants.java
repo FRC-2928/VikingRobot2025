@@ -7,6 +7,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.pathplanner.lib.util.PIDConstants;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -63,6 +64,8 @@ public class Constants {
 			return new ProfiledPIDController(this.p, this.i, this.d, profile);
 		}
 	}
+
+	public static PIDConstants fromPIDValues(final PIDValues pid) { return new PIDConstants(pid.p, pid.d, pid.d); }
 
 	public static record Ratio<U extends Unit<U>>(double factor) {
 		public Ratio(final Measure<U> from, final Measure<U> to) {
