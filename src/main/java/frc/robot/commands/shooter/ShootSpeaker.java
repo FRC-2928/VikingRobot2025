@@ -32,7 +32,8 @@ public class ShootSpeaker extends Command {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
 
-		Robot.cont.shooter.io.runFlywheelsVelocity(1);
+		// Robot.cont.shooter.io.runFlywheels(1);
+		Robot.cont.shooter.io.runFlywheelsVelocity(75);
 
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
 		if(forward == current) {

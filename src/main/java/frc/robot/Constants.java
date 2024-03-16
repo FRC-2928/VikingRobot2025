@@ -243,15 +243,23 @@ public class Constants {
 		public static final SlotConfigs pivotConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
-			.withKG(0.0175)
+			.withKG(0.025)
 			.withKP(3);
+
+		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+			.withKP(0.11)
+			.withKI(0.0)
+			.withKD(0.0001)
+			.withKS(0)
+			.withKV(0.12)
+			.withKA(0);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
 
 		// todo: fill angles
 
 		// a little above intake height to avoid hitting floor but to be ready
-		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.107);
+		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.11);
 		// min angle before hitting floor
 		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
 
