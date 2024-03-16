@@ -246,6 +246,19 @@ public class Constants {
 			.withKG(0.0175)
 			.withKP(3);
 
+		/* VOLTAGE-based velocity requires a feed forward to account for the back-emf of the motor */
+		// kP = 0.11 An error of 1 rotation per second results in 2V output
+		// kI = 0.5 An error of 1 rotation per second increases output by 0.5V every second
+		// kD = 0.0001 A change of 1 rotation per second squared results in 0.01 volts output
+		// 0.12 Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12
+		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+			.withKP(0.11)
+			.withKI(0.5)
+			.withKD(0.0001)
+			.withKS(0)
+			.withKV(0.12)
+			.withKA(0);
+
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
 
 		// todo: fill angles
