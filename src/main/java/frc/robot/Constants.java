@@ -247,14 +247,14 @@ public class Constants {
 			.withKP(4);
 
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
-			.withKP(0.11)
+			.withKP(0.011)
 			.withKI(0.0)
 			.withKD(0.0001)
 			.withKS(0)
 			.withKV(0.12)
 			.withKA(0);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(70);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(19);
 
 		// todo: fill angles
 
