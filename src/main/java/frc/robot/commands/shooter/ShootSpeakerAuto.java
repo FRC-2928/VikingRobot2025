@@ -13,13 +13,15 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.ShooterIO.Demand;
 
-public class ShootSpeaker extends Command {
-	public ShootSpeaker(final boolean triggerFire) {
+public class ShootSpeakerAuto extends Command {
+	public ShootSpeakerAuto(final boolean triggerFire, final Measure<Angle> startAngle) {
 		this.addRequirements(Robot.cont.shooter);
 		this.triggerFire = triggerFire;
+		this.startAngle = startAngle;
 	}
 
 	public final boolean triggerFire;
+	public final Measure<Angle> startAngle;
 
 	private double fired;
 	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 15);
@@ -100,7 +102,7 @@ public class ShootSpeaker extends Command {
 		} else {
 			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
 			Robot.cont.shooter.io
-				.rotate(forward ? Constants.Shooter.readyShootFront : Constants.Shooter.readyShootRear);
+				.rotate(forward ? Constants.Shooter.readyShootFront : this.startAngle);
 		}
 	}
 
@@ -122,3 +124,4 @@ public class ShootSpeaker extends Command {
 	@Override
 	public InterruptionBehavior getInterruptionBehavior() { return InterruptionBehavior.kCancelIncoming; }
 }
+

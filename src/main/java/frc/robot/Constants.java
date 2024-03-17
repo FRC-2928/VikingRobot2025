@@ -133,9 +133,9 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Choreo {
-			public static final PIDValues x = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues y = new PIDValues(0.1, 0, 0, 0);
-			public static final PIDValues theta = new PIDValues(0.0425, 0, 0.0035, 0);
+			public static final PIDValues x = new PIDValues(0.14, 0, 0.001, 0);
+			public static final PIDValues y = new PIDValues(0.14, 0, 0.001, 0);
+			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -246,18 +246,18 @@ public class Constants {
 		public static final SlotConfigs pivotConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
-			.withKG(0.025)
+			.withKG(0.028)
 			.withKP(4);
 
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
-			.withKP(0.011)
+			.withKP(0.05)
 			.withKI(0.0)
-			.withKD(0.0001)
+			.withKD(0.0)
 			.withKS(0)
-			.withKV(0.12)
+			.withKV(0.015)
 			.withKA(0);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(19);
+		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(27);
 
 		// todo: fill angles
 
@@ -268,7 +268,8 @@ public class Constants {
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
-		public static final Measure<Angle> readyShootRear = Units.Degrees.of(130);
+		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
+		public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);

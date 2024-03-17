@@ -12,6 +12,7 @@ import frc.robot.commands.drivetrain.DriveTime;
 import frc.robot.commands.drivetrain.ReverseIntakeTranslation;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootSpeaker;
+import frc.robot.commands.shooter.ShootSpeakerAuto;
 
 import java.util.ArrayList;
 
@@ -35,19 +36,23 @@ public final class AutonomousRoutines {
 				"[comp] Four Note Middle",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeakerAuto(false, Units.Degrees.of(107)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
 					new IntakeGround(true).withTimeout(2),
 					AutonomousRoutines.onTheFlyPath("4Note.3"),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeakerAuto(false, Units.Degrees.of(119)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
 					new IntakeGround(true).withTimeout(2),
 					AutonomousRoutines.onTheFlyPath("4Note.5"),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeakerAuto(false, Units.Degrees.of(117)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
 					new IntakeGround(true).withTimeout(2),
-					AutonomousRoutines.onTheFlyPath("4Note.6"),
-					new ShootSpeaker(false).withTimeout(4)
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6")),
+					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),
+					// new IntakeGround(true).withTimeout(2),
+					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.8")),
+					// new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
 				)
 			);
 
@@ -55,6 +60,26 @@ public final class AutonomousRoutines {
 
 		chooser.addOption("[comp] Shoot/Drive", new SequentialCommandGroup(new ShootSpeaker(false), new DriveTime(1)));
 
+		chooser
+			.addOption(
+				"[comp] Center Note",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
+					new ShootSpeakerAuto(false, Units.Degrees.of(107)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
+					new IntakeGround(true).withTimeout(2),
+					AutonomousRoutines.onTheFlyPath("4Note.3"),
+					new ShootSpeakerAuto(false, Units.Degrees.of(119)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
+					new IntakeGround(true).withTimeout(2),
+					AutonomousRoutines.onTheFlyPath("4Note.5"),
+					new ShootSpeakerAuto(false, Units.Degrees.of(117)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
+					new IntakeGround(true).withTimeout(2),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6")),
+					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+				)
+			);
 		chooser
 			.addOption(
 				"[comp] Two Note",
