@@ -1,21 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.*;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.*;
-import frc.robot.commands.drivetrain.DriveTime;
-import frc.robot.commands.drivetrain.ReverseIntakeTranslation;
-import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.ShootSpeaker;
-import frc.robot.commands.shooter.ShootSpeakerAuto;
-
-import java.util.ArrayList;
-
 import org.littletonrobotics.junction.Logger;
 
 import com.choreo.lib.Choreo;
@@ -26,6 +10,24 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.drivetrain.DriveTime;
+import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.ReadyShooter;
+import frc.robot.commands.shooter.ShootSpeaker;
+import frc.robot.commands.shooter.ShootSpeakerAuto;
 
 public final class AutonomousRoutines {
 	public static SendableChooser<Command> createAutonomousChooser() {
@@ -52,6 +54,43 @@ public final class AutonomousRoutines {
 					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),
 					// new IntakeGround(true).withTimeout(2),
 					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.8")),
+					// new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+				)
+			);
+
+		chooser
+			.addOption(
+				"[testing] Four Note Middle",
+				new SequentialCommandGroup(
+					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
+					new ShootSpeakerAuto(false, Units.Degrees.of(107)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
+					new IntakeGround(true).withTimeout(2),
+					new ParallelCommandGroup(
+						new ReadyShooter(),
+						AutonomousRoutines.onTheFlyPath("4Note.3")
+					),					
+					new ShootSpeakerAuto(false, Units.Degrees.of(119)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
+					new IntakeGround(true).withTimeout(2),
+					new ParallelCommandGroup(
+						new ReadyShooter(),
+						AutonomousRoutines.onTheFlyPath("4Note.5")
+					),
+					new ShootSpeakerAuto(false, Units.Degrees.of(117)).withTimeout(4),
+					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
+					new IntakeGround(true).withTimeout(2),
+					new ParallelCommandGroup(
+						new ReadyShooter(),
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6"))
+					),
+					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),
+					// new IntakeGround(true).withTimeout(2),
+					// new ParallelCommandGroup(
+					// 	new ReadyShooter(),
+					// 	AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.8"))
+					// ),
 					// new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
 				)
 			);

@@ -15,7 +15,12 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.*;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Velocity;
 
 public class Constants {
 	private static Mode currentMode() {
@@ -269,7 +274,7 @@ public class Constants {
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
-		public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
+		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
