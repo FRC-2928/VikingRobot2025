@@ -82,7 +82,7 @@ public final class AutonomousRoutines {
 					new IntakeGround(true).withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6"))
+						AutonomousRoutines.onTheFlyPath("4Note.6")
 					),
 					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
 					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),

@@ -4,21 +4,27 @@
 
 package frc.robot.commands.shooter;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
 
-public class ReadyShooter extends InstantCommand {
+public class ReadyShooter extends Command {
   /** Creates a new RaiseShooter. */
   public ReadyShooter() {
-    // Use addRequirements() here to declare subsystem dependencies.
+    this.addRequirements(Robot.cont.shooter);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() { 
-    Robot.cont.shooter.io.rotate(Constants.Shooter.readyShootRear); 
+    
   }
+
+  @Override
+	public void execute() {
+    Robot.cont.shooter.io.rotate(Constants.Shooter.readyShootRear); 
+  }  
 
   // Called once the command ends or is interrupted.
   @Override
@@ -26,5 +32,7 @@ public class ReadyShooter extends InstantCommand {
 
   // Returns true when the command should end.
   @Override
-  public boolean isFinished() { return true; }
+  public boolean isFinished() { 
+    return Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.readyShootRear.in(Units.Degrees)) < 5;
+  }
 }
