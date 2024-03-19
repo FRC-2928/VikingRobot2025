@@ -66,25 +66,20 @@ public final class AutonomousRoutines {
 					new ShootSpeakerAuto(false, Units.Degrees.of(107)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
 					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.onTheFlyPath("4Note.3")
-					),					
+					new ParallelCommandGroup(new ReadyShooter(), AutonomousRoutines.onTheFlyPath("4Note.3")),
 					new ShootSpeakerAuto(false, Units.Degrees.of(119)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
 					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.onTheFlyPath("4Note.5")
-					),
+					new ParallelCommandGroup(new ReadyShooter(), AutonomousRoutines.onTheFlyPath("4Note.5")),
 					new ShootSpeakerAuto(false, Units.Degrees.of(117)).withTimeout(4),
 					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
 					new IntakeGround(true).withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(),
-						AutonomousRoutines.onTheFlyPath("4Note.6")
+						AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6"))
+						// AutonomousRoutines.onTheFlyPath("4Note.6")
 					),
-					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+					new ShootSpeakerAuto(false, Units.Degrees.of(112)).withTimeout(4)
 					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),
 					// new IntakeGround(true).withTimeout(2),
 					// new ParallelCommandGroup(
@@ -180,18 +175,17 @@ public final class AutonomousRoutines {
 
 	public static Command onTheFlyPath(final String nextChoreoPath) {
 		final ChoreoTrajectory nextTrajectory = Choreo.getTrajectory(nextChoreoPath);
-		final Pose2d targetEndState = nextTrajectory.getInitialPose();
-		final PathPlannerPath path = new PathPlannerPath(
-			PathPlannerPath.bezierFromPoses(Robot.cont.drivetrain.blueOriginPose(), targetEndState),
-			new PathConstraints(
-				Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
-				2,
-				Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
-				2
-			),
-			new GoalEndState(0, targetEndState.getRotation())
-		);
-		return AutoBuilder.followPath(path);
+		
+		return AutoBuilder
+			.pathfindToPose(
+				nextTrajectory.getInitialPose(),
+				new PathConstraints(
+					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
+					3,
+					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
+					3
+				)
+			);
 	}
 
 	/*

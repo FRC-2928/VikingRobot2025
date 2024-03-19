@@ -22,7 +22,7 @@ public class ShootSpeaker extends Command {
 	public final boolean triggerFire;
 
 	private double fired;
-	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 15);
+	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 3);
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -53,7 +53,7 @@ public class ShootSpeaker extends Command {
 										new ChassisSpeeds(
 											0,
 											0,
-											this.rffw.calculate(yo.in(Units.Rotations)*1.25 * (forward ? 1 : -1))
+											this.rffw.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1))
 										)
 									)
 							)

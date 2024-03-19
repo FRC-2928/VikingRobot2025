@@ -101,13 +101,13 @@ public class Drivetrain extends SubsystemBase {
 				() -> this.robotChassisSpeeds,
 				this::controlRobotOriented,
 				new HolonomicPathFollowerConfig(
-					Constants.fromPIDValues(Constants.Drivetrain.Choreo.x),
-					Constants.fromPIDValues(Constants.Drivetrain.Choreo.theta),
+					Constants.fromPIDValues(Constants.Drivetrain.Choreo.xDynamic),
+					Constants.fromPIDValues(Constants.Drivetrain.Choreo.thetaDynamic),
 					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
 					Math
 						.hypot(
-							Constants.Drivetrain.trackWidth.in(Units.Meters),
-							Constants.Drivetrain.wheelBase.in(Units.Meters)
+							Constants.Drivetrain.trackWidth.in(Units.Meters)/2,
+							Constants.Drivetrain.wheelBase.in(Units.Meters)/2
 						),
 					new ReplanningConfig()
 				),

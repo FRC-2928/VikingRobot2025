@@ -138,9 +138,11 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Choreo {
-			public static final PIDValues x = new PIDValues(0.14, 0, 0.001, 0);
-			public static final PIDValues y = new PIDValues(0.14, 0, 0.001, 0);
-			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
+			public static final PIDValues x = new PIDValues(0.0, 0, 0.0, 0);
+			public static final PIDValues y = new PIDValues(0.0, 0, 0.0, 0);
+			public static final PIDValues theta = new PIDValues(0.0, 0, 0.0, 0);
+			public static final PIDValues xDynamic = new PIDValues(0.1, 0, 0.001, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(0.0525, 0, 0.0035, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
