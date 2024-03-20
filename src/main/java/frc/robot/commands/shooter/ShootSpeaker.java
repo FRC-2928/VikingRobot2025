@@ -15,16 +15,20 @@ import frc.robot.Robot;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootSpeaker extends Command {
-	public ShootSpeaker(final boolean triggerFire) {
+	public ShootSpeaker(final boolean triggerFire) { this(triggerFire, Constants.Shooter.readyShootRear); }
+
+	public ShootSpeaker(final boolean triggerFire, final Measure<Angle> startAngle) {
 		this.addRequirements(Robot.cont.shooter);
 		this.triggerFire = triggerFire;
+		this.rearAngle = startAngle;
 	}
 
 	public final boolean triggerFire;
+	public final Measure<Angle> rearAngle;
 
 	private double fired;
-	private final SimpleMotorFeedforward targetVerticalFeedforward = new SimpleMotorFeedforward(0, 3);
-	private final PIDController targetVerticalPID = Constants.Shooter.targetVerticalControllerPID.createController();
+	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 3);
+	private final PIDController targetRotationPID = Constants.Shooter.targetRotationController.createController();
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -34,7 +38,6 @@ public class ShootSpeaker extends Command {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
 
-		// Robot.cont.shooter.io.runFlywheels(.4);
 		Robot.cont.shooter.io.runFlywheelsVelocity(30);
 
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
@@ -46,24 +49,15 @@ public class ShootSpeaker extends Command {
 				Logger.recordOutput("Shooter/ShootSpeaker/tx", po);
 				Logger.recordOutput("Shooter/ShootSpeaker/ty", yo);
 
-				// Calculate PID for vertical (yo) targeting
-				final double ffw = this.targetVerticalFeedforward.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1));
-				final double output = this.targetVerticalPID.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1), 0);
+				// Calculate PID for yaw rotation (yo) targeting
+				final double ffw = this.targetRotationFeedforward
+					.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1));
+				final double output = this.targetRotationPID.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1), 0);
 
 				Robot.cont.drivetrain
 					.control(
 						Robot.cont.drivetrain.joystickSpeeds
-							.plus(
-								Robot.cont.drivetrain
-									.rod(
-										new ChassisSpeeds(
-											0,
-											0,
-											// (ffw + output)
-											this.targetVerticalFeedforward.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1))
-										)
-									)
-							)
+							.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, ffw)))
 					);
 
 				if(Math.abs(po.in(Units.Degrees)) >= 1.25 && this.fired == -1) {
@@ -91,7 +85,7 @@ public class ShootSpeaker extends Command {
 										new ChassisSpeeds(
 											0,
 											0,
-											this.targetVerticalFeedforward
+											this.targetRotationFeedforward
 												.calculate(
 													Robot.cont.drivetrain.limelightBack
 														.getTargetHorizontalOffset()
@@ -106,8 +100,7 @@ public class ShootSpeaker extends Command {
 			}
 		} else {
 			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
-			Robot.cont.shooter.io
-				.rotate(forward ? Constants.Shooter.readyShootFront : Constants.Shooter.readyShootRear);
+			Robot.cont.shooter.io.rotate(forward ? Constants.Shooter.readyShootFront : this.rearAngle);
 		}
 	}
 

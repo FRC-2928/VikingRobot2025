@@ -264,7 +264,7 @@ public class Constants {
 			.withKV(0.015)
 			.withKA(0);
 
-		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
+		public static final PIDValues targetRotationController = new PIDValues(0.2, 0, 0, 0);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(27);
 
