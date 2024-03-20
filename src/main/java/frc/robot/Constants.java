@@ -187,9 +187,9 @@ public class Constants {
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
 
-		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
-		public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0, 0, 0);
-		public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
+		// public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
+		// public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0, 0, 0);
+		// public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
 
 		public static final double thetaCompensationFactor = 0.1;
 
@@ -263,6 +263,8 @@ public class Constants {
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
+
+		public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
 
 		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(27);
 

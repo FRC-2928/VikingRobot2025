@@ -115,14 +115,14 @@ public final class AutonomousRoutines {
 						new ReadyShooter(),
 						AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.7"))
 					),
-					new ShootSpeakerAuto(false, Units.Degrees.of(112)).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.8")),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.9"))
-					),
-					new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
+					new ShootSpeakerAuto(false, Units.Degrees.of(112)).withTimeout(4)
+					// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.8")),
+					// new IntakeGround(true).withTimeout(2),
+					// new ParallelCommandGroup(
+					// 	new ReadyShooter(),
+					// 	AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.9"))
+					// ),
+					// new ShootSpeakerAuto(false, Units.Degrees.of(118)).withTimeout(4)
 				)
 			);
 

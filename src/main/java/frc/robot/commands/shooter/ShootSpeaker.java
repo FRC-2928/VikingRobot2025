@@ -2,6 +2,7 @@ package frc.robot.commands.shooter;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
@@ -22,7 +23,8 @@ public class ShootSpeaker extends Command {
 	public final boolean triggerFire;
 
 	private double fired;
-	private final SimpleMotorFeedforward rffw = new SimpleMotorFeedforward(0, 3);
+	private final SimpleMotorFeedforward targetVerticalFeedforward = new SimpleMotorFeedforward(0, 3);
+	private final PIDController targetVerticalPID = Constants.Shooter.targetVerticalControllerPID.createController();
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -44,6 +46,10 @@ public class ShootSpeaker extends Command {
 				Logger.recordOutput("Shooter/ShootSpeaker/tx", po);
 				Logger.recordOutput("Shooter/ShootSpeaker/ty", yo);
 
+				// Calculate PID for vertical (yo) targeting
+				final double ffw = this.targetVerticalFeedforward.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1));
+				final double output = this.targetVerticalPID.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1), 0);
+
 				Robot.cont.drivetrain
 					.control(
 						Robot.cont.drivetrain.joystickSpeeds
@@ -53,7 +59,8 @@ public class ShootSpeaker extends Command {
 										new ChassisSpeeds(
 											0,
 											0,
-											this.rffw.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1))
+											// (ffw + output)
+											this.targetVerticalFeedforward.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1))
 										)
 									)
 							)
@@ -84,7 +91,7 @@ public class ShootSpeaker extends Command {
 										new ChassisSpeeds(
 											0,
 											0,
-											this.rffw
+											this.targetVerticalFeedforward
 												.calculate(
 													Robot.cont.drivetrain.limelightBack
 														.getTargetHorizontalOffset()
