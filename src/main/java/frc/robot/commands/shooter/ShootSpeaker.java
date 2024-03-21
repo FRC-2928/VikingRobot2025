@@ -27,7 +27,7 @@ public class ShootSpeaker extends Command {
 	public final Measure<Angle> rearAngle;
 
 	private double fired;
-	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 3);
+	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 10);
 	private final PIDController targetRotationPID = Constants.Shooter.targetRotationController.createController();
 
 	@Override
@@ -57,7 +57,7 @@ public class ShootSpeaker extends Command {
 				Robot.cont.drivetrain
 					.control(
 						Robot.cont.drivetrain.joystickSpeeds
-							.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, ffw)))
+							.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, ffw + output)))
 					);
 
 				if(Math.abs(po.in(Units.Degrees)) >= 1.25 && this.fired == -1) {
