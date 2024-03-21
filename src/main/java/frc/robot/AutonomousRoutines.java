@@ -58,74 +58,7 @@ public final class AutonomousRoutines {
 
 		chooser
 			.addOption(
-				"[testing] Four Note Middle",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("4Note.1")),
-					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.1")),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(new ReadyShooter(), AutonomousRoutines.onTheFlyPath("4Note.3")),
-					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.3")),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(new ReadyShooter(), AutonomousRoutines.onTheFlyPath("4Note.5")),
-					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.5")),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.6"))
-						// AutonomousRoutines.onTheFlyPath("4Note.6")
-					),
-					new ShootSpeaker(false, Units.Degrees.of(112)).withTimeout(4)
-					// AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.7")),
-					// new IntakeGround(true).withTimeout(2),
-					// new ParallelCommandGroup(
-					// 	new ReadyShooter(),
-					// 	AutonomousRoutines.choreo(Choreo.getTrajectory("4Note.8"))
-					// ),
-					// new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
-				)
-			);
-
-		chooser
-			.addOption(
 				"[testing] Five Note Middle",
-				new SequentialCommandGroup(
-					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("5Note.1")),
-					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.1")),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.3"))
-					),
-					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.5"))
-					),
-					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					new IntakeGround(true).withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(),
-						AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.7"))
-					),
-					new ShootSpeaker(false, Units.Degrees.of(112)).withTimeout(4)
-					// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.8")),
-					// new IntakeGround(true).withTimeout(2),
-					// new ParallelCommandGroup(
-					// 	new ReadyShooter(),
-					// 	AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.9"))
-					// ),
-					// new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
-				)
-			);
-
-		chooser
-			.addOption(
-				"[testing 2] Five Note Middle",
 				new SequentialCommandGroup(
 					AutonomousRoutines.setInitialPose(Choreo.getTrajectory("5Note.1")),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
