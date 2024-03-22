@@ -139,9 +139,9 @@ public class Constants {
 
 		public static final class Choreo {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0.001, 0);
-			public static final PIDValues y = new PIDValues(0.1, 0, 0.001, 0);
+			public static final PIDValues y = new PIDValues(0.15, 0, 0.001, 0);
 			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
-			public static final PIDValues xDynamic = new PIDValues(0.1, 0, 0.001, 0);
+			public static final PIDValues xDynamic = new PIDValues(0.1, 0, 0.002, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(0.0525, 0, 0.0035, 0);
 		}
 
@@ -292,7 +292,7 @@ public class Constants {
 			.withKV(0.015)
 			.withKA(0);
 
-		public static final PIDValues targetRotationController = new PIDValues(0.2, 0, 0, 0);
+		public static final PIDValues targetRotationController = new PIDValues(0.3, 0, 0, 0);
 
 		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.yellowFairlane;
 
