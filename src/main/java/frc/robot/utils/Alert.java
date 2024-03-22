@@ -2,8 +2,6 @@ package frc.robot.utils;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,12 +13,11 @@ import java.util.function.Predicate;
 public class Alert {
 	private static Map<String, SendableAlerts> groups = new HashMap<String, SendableAlerts>();
 
-	private final AlertType type;
-	private boolean active = false;
-	private double activeStartTime = 0.0;
-	private String text;
+	public final AlertType type;
+	public boolean active = false;
+	public String text;
 
-	public Alert(final String text, final AlertType type) { this("Alerts", text, type); }
+	private final double activeStartTime = 0.0;
 
 	public Alert(final String group, final String text, final AlertType type) {
 		if(!Alert.groups.containsKey(group)) {
@@ -31,41 +28,6 @@ public class Alert {
 		this.text = text;
 		this.type = type;
 		Alert.groups.get(group).alerts.add(this);
-	}
-
-	public void set(final boolean active) {
-		if(active && !this.active) {
-			this.activeStartTime = Timer.getFPGATimestamp();
-			switch(this.type) {
-			case ERROR:
-				DriverStation.reportError(this.text, false);
-				break;
-			case WARNING:
-				DriverStation.reportWarning(this.text, false);
-				break;
-			case INFO:
-				System.out.println(this.text);
-				break;
-			}
-		}
-		this.active = active;
-	}
-
-	public void setText(final String text) {
-		if(this.active && !text.equals(this.text)) {
-			switch(this.type) {
-			case ERROR:
-				DriverStation.reportError(text, false);
-				break;
-			case WARNING:
-				DriverStation.reportWarning(text, false);
-				break;
-			case INFO:
-				System.out.println(text);
-				break;
-			}
-		}
-		this.text = text;
 	}
 
 	private static class SendableAlerts implements Sendable {

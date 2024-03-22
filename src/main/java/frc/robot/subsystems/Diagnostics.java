@@ -94,13 +94,30 @@ public class Diagnostics extends SubsystemBase {
 	private final ArrayList<Chirp> chirps = new ArrayList<>();
 	private final Field loggedDashboardChooserSelectedValue;
 	private double lastCheck = 0;
+
+	private final Alert canDeviceMissing = new Alert("Warnings", "CAN Devices Missing: <none>", Alert.AlertType.ERROR);
+	private final Alert ethernetDeviceMissing = new Alert(
+		"Warnings",
+		"Ethernet Devices Missing: <none>",
+		Alert.AlertType.ERROR
+	);
+	private final Alert setupJumperPresent = new Alert("Warnings", "Setup Jumper is plugged in", Alert.AlertType.ERROR);
+
 	private final Alert invalidAutoRoutine = new Alert(
+		"Pre-Match",
 		"Autonomous Routine '<none>' is not ready for competition",
 		Alert.AlertType.ERROR
 	);
-	private final Alert setupJumperPresent = new Alert("Setup Jumper is plugged in", Alert.AlertType.ERROR);
-	private final Alert startingConfiguration = new Alert("Not in Starting Configuration", Alert.AlertType.ERROR);
+	private final Alert shooterAngle = new Alert("Pre-Match", "Shooter is not upright", Alert.AlertType.ERROR);
+	private final Alert notePossession = new Alert("Pre-Match", "Not possessing a note", Alert.AlertType.ERROR);
+	private final Alert moduleOrientations = new Alert(
+		"Pre-Match",
+		"Swerve Modules are not oriented forward",
+		Alert.AlertType.ERROR
+	);
+	private final Alert climberStart = new Alert("Pre-Match", "Climber is not at home position", Alert.AlertType.ERROR);
 	private final Alert badVoltage = new Alert(
+		"Pre-Match",
 		"Battery Voltage is 0V, recommended to be 12.5V",
 		Alert.AlertType.WARNING
 	);
@@ -132,6 +149,9 @@ public class Diagnostics extends SubsystemBase {
 				&& DriverStation.isDisabled()
 				&& Timer.getFPGATimestamp() - this.lastCheck >= 1
 		) {
+			final boolean setupJumperPresent = this.release.getAsBoolean();
+			this.setupJumperPresent.active = setupJumperPresent;
+
 			final boolean invalidAutoRoutine;
 
 			String name;
@@ -143,28 +163,27 @@ public class Diagnostics extends SubsystemBase {
 				throw new Error(e);
 			}
 
-			final boolean setupJumperPresent = this.release.getAsBoolean();
 			final double startingConfigurationAngleDifference = Math
 				.abs(Robot.cont.shooter.inputs.angle.minus(Constants.Shooter.startingConfiguration).in(Units.Degrees));
-			final boolean startingConfiguration = startingConfigurationAngleDifference > 6;
+			final boolean shooterAngle = startingConfigurationAngleDifference > 6;
+			final boolean notePossession = !Robot.cont.shooter.inputs.holdingNote;
+			final boolean badVoltage = RobotController.getBatteryVoltage() < 12;
 
-			this.invalidAutoRoutine.setText("Autonomous routine '" + name + "' not ready for competition!");
-			this.invalidAutoRoutine.set(invalidAutoRoutine);
-			this.setupJumperPresent.set(setupJumperPresent);
-			this.startingConfiguration
-				.setText("Not in starting configuration (" + startingConfigurationAngleDifference + "deg off)");
-			this.startingConfiguration.set(startingConfiguration);
+			this.invalidAutoRoutine.text = "Autonomous routine '" + name + "' not ready for competition!";
+			this.invalidAutoRoutine.active = invalidAutoRoutine;
+			this.shooterAngle.text = "Not in starting configuration ("
+				+ startingConfigurationAngleDifference
+				+ "deg off)";
+			this.shooterAngle.active = shooterAngle;
+			this.notePossession.active = notePossession;
+			this.moduleOrientations.active = false; // todo
+			this.climberStart.active = Robot.cont.climber.inputs.home;
+			this.badVoltage.text = "Battery Voltage is "
+				+ RobotController.getBatteryVoltage()
+				+ "V, recommended to be at least 12V";
+			this.badVoltage.active = badVoltage;
 
-			final boolean badVoltage = RobotController.getBatteryVoltage() < 12.3;
-
-			this.badVoltage
-				.setText(
-					"Battery Voltage is " + RobotController.getBatteryVoltage() + "V, recommended to be at least 12.3V"
-				);
-			this.badVoltage.set(badVoltage);
-
-			// todo: check note in shooter, check swerve angles
-			final boolean ready = !(invalidAutoRoutine || setupJumperPresent || startingConfiguration);
+			final boolean ready = !(invalidAutoRoutine || setupJumperPresent || shooterAngle || badVoltage);
 
 			Logger.recordOutput("Diagnostics/ReadyForCompetition", ready);
 			RobotController.setRadioLEDState(ready ? RadioLEDState.kGreen : RadioLEDState.kRed);

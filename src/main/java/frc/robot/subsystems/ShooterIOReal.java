@@ -11,10 +11,8 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -69,7 +67,6 @@ public class ShooterIOReal implements ShooterIO {
 		this.flywheelA.getConfigurator().apply(flywheels);
 		this.flywheelA.setNeutralMode(NeutralModeValue.Coast);
 		this.flywheelA.setInverted(false);
-		
 
 		this.flywheelB.getConfigurator().apply(flywheels);
 		this.flywheelB.setNeutralMode(NeutralModeValue.Coast);

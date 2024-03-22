@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.Tuning;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootSpeaker extends Command {
@@ -38,7 +39,7 @@ public class ShootSpeaker extends Command {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
 
-		Robot.cont.shooter.io.runFlywheelsVelocity(30);
+		Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
 
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
 		if(forward == current) {
@@ -65,8 +66,7 @@ public class ShootSpeaker extends Command {
 				} else {
 					if(
 						((Robot.cont.shooter.inputs.flywheelSpeedA
-							.in(Units.RotationsPerSecond) >= Constants.Shooter.flywheelSpeedThreshold
-								.in(Units.RotationsPerSecond)
+							.in(Units.RotationsPerSecond) >= Tuning.flywheelVelocityThreshold.get()
 							|| Robot.cont.operatorOI.overrideShoot.getAsBoolean())
 							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
 							|| this.fired != -1

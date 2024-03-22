@@ -248,6 +248,34 @@ public class Constants {
 	}
 
 	public static class Shooter {
+		public static final class FlywheelConfiguration {
+			public static final FlywheelConfiguration yellowFairlane = new FlywheelConfiguration(
+				Units.RotationsPerSecond.of(30),
+				Units.RotationsPerSecond.of(27),
+				0.3
+			);
+			public static final FlywheelConfiguration greenBane = new FlywheelConfiguration(
+				Units.RotationsPerSecond.of(40),
+				Units.RotationsPerSecond.of(37),
+				0.16
+			);
+
+			public FlywheelConfiguration(
+				final Measure<Velocity<Angle>> flywheelVelocity,
+				final Measure<Velocity<Angle>> flywheelVelocityThreshold,
+				final double ampPower
+			) {
+				this.speakerVelocity = flywheelVelocity;
+				this.speakerVelocityThreshold = flywheelVelocityThreshold;
+				this.ampPower = ampPower;
+			}
+
+			public final Measure<Velocity<Angle>> speakerVelocity;
+			public final Measure<Velocity<Angle>> speakerVelocityThreshold;
+
+			public final double ampPower;
+		}
+
 		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
 
 		public static final SlotConfigs pivotConfig = new SlotConfigs()
@@ -266,7 +294,7 @@ public class Constants {
 
 		public static final PIDValues targetRotationController = new PIDValues(0.2, 0, 0, 0);
 
-		public static final Measure<Velocity<Angle>> flywheelSpeedThreshold = Units.RotationsPerSecond.of(27);
+		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.yellowFairlane;
 
 		// todo: fill angles
 

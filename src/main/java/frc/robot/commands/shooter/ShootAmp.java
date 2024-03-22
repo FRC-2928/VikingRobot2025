@@ -5,6 +5,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.Tuning;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootAmp extends Command {
@@ -24,8 +25,8 @@ public class ShootAmp extends Command {
 
 	@Override
 	public void execute() {
-		Robot.cont.shooter.io.rotate(Constants.Shooter.shootAmp);
-		Robot.cont.shooter.io.runFlywheels(0.3);
+		Robot.cont.shooter.io.rotate(Units.Degrees.of(Tuning.ampAngle.get()));
+		Robot.cont.shooter.io.runFlywheels(Tuning.ampPower.get());
 
 		if(this.correction) {
 			Robot.cont.drivetrain
@@ -37,10 +38,7 @@ public class ShootAmp extends Command {
 		}
 
 		if(
-			(Math
-				.abs(
-					Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.shootAmp.in(Units.Degrees)
-				) <= 20.5
+			(Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Tuning.ampAngle.get()) <= 20.5
 				&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired
 		) {
 			Robot.cont.shooter.io.runFeeder(Demand.Forward);
