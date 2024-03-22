@@ -9,6 +9,7 @@ import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
 import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
@@ -31,17 +32,20 @@ public class ClimberIOReal implements ClimberIO {
 		actuator.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
 		actuator.Slot0 = Slot0Configs.from(Constants.Climber.configFast);
 		actuator.Slot1 = Slot1Configs.from(Constants.Climber.configSlow);
+		actuator.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+		actuator.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 		actuator.Audio = Constants.talonFXAudio;
 
 		this.actuator.getConfigurator().apply(actuator);
 
-		this.actuator.setInverted(true);
-		this.actuator.setNeutralMode(NeutralModeValue.Brake);
 		this.actuator.setPosition(0);
 
 		this.position = this.actuator.getPosition();
 		this.home = this.actuator.getReverseLimit();
+
+		BaseStatusSignal.setUpdateFrequencyForAll(100, this.position, this.home);
+		this.actuator.optimizeBusUtilization();
 
 		Robot.cont.diag.motors.add(this.actuator);
 
@@ -76,11 +80,11 @@ public class ClimberIOReal implements ClimberIO {
 	@Override
 	public void fast(final boolean fast) {
 		final TalonFXConfiguration actuator = new TalonFXConfiguration();
-		this.actuator.getConfigurator().refresh(actuator);
+		System.out.println(this.actuator.getConfigurator().refresh(actuator));
 
 		actuator.MotorOutput.PeakForwardDutyCycle = fast ? 1 : 0.5;
 
-		this.actuator.getConfigurator().apply(actuator);
+		//this.actuator.getConfigurator().apply(actuator);
 	}
 
 	@Override
@@ -94,8 +98,6 @@ public class ClimberIOReal implements ClimberIO {
 	@Override
 	@SuppressWarnings("unused")
 	public void periodic() {
-		if(true) return;
-
 		Logger.recordOutput("Climber/DriveUp", this.demand == 129);
 		Logger.recordOutput("Climber/Disengaging", this.disengaging);
 		Logger.recordOutput("Climber/RatchetLocked", this.lock.getAngle() == Constants.Climber.ratchetLocked);

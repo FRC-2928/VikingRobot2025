@@ -21,11 +21,11 @@ public class Initialize extends Command {
 	@Override
 	public void execute() {
 		if(this.descending) {
-			Robot.cont.climber.io.set(this.start - 1000);
+			Robot.cont.climber.io.override(-0.75);
 
 			Logger.recordOutput("Climber/Initialize/State", "Descending");
 		} else {
-			Robot.cont.climber.io.set(this.start + 2);
+			Robot.cont.climber.io.override(0.25);
 			Logger.recordOutput("Climber/Initialize/Threshold", this.start + Constants.Climber.initializeRaiseDistance);
 			if(Robot.cont.climber.inputs.position > this.start + Constants.Climber.initializeRaiseDistance)
 				this.descending = true;
@@ -36,7 +36,7 @@ public class Initialize extends Command {
 
 	@Override
 	public void end(final boolean interrupted) {
-		Robot.cont.climber.io.offset(0);
+		Robot.cont.climber.io.override(0);
 
 		Logger.recordOutput("Climber/Initialize/State", "End");
 	}
