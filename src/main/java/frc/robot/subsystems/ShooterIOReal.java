@@ -78,10 +78,6 @@ public class ShooterIOReal implements ShooterIO {
 		this.intake.setNeutralMode(NeutralMode.Brake);
 		this.intake.setInverted(true);
 
-		Robot.cont.diag.motors.add(this.pivot);
-		Robot.cont.diag.motors.add(this.flywheelA);
-		Robot.cont.diag.motors.add(this.flywheelB);
-
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {
 				Logger.recordOutput("SysId/Shooter/Pivot/State", state.toString());

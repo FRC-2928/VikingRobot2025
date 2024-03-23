@@ -7,11 +7,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.function.Function;
 import java.util.function.Supplier;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.SerialPort.WriteBufferMode;
 
 public final class LimelightFX extends SubsystemBase {
 	/** The maximum number of modules the FX supports. */
@@ -23,29 +20,29 @@ public final class LimelightFX extends SubsystemBase {
 	/** The longest a file path can be. Shorter paths conserves memory. */
 	public static final int maxFilepath = 32;
 
-	/** An RGBA color. Components are 0-255. */
+	/** An RGBA color. Components are 0-1. */
 	public static final class Color {
 		public static final Color BLACK = new Color(0);
-		public static final Color WHITE = new Color(255);
-		public static final Color RED = new Color(255, 0, 0, 255);
-		public static final Color GREEN = new Color(0, 255, 0, 255);
-		public static final Color BLUE = new Color(0, 0, 255, 255);
+		public static final Color WHITE = new Color(1);
+		public static final Color RED = new Color(1, 0, 0);
+		public static final Color GREEN = new Color(0, 1, 0);
+		public static final Color BLUE = new Color(0, 0, 1);
 
-		public final int a;
-		public final int r;
-		public final int g;
-		public final int b;
+		public final double a;
+		public final double r;
+		public final double g;
+		public final double b;
 
-		public Color(final int r, final int g, final int b, final int a) {
-			this.a = MathUtil.clamp(a, 0, 255);
-			this.r = MathUtil.clamp(r, 0, 255);
-			this.g = MathUtil.clamp(g, 0, 255);
-			this.b = MathUtil.clamp(b, 0, 255);
+		public Color(final double r, final double g, final double b, final double a) {
+			this.a = a;
+			this.r = r;
+			this.g = g;
+			this.b = b;
 		}
 
-		public Color(final int r, final int g, final int b) { this(r, g, b, 255); }
+		public Color(final double r, final double g, final double b) { this(r, g, b, 1); }
 
-		public Color(final int value) { this(value, value, value); }
+		public Color(final double value) { this(value, value, value); }
 
 		@Override
 		public final boolean equals(final Object other) {
@@ -60,7 +57,16 @@ public final class LimelightFX extends SubsystemBase {
 		}
 
 		@Override
-		public final String toString() { return String.format("0x%02x%02x%02x%02x", this.a, this.r, this.g, this.b); }
+		public final String toString() {
+			return String
+				.format(
+					"0x%02x%02x%02x%02x",
+					Math.min(Math.max(Math.round(this.a * 255), 0), 255),
+					Math.min(Math.max(Math.round(this.r * 255), 0), 255),
+					Math.min(Math.max(Math.round(this.g * 255), 0), 255),
+					Math.min(Math.max(Math.round(this.b * 255), 0), 255)
+				);
+		}
 	}
 
 	/** An audio tone waveform. */
@@ -103,8 +109,10 @@ public final class LimelightFX extends SubsystemBase {
 	/** An LED module. */
 	public static final class Module {
 		/** Defines the shape of the module. */
-		public static enum Geometry {
-			Strip16x1(64, 16, 1), Grid24x12(65, 24, 12), Ring(66, /* unknown */ 0, /* unknown */ 0);
+		public static final class Geometry {
+			public static final Geometry strip = new Geometry(64, 16, 1);
+			public static final Geometry grid = new Geometry(65, 24, 12);
+			public static final Geometry ring = new Geometry(66, /* unknown */ 0, /* unknown */ 0);
 
 			private Geometry(final int id, final int width, final int height) {
 				this.id = id;
@@ -115,6 +123,10 @@ public final class LimelightFX extends SubsystemBase {
 			public final int id;
 			public final int width;
 			public final int height;
+
+			public final Geometry size(final int width, final int height) {
+				return new Geometry(this.id, width, height);
+			}
 		}
 
 		/** Defines the rotation of the module. */
@@ -154,7 +166,10 @@ public final class LimelightFX extends SubsystemBase {
 		public final <T extends Behavior<T>> T behavior(final Class<T> kind, final int layer) {
 			T beh;
 			try {
-				beh = kind.getConstructor(LimelightFX.class, Module.class, int.class).newInstance(this.fx, this, layer);
+				final Constructor<
+					T> constructor = kind.getDeclaredConstructor(LimelightFX.class, Module.class, int.class);
+				constructor.setAccessible(true);
+				beh = constructor.newInstance(this.fx, this, layer);
 			} catch(final Exception e) {
 				throw new Error("Behavior creation failed", e);
 			}
@@ -480,7 +495,7 @@ public final class LimelightFX extends SubsystemBase {
 
 	private boolean initialized;
 
-	private SerialPort serial;
+	private Function<String, Boolean> serial;
 
 	private final ArrayList<Module> modules = new ArrayList<>();
 	private final ArrayList<Selector> selectors = new ArrayList<>();
@@ -509,19 +524,15 @@ public final class LimelightFX extends SubsystemBase {
 	 * @param port
 	 *                 The serial port that is connected to the LimelightFX Core
 	 */
-	public final void initialize(final SerialPort.Port port) {
+	public final void initialize(final Function<String, Boolean> writer) {
 		if(this.initialized) throw new Error("LimelightFX: Cannot initialize, already initialized!");
 		this.initialized = true;
 
+		this.serial = writer;
 		System.err.println("LimelightFX: Initializing...");
-		this.serial = new SerialPort(115200, port);
-		this.serial.reset();
-		this.serial.setTimeout(0.5);
-		this.serial.setWriteBufferMode(WriteBufferMode.kFlushOnAccess);
-		System.err.println("LimelightFX: Transmitting Modules...");
 		this.write("init 1");
 		for(final Module module : this.modules)
-			this.write("module ", module.geo.id, module.geo.width, module.geo.height, module.rot.id);
+			this.write("module %d %d %d %d", module.geo.id, module.geo.width, module.geo.height, module.rot.id);
 		this.write("start");
 		System.err.println("LimelightFX: Initialized");
 	}
@@ -529,32 +540,20 @@ public final class LimelightFX extends SubsystemBase {
 	/**
 	 * Writes data to the port and disables the FX if write fails
 	 */
-	private final void write(final String data) {
-		if(!this.initialized) throw new Error("LimelightFX: Cannot write before initialization");
-
-		try {
-			if(this.serial == null) return;
-
-			final int n = this.serial.writeString(data + "\n");
-
-			if(n == 0) this.disable("cannot write");
-		} catch(final Exception e) {
-			this.disable(e.getMessage());
-		}
-	}
-
-	/**
-	 * Writes data to the port and disables the FX if write fails
-	 */
 	private final void write(final String data, final Object... args) {
 		try {
-			if(this.serial == null) return;
+			final String command = String.format(data, args);
+			if(this.serial == null) {
+				System.out.println("failed write: " + command);
+				return;
+			}
 
-			final int n = this.serial.writeString(String.format(data, args) + "\n");
+			System.out.println("write: " + command);
 
-			if(n == 0) this.disable("cannot write");
+			if(!this.serial.apply(command + "\n")) this.disable("cannot write");
 		} catch(final Exception e) {
 			this.disable(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -564,7 +563,6 @@ public final class LimelightFX extends SubsystemBase {
 	public final void disable(final String reason) {
 		if(this.serial == null) return;
 
-		this.serial.close();
 		this.serial = null;
 		System.err.println("LimelightFX: FX disabled (" + reason + ")");
 	}
@@ -579,16 +577,16 @@ public final class LimelightFX extends SubsystemBase {
 				duration,
 				sound.id,
 				channel,
-				MathUtil.clamp(Math.round(volume * 255), 0, 255)
+				Math.min(Math.max(Math.round(volume * 255), 0), 255)
 			);
 	}
 
 	public final void sound(final SystemSound sound, final int channel, final int loops, final double volume) {
-		this.write("sound %d %d %d %d", sound.id, channel, loops, MathUtil.clamp(Math.round(volume * 255), 0, 255));
+		this.write("sound %d %d %d %d", sound.id, channel, loops, Math.min(Math.max(Math.round(volume * 255), 0), 255));
 	}
 
 	public final void sound(final String filename, final int channel, final double volume) {
-		this.write("stream %s %d %d", filename, channel, MathUtil.clamp(Math.round(volume * 255), 0, 255));
+		this.write("stream %s %d %d", filename, channel, Math.min(Math.max(Math.round(volume * 255), 0), 255));
 	}
 
 	@Override

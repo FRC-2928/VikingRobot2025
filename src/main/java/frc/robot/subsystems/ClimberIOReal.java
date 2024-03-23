@@ -47,8 +47,6 @@ public class ClimberIOReal implements ClimberIO {
 		BaseStatusSignal.setUpdateFrequencyForAll(100, this.position, this.home);
 		this.actuator.optimizeBusUtilization();
 
-		Robot.cont.diag.motors.add(this.actuator);
-
 		this.lock(true);
 	}
 

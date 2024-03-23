@@ -80,9 +80,6 @@ public class ModuleIOReal implements ModuleIO {
 			throw new RuntimeException("Invalid module index");
 		}
 
-		Robot.cont.diag.motors.add(this.azimuth);
-		Robot.cont.diag.motors.add(this.drive);
-
 		final TalonFXConfiguration azimuthConfig = new TalonFXConfiguration();
 		// Peak output of 40 amps
 		azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;

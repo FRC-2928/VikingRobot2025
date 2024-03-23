@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.ctre.phoenix6.controls.MusicTone;
-import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.Units;
@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.utils.Alert;
-import frc.robot.utils.STalonFX;
 
 public class Diagnostics extends SubsystemBase {
 	public final class Release extends Command {
@@ -72,12 +71,14 @@ public class Diagnostics extends SubsystemBase {
 	private static final class Chirp {
 		public Chirp(final int freq, final int ms) {
 			this.freq = freq;
-			this.us = ms * 1000;
+			this.ms = ms;
 		}
 
 		public int freq;
-		public long us;
+		public int ms;
 		public long start = 0;
+
+		public void play() { Robot.cont.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
 	}
 
 	public Diagnostics() {
@@ -88,8 +89,6 @@ public class Diagnostics extends SubsystemBase {
 			throw new Error(e);
 		}
 	}
-
-	public final ArrayList<STalonFX> motors = new ArrayList<>();
 
 	private final ArrayList<Chirp> chirps = new ArrayList<>();
 	private final Field loggedDashboardChooserSelectedValue;
@@ -134,8 +133,20 @@ public class Diagnostics extends SubsystemBase {
 
 		SmartDashboard
 			.putData("Diagnostics/C-Stop", new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
-		SmartDashboard
-			.putData("Diagnostics/C-Stop", new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
+
+		SmartDashboard.putData("Diagnostics/ZeroPivot", new InstantCommand(() -> {
+			if(!DriverStation.isTestEnabled()) {
+				System.out.println("Diagnostics: Cannot execute command ZeroPivot outside of Test mode");
+				return;
+			}
+			System.out
+				.println("Diagnostics: Pivot zeroed (was " + Robot.cont.shooter.inputs.angle.in(Units.Degrees) + ")");
+			final CANcoder enc = ((ShooterIOReal) Robot.cont.shooter.io).encoder;
+			final CANcoderConfiguration cfg = new CANcoderConfiguration();
+			enc.getConfigurator().refresh(cfg);
+			cfg.MagnetSensor.MagnetOffset = 0;
+			enc.getConfigurator().apply(cfg);
+		}));
 	}
 
 	@Override
@@ -198,17 +209,12 @@ public class Diagnostics extends SubsystemBase {
 
 		if(this.chirps.size() > 0) {
 			final Chirp chirp = this.chirps.get(0);
-			if(chirp.start == 0) chirp.start = Logger.getRealTimestamp();
-
-			for(final TalonFX fx : this.motors)
-				fx.setControl(new MusicTone(chirp.freq));
-
-			if(Logger.getRealTimestamp() - chirp.start >= chirp.us) {
-				for(final TalonFX fx : this.motors)
-					fx.setControl(new MusicTone(0));
-
-				this.chirps.remove(0);
+			if(chirp.start == 0) {
+				chirp.start = Logger.getRealTimestamp();
+				chirp.play();
 			}
+
+			if(Logger.getRealTimestamp() - chirp.start >= chirp.ms) this.chirps.remove(0);
 		}
 	}
 }

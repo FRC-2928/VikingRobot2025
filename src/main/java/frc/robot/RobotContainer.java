@@ -3,6 +3,7 @@ package frc.robot;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.SerialPort.WriteBufferMode;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.oi.DriverOI;
@@ -25,20 +26,18 @@ public class RobotContainer {
 	public final Shooter shooter;
 	public final Climber climber;
 
+	public final SerialPort fxSerial;
 	public final LimelightFX fx = new LimelightFX();
 	public final LimelightFX.Module fxScreen = this.fx
-		.module(LimelightFX.Module.Geometry.Grid24x12, LimelightFX.Module.Rotation.R0);
+		.module(LimelightFX.Module.Geometry.grid, LimelightFX.Module.Rotation.R0);
 	public final LimelightFX.Module[] fxStrips = new LimelightFX.Module[] {
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
+		// we have 8 strips, however since the strips are connected
+		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
+		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
 
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0),
-		this.fx.module(LimelightFX.Module.Geometry.Strip16x1, LimelightFX.Module.Rotation.R0), };
-	//public final LimelightFX.Behavior<?> fxStateIdle;
+		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
+		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0), };
+	public final LimelightFX.Behavior<?> fxStateTest;
 
 	public RobotContainer() {
 		Robot.instance.container = this;
@@ -57,8 +56,18 @@ public class RobotContainer {
 		this.climber = new Climber();
 		System.err.println("6");
 
-		//this.fxStateIdle = this.fxScreen.behavior(LimelightFX.Behavior.ImageBehavior.class, 0);
-		this.fx.initialize(SerialPort.Port.kUSB2);
+		this.fxStateTest = this.fxScreen.behavior(LimelightFX.Behavior.BlinkBehavior.class, 0);
+		this.fx.selector(() -> {
+			if(this.shooter.inputs.holdingNote) return this.fxStateTest;
+			else return null;
+		});
+
+		this.fxSerial = new SerialPort(115200, SerialPort.Port.kUSB1);
+		this.fxSerial.reset();
+		this.fxSerial.setTimeout(1);
+		this.fxSerial.setWriteBufferMode(WriteBufferMode.kFlushOnAccess);
+
+		this.fx.initialize(str -> this.fxSerial.writeString(str) != 0);
 		System.err.println("7");
 
 		this.autonomousChooser = new LoggedDashboardChooser<>(
