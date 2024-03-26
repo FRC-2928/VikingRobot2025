@@ -15,6 +15,7 @@ import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LimelightFX;
 import frc.robot.subsystems.Shooter;
+import static frc.robot.subsystems.LimelightFX.Behavior.*;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;
@@ -38,8 +39,9 @@ public class RobotContainer {
 
 		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
 		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0), };
-	public final LimelightFX.Behavior<?> fxStateTest;
+	public final LimelightFX.Behavior<?> fxStateHoldingNote;
 
+	@SuppressWarnings({ "resource" })
 	public RobotContainer() {
 		Robot.instance.container = this;
 		Robot.cont = this;
@@ -51,12 +53,36 @@ public class RobotContainer {
 		this.shooter = new Shooter();
 		this.climber = new Climber();
 
-		this.fxStateTest = this.fx
-			.behavior(LimelightFX.Behavior.BlinkBehavior.class)
-			.on(this.fxScreen, 0)
-			.on(this.fxStrips, 0);
+		{
+			final BlinkBehavior beh = (BlinkBehavior) this.fx
+				.behavior(BlinkBehavior.class)
+				.on(this.fxScreen, 0)
+				.on(this.fxStrips, 0);
+
+			beh.colorA.set(new LimelightFX.Color(255, 127, 0));
+			beh.colorB.set(LimelightFX.Color.WHITE);
+
+			beh.timeOnA.set(1.0);
+			beh.timeOffA.set(0.25);
+			beh.timeBetween.set(0.0);
+			beh.timeOnB.set(1.0);
+			beh.timeOffB.set(0.25);
+			beh.timeRepeat.set(0.0);
+
+			beh.blinkCountA.set(1);
+			beh.blinkCountB.set(1);
+			beh.repeatCount.set(0);
+
+			beh.fadeInA.set(0.0);
+			beh.fadeOutA.set(0.0);
+			beh.fadeInB.set(0.0);
+			beh.fadeOutB.set(0.0);
+
+			this.fxStateHoldingNote = beh;
+		}
+
 		this.fx.selector(() -> {
-			if(this.shooter.inputs.holdingNote) return this.fxStateTest;
+			if(this.shooter.inputs.holdingNote) return this.fxStateHoldingNote;
 			else return null;
 		});
 
