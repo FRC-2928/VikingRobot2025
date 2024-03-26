@@ -5,7 +5,6 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
@@ -17,7 +16,6 @@ import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class ClimberIOReal implements ClimberIO {

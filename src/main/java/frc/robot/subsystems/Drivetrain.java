@@ -75,7 +75,6 @@ public class Drivetrain extends SubsystemBase {
 	public Drivetrain() {
 		this.gyro = switch(Constants.mode) {
 		case REAL -> new GyroIOReal();
-		case SIM -> new GyroIOSim(this);
 		case REPLAY -> new GyroIO() {
 		};
 		default -> throw new Error();

@@ -25,7 +25,6 @@ public class SwerveModule {
 
 		this.io = switch(Constants.mode) {
 		case REAL -> new ModuleIOReal(this);
-		case SIM -> new ModuleIOSim();
 		case REPLAY -> new ModuleIO() {
 		};
 		default -> throw new Error();
