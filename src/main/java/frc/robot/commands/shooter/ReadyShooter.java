@@ -4,35 +4,23 @@
 
 package frc.robot.commands.shooter;
 
-import edu.wpi.first.units.Units;
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
 import frc.robot.Robot;
 
 public class ReadyShooter extends Command {
-  /** Creates a new RaiseShooter. */
-  public ReadyShooter() {
-    this.addRequirements(Robot.cont.shooter);
-  }
+	public ReadyShooter(final Measure<Angle> angle) {
+		this.angle = angle;
+		this.addRequirements(Robot.cont.shooter);
+	}
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() { 
-    
-  }
+	public final Measure<Angle> angle;
 
-  @Override
-	public void execute() {
-    Robot.cont.shooter.io.rotate(Constants.Shooter.readyShootRear); 
-  }  
+	@Override
+	public void execute() { Robot.cont.shooter.io.rotate(this.angle); }
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(final boolean interrupted) {}
-
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() { 
-    return Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Constants.Shooter.readyShootRear.in(Units.Degrees)) < 5;
-  }
+	@Override
+	public boolean isFinished() {
+		return Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - this.angle.in(Units.Degrees)) < 2;
+	}
 }

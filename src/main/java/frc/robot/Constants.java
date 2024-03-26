@@ -86,6 +86,12 @@ public class Constants {
 		public final Ratio<U> inverse() { return new Ratio<U>(1 / this.factor); }
 	}
 
+	public static final class LimelightFX {
+		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }
+
+		public static final boolean enabled = true;
+	}
+
 	public static final class CAN {
 		private CAN() { throw new IllegalCallerException("Cannot instantiate `Constants.CAN`"); }
 
@@ -137,12 +143,12 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
-		public static final class Choreo {
+		public static final class Auto {
 			public static final PIDValues x = new PIDValues(0.1, 0, 0.001, 0);
 			public static final PIDValues y = new PIDValues(0.15, 0, 0.001, 0);
 			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
-			public static final PIDValues xDynamic = new PIDValues(0.1, 0, 0.002, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(0.0525, 0, 0.0035, 0);
+			public static final PIDValues translationDynamic = new PIDValues(0.1375, 0, 0.002, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(0.06, 0, 0.0035, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -257,7 +263,8 @@ public class Constants {
 			public static final FlywheelConfiguration greenBane = new FlywheelConfiguration(
 				Units.RotationsPerSecond.of(40),
 				Units.RotationsPerSecond.of(37),
-				0.16
+				//0.16
+				0.1
 			);
 
 			public FlywheelConfiguration(
@@ -282,7 +289,10 @@ public class Constants {
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKS(0.025)
 			.withKG(0.028)
-			.withKP(4);
+			.withKP(10)
+			.withKD(0.05);
+
+		public static final double pivotCurrentLimit = 40;
 
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKP(0.05)
@@ -294,14 +304,14 @@ public class Constants {
 
 		public static final PIDValues targetRotationController = new PIDValues(0.3, 0, 0, 0);
 
-		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.yellowFairlane;
+		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.greenBane;
 
 		// todo: fill angles
 
 		// a little above intake height to avoid hitting floor but to be ready
-		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.113);
+		public static final Measure<Angle> readyIntake = Units.Rotations.of(-0.1085);
 		// min angle before hitting floor
-		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.113);
+		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.1085);
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
 		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);

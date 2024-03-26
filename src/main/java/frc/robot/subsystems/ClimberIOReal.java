@@ -31,7 +31,6 @@ public class ClimberIOReal implements ClimberIO {
 		actuator.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
 		actuator.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
 		actuator.Slot0 = Slot0Configs.from(Constants.Climber.configFast);
-		actuator.Slot1 = Slot1Configs.from(Constants.Climber.configSlow);
 		actuator.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 		actuator.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
@@ -74,16 +73,6 @@ public class ClimberIOReal implements ClimberIO {
 
 	@Override
 	public void offset(final double offset) { this.set(this.position.getValueAsDouble() + offset); }
-
-	@Override
-	public void fast(final boolean fast) {
-		final TalonFXConfiguration actuator = new TalonFXConfiguration();
-		System.out.println(this.actuator.getConfigurator().refresh(actuator));
-
-		actuator.MotorOutput.PeakForwardDutyCycle = fast ? 1 : 0.5;
-
-		//this.actuator.getConfigurator().apply(actuator);
-	}
 
 	@Override
 	public void updateInputs(final ClimberIOInputs inputs) {

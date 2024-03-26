@@ -66,7 +66,7 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelightNote = new Limelight("limelight-note");
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
-	public final Limelight limelightBack = new Limelight("limelight-back");
+	public final Limelight limelightBack = new Limelight("limelight-rear");
 
 	public final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
@@ -101,13 +101,13 @@ public class Drivetrain extends SubsystemBase {
 				() -> this.robotChassisSpeeds,
 				this::controlRobotOriented,
 				new HolonomicPathFollowerConfig(
-					Constants.fromPIDValues(Constants.Drivetrain.Choreo.xDynamic),
-					Constants.fromPIDValues(Constants.Drivetrain.Choreo.thetaDynamic),
+					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
+					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic),
 					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
 					Math
 						.hypot(
-							Constants.Drivetrain.trackWidth.in(Units.Meters)/2,
-							Constants.Drivetrain.wheelBase.in(Units.Meters)/2
+							Constants.Drivetrain.trackWidth.in(Units.Meters) / 2,
+							Constants.Drivetrain.wheelBase.in(Units.Meters) / 2
 						),
 					new ReplanningConfig()
 				),
@@ -236,5 +236,6 @@ public class Drivetrain extends SubsystemBase {
 		*/
 
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
+		Logger.recordOutput("Drivetrain/BlueOriginPose", this.blueOriginPose());
 	}
 }

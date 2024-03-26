@@ -2,7 +2,6 @@ package frc.robot.commands.shooter;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
@@ -29,7 +28,6 @@ public class ShootSpeaker extends Command {
 
 	private double fired;
 	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 10);
-	private final PIDController targetRotationPID = Constants.Shooter.targetRotationController.createController();
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -50,15 +48,20 @@ public class ShootSpeaker extends Command {
 				Logger.recordOutput("Shooter/ShootSpeaker/tx", po);
 				Logger.recordOutput("Shooter/ShootSpeaker/ty", yo);
 
-				// Calculate PID for yaw rotation (yo) targeting
-				final double ffw = this.targetRotationFeedforward
-					.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1));
-				final double output = this.targetRotationPID.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1), 0);
-
 				Robot.cont.drivetrain
 					.control(
 						Robot.cont.drivetrain.joystickSpeeds
-							.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, ffw + output)))
+							.plus(
+								Robot.cont.drivetrain
+									.rod(
+										new ChassisSpeeds(
+											0,
+											0,
+											this.targetRotationFeedforward
+												.calculate(yo.in(Units.Rotations) * (forward ? 1 : -1))
+										)
+									)
+							)
 					);
 
 				if(Math.abs(po.in(Units.Degrees)) >= 1.25 && this.fired == -1) {

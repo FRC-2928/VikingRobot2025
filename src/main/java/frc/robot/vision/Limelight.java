@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.vision.LimelightHelpers.LimelightResults;
 
 public class Limelight {
-	private final NetworkTable nt;
-	private final String limelightName;
+	public final NetworkTable nt;
+	public final String limelightName;
 
 	public Limelight(final String limelightName) {
 		this.nt = NetworkTableInstance.getDefault().getTable(limelightName);

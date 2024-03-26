@@ -34,7 +34,7 @@ public class IntakeGround extends Command {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
 		Robot.cont.shooter.io.runFlywheels(-0.25);
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
-		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Reverse : Demand.Halt);
+		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.Halt);
 
 		if(this.correction) {
 			Robot.cont.drivetrain

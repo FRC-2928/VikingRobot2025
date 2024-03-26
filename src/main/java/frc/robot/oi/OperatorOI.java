@@ -1,6 +1,8 @@
 package frc.robot.oi;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -13,60 +15,58 @@ public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.climberDown = this.controller.a();
+		this.climberDown = this.controller.x();
 		this.climberUp = this.controller.y();
-		this.climberUpSlow = this.controller.x();
 
 		this.climberOverrideLower = this.controller.povDown();
 		this.climberOverrideRaise = this.controller.povUp();
 
 		this.initializeClimber = this.controller.rightStick();
 
-		this.reject = this.controller.b();
+		this.intakeOut = this.controller.b();
+		this.intakeIn = this.controller.a();
+		this.shooterLevel = this.controller.start();
 
 		this.overrideShoot = this.controller.rightTrigger();
 	}
 
 	public final Trigger climberDown;
 	public final Trigger climberUp;
-	public final Trigger climberUpSlow;
 
 	public final Trigger climberOverrideLower;
 	public final Trigger climberOverrideRaise;
 
 	public final Trigger initializeClimber;
 
-	public final Trigger reject;
+	public final Trigger intakeOut;
+	public final Trigger intakeIn;
+	public final Trigger shooterLevel;
 
 	public final Trigger overrideShoot;
 
 	public void configureControls() {
 		this.climberDown.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0)));
-		this.climberUp.whileTrue(new RunCommand(() -> {
-			Robot.cont.climber.io.fast(true);
-			Robot.cont.climber.io.set(Constants.Climber.max);
-		}));
-		this.climberUpSlow.whileTrue(new RunCommand(() -> {
-			Robot.cont.climber.io.fast(false);
-			Robot.cont.climber.io.set(Constants.Climber.max);
-		}));
+		this.climberUp.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
 
 		this.climberOverrideLower.whileTrue(new FunctionalCommand(() -> {
-		}, () -> Robot.cont.climber.io.override(-1), a -> Robot.cont.climber.io.override(0), () -> false));
+		}, () -> Robot.cont.climber.io.override(-1), interrupted -> Robot.cont.climber.io.override(0), () -> false));
 		this.climberOverrideRaise.whileTrue(new FunctionalCommand(() -> {
-		}, () -> {
-			Robot.cont.climber.io.fast(true);
-			Robot.cont.climber.io.override(1);
-		}, interrupted -> Robot.cont.climber.io.override(0), () -> false));
+		}, () -> Robot.cont.climber.io.override(1), interrupted -> Robot.cont.climber.io.override(0), () -> false));
 
 		this.initializeClimber.onTrue(new Initialize());
 
-		this.reject.whileTrue(new FunctionalCommand(() -> {
+		this.intakeOut.whileTrue(new FunctionalCommand(() -> {
 		},
 			() -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Reverse),
 			interrupt -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Halt),
-			() -> false,
-			Robot.cont.shooter
+			() -> false
 		));
+		this.intakeIn.whileTrue(new FunctionalCommand(() -> {
+		},
+			() -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Forward),
+			interrupt -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Halt),
+			() -> false
+		));
+		this.shooterLevel.whileTrue(new InstantCommand(() -> Robot.cont.shooter.io.rotate(Units.Radians.zero())));
 	}
 }

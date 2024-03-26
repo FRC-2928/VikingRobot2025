@@ -1,8 +1,10 @@
 package frc.robot;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SerialPort.WriteBufferMode;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -26,12 +28,11 @@ public class RobotContainer {
 	public final Shooter shooter;
 	public final Climber climber;
 
-	public final SerialPort fxSerial;
 	public final LimelightFX fx = new LimelightFX();
 	public final LimelightFX.Module fxScreen = this.fx
 		.module(LimelightFX.Module.Geometry.grid, LimelightFX.Module.Rotation.R0);
 	public final LimelightFX.Module[] fxStrips = new LimelightFX.Module[] {
-		// we have 8 strips, however since the strips are connected
+		// we have 8 strips, however since the strips are daisy chained and we have 2 directly attached, we splice them together as one strip
 		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
 		this.fx.module(LimelightFX.Module.Geometry.strip.size(32, 1), LimelightFX.Module.Rotation.R0),
 
@@ -43,36 +44,39 @@ public class RobotContainer {
 		Robot.instance.container = this;
 		Robot.cont = this;
 
-		System.err.println("1");
 		Tuning.flywheelVelocity.get(); // load the class to put the tuning controls on the dashboard
-		System.err.println("2");
 
 		this.diag = new Diagnostics();
-		System.err.println("3");
 		this.drivetrain = new Drivetrain();
-		System.err.println("4");
 		this.shooter = new Shooter();
-		System.err.println("5");
 		this.climber = new Climber();
-		System.err.println("6");
 
-		this.fxStateTest = this.fxScreen.behavior(LimelightFX.Behavior.BlinkBehavior.class, 0);
+		this.fxStateTest = this.fx
+			.behavior(LimelightFX.Behavior.BlinkBehavior.class)
+			.on(this.fxScreen, 0)
+			.on(this.fxStrips, 0);
 		this.fx.selector(() -> {
 			if(this.shooter.inputs.holdingNote) return this.fxStateTest;
 			else return null;
 		});
 
-		this.fxSerial = new SerialPort(115200, SerialPort.Port.kUSB1);
-		this.fxSerial.reset();
-		this.fxSerial.setTimeout(1);
-		this.fxSerial.setWriteBufferMode(WriteBufferMode.kFlushOnAccess);
-
-		this.fx.initialize(str -> this.fxSerial.writeString(str) != 0);
-		System.err.println("7");
+		if(Constants.LimelightFX.enabled) {
+			this.fx.initialize(() -> {
+				final SerialPort serial = new SerialPort(115200, SerialPort.Port.kUSB1);
+				serial.reset();
+				serial.setTimeout(1);
+				serial.setWriteBufferMode(WriteBufferMode.kFlushOnAccess);
+				return str -> {
+					System.out.print("command: " + str);
+					Logger.recordOutput("LLFX/Command", Timer.getFPGATimestamp() + ": " + str);
+					return serial.writeString(str) != 0;
+				};
+			});
+		}
 
 		this.autonomousChooser = new LoggedDashboardChooser<>(
 			"Autonomous Routine",
-			AutonomousRoutines.createAutonomousChooser()
+			Autonomous.createAutonomousChooser()
 		);
 
 		this.driverOI.configureControls();

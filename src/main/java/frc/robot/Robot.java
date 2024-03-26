@@ -25,14 +25,7 @@ public class Robot extends LoggedRobot {
 
 	public Robot() {
 		super();
-		Robot.instance = this;
-		Robot.cont = new RobotContainer();
 
-		DriverStation.silenceJoystickConnectionWarning(true);
-	}
-
-	@Override
-	public void robotInit() {
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.Misc.pdh, ModuleType.kRev.value);
 
 		switch(Constants.mode) {
@@ -55,6 +48,14 @@ public class Robot extends LoggedRobot {
 
 		Logger.start();
 
+		Robot.instance = this;
+		Robot.cont = new RobotContainer();
+
+		DriverStation.silenceJoystickConnectionWarning(true);
+	}
+
+	@Override
+	public void robotInit() {
 		this.container.diag.chirp(600, 500);
 		this.container.diag.chirp(900, 500);
 	}

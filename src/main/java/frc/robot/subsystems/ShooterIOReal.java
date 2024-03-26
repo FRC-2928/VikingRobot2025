@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.utils.STalonFX;
 
 public class ShooterIOReal implements ShooterIO {
@@ -43,6 +42,9 @@ public class ShooterIOReal implements ShooterIO {
 		this.sensors = this.feeder.getSensorCollection();
 
 		final TalonFXConfiguration pivot = new TalonFXConfiguration();
+
+		pivot.CurrentLimits.SupplyCurrentLimit = Constants.Shooter.pivotCurrentLimit;
+		pivot.CurrentLimits.SupplyCurrentLimitEnable = true;
 
 		pivot.Feedback.FeedbackRemoteSensorID = Constants.CAN.CTRE.shooterPivot;
 		pivot.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
@@ -76,7 +78,7 @@ public class ShooterIOReal implements ShooterIO {
 		this.feeder.setNeutralMode(NeutralMode.Brake);
 		this.feeder.setInverted(true);
 		this.intake.setNeutralMode(NeutralMode.Brake);
-		this.intake.setInverted(true);
+		this.intake.setInverted(false);
 
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {
