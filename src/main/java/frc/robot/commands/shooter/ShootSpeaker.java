@@ -74,7 +74,7 @@ public class ShootSpeaker extends Command {
 							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
 							|| this.fired != -1
 					) {
-						if(this.pivot.getVelocity().getValue() < Constants.Shooter.pivotMaxVelocityShoot) {
+						if(Math.abs(this.pivot.getVelocity().getValue()) < Constants.Shooter.pivotMaxVelocityShoot) {
 							Robot.cont.shooter.io.runFeeder(Demand.Forward);
 							if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 						}

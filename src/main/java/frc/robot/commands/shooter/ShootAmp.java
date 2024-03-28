@@ -43,7 +43,7 @@ public class ShootAmp extends Command {
 			(Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Tuning.ampAngle.get()) <= 20.5
 				&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired
 		) {
-			if(this.pivot.getVelocity().getValue() < Constants.Shooter.pivotMaxVelocityShoot) {
+			if(Math.abs(this.pivot.getVelocity().getValue()) < Constants.Shooter.pivotMaxVelocityShoot) {
 				Robot.cont.shooter.io.runFeeder(Demand.Forward);
 				this.fired = true;
 			}
