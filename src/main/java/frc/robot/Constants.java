@@ -237,7 +237,7 @@ public class Constants {
 		public static final Measure<Distance> wheelRadius = Units.Inches.of(2);
 		public static final Measure<Distance> wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(5);
+		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(3.78);
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final Measure<Velocity<Angle>> maxAngularVelocity = Units.RotationsPerSecond
