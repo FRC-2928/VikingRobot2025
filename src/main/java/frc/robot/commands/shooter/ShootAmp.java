@@ -7,8 +7,10 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.Tuning;
 import frc.robot.subsystems.ShooterIO.Demand;
+import frc.robot.utils.STalonFX;
 
 public class ShootAmp extends Command {
+	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 	public ShootAmp(final boolean correction) {
 		this.correction = correction;
 
@@ -26,8 +28,9 @@ public class ShootAmp extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(Units.Degrees.of(Tuning.ampAngle.get()));
-		Robot.cont.shooter.io.runFlywheels(Tuning.ampPower.get());
-
+		if(this.pivot.getVelocity().getValue() > Constants.Shooter.pivotMaxVelocityShoot) {
+			Robot.cont.shooter.io.runFlywheels(Tuning.ampPower.get());
+		}
 		if(this.correction) {
 			Robot.cont.drivetrain
 				.control(

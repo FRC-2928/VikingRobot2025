@@ -185,18 +185,16 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void runFlywheelsVelocity(final double demand) {
-		if(this.pivot.getVelocity().getValue() > Constants.Shooter.pivotMaxVelocityShoot) {
 			this.flywheelA.setControl(new VelocityDutyCycle(demand));
 			this.flywheelB.setControl(new VelocityDutyCycle(demand));
-		}
+		
 	}
 
 	@Override
 	public void runFlywheels(final double demand) {
-		if(this.pivot.getVelocity().getValue() > Constants.Shooter.pivotMaxVelocityShoot) {
 			this.flywheelA.setControl(new DutyCycleOut(demand));
 			this.flywheelB.setControl(new DutyCycleOut(demand));
-		}
+		
 	}
 
 	@Override
