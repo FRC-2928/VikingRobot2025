@@ -38,8 +38,6 @@ public class DriverOI extends BaseOI {
 		this.resetFOD = this.controller.y();
 
 		this.initializeClimber = this.controller.rightStick();
-
-		this.foc = this.controller.a();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -58,12 +56,10 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger initializeClimber;
 
-	public final Trigger foc;
-
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp.whileTrue(new ShootAmp(true));
-		this.intakeShoot.whileTrue(new IntakeGround(true));
+		this.shootAmp.whileTrue(new ShootAmp());
+		this.intakeShoot.whileTrue(new IntakeGround());
 
 		this.lockWheels.whileTrue(new LockWheels());
 

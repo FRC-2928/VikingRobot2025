@@ -28,6 +28,8 @@ public class OperatorOI extends BaseOI {
 		this.shooterLevel = this.controller.start();
 
 		this.overrideShoot = this.controller.rightTrigger();
+
+		this.foc = this.controller.a();
 	}
 
 	public final Trigger climberDown;
@@ -43,6 +45,8 @@ public class OperatorOI extends BaseOI {
 	public final Trigger shooterLevel;
 
 	public final Trigger overrideShoot;
+
+	public final Trigger foc;
 
 	public void configureControls() {
 		this.climberDown.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0)));

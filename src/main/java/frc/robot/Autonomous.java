@@ -28,19 +28,19 @@ public final class Autonomous {
 					Autonomous.setInitialPose(Choreo.getTrajectory("MiddleFiveNote.1")),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
 					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.1")),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					Autonomous.onTheFlyPath("MiddleFiveNote.3"),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
 					new ReadyShooter(Constants.Shooter.readyIntake),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					Autonomous.onTheFlyPath("MiddleFiveNote.4"),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
 					new ReadyShooter(Constants.Shooter.readyIntake),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					Autonomous.onTheFlyPath("MiddleFiveNote.4"),
 					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4),
 					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.4")),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					Autonomous.onTheFlyPath("MiddleFiveNote.5"),
 					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.5")),
 					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
@@ -55,28 +55,28 @@ public final class Autonomous {
 					Autonomous.setInitialPose(Choreo.getTrajectory("5Note.1")),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
 					Autonomous.choreo(Choreo.getTrajectory("5Note.1")),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
 						Autonomous.onTheFlyPath("5Note.4")
 						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.3"))
 					),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
 						Autonomous.onTheFlyPath("5Note.6")
 						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.5"))
 					),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
 						Autonomous.choreo(Choreo.getTrajectory("5Note.7"))
 					),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
 					Autonomous.choreo(Choreo.getTrajectory("5Note.8")),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
 						Autonomous.choreo(Choreo.getTrajectory("5Note.9"))
@@ -93,7 +93,7 @@ public final class Autonomous {
 					new ReadyShooter(Constants.Shooter.readyShootRear),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
 					Autonomous.choreo(Choreo.getTrajectory("SourceSideCenterNote.1")),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					Autonomous.onTheFlyPath("SourceSideCenterNote.2"),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
@@ -131,7 +131,7 @@ public final class Autonomous {
 					Autonomous.onTheFlyPath("AmpSideCenterNote.2"),
 
 					Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.2")),
-					new IntakeGround(true)
+					new IntakeGround()
 				)
 			);
 
@@ -140,7 +140,7 @@ public final class Autonomous {
 				"[comp] Two Note",
 				new SequentialCommandGroup(
 					new ShootSpeaker(false).withTimeout(4),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround().withTimeout(2),
 					new ShootSpeaker(false).withTimeout(4)
 				)
 			);

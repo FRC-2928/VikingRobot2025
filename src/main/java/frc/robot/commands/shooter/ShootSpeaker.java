@@ -2,6 +2,7 @@ package frc.robot.commands.shooter;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
@@ -28,6 +29,8 @@ public class ShootSpeaker extends Command {
 
 	private double fired;
 	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 10);
+
+	private final PIDController pitch = new PIDController(4, 0, 0.01);
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -65,7 +68,21 @@ public class ShootSpeaker extends Command {
 					);
 
 				if(Math.abs(po.in(Units.Degrees)) >= 1.25 && this.fired == -1) {
-					Robot.cont.shooter.io.rotate(Robot.cont.shooter.inputs.angle.minus(po));
+					Robot.cont.shooter.io
+						.rotate(
+							Units.Rotations
+								.of(
+									Robot.cont.shooter.inputs.angle.in(Units.Rotations)
+										+ this.pitch
+											.calculate(
+												Math
+													.copySign(
+														Math.pow(Math.abs(po.in(Units.Rotations)), 1.5),
+														po.in(Units.Rotations)
+													)
+											)
+								)
+						);
 				} else {
 					if(
 						((Robot.cont.shooter.inputs.flywheelSpeedA
@@ -100,6 +117,7 @@ public class ShootSpeaker extends Command {
 					);
 			} else {
 				Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
+				Robot.cont.shooter.io.rotate(forward ? Constants.Shooter.readyShootFront : this.rearAngle);
 			}
 		} else {
 			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);

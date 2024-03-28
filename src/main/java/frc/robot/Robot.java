@@ -55,12 +55,6 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void robotInit() {
-		this.container.diag.chirp(600, 500);
-		this.container.diag.chirp(900, 500);
-	}
-
-	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev).periodic();

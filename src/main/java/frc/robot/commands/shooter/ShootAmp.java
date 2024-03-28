@@ -9,14 +9,7 @@ import frc.robot.Tuning;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootAmp extends Command {
-	public ShootAmp(final boolean correction) {
-		this.correction = correction;
-
-		this.addRequirements(Robot.cont.shooter);
-		if(correction) this.addRequirements(Robot.cont.drivetrain);
-	}
-
-	private final boolean correction;
+	public ShootAmp() { this.addRequirements(Robot.cont.shooter, Robot.cont.drivetrain); }
 
 	private boolean fired;
 
@@ -28,14 +21,10 @@ public class ShootAmp extends Command {
 		Robot.cont.shooter.io.rotate(Units.Degrees.of(Tuning.ampAngle.get()));
 		Robot.cont.shooter.io.runFlywheels(Tuning.ampPower.get());
 
-		if(this.correction) {
-			Robot.cont.drivetrain
-				.control(
-					Robot.cont.drivetrain.joystickSpeeds
-						.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0)))
-						.div(2)
-				);
-		}
+		Robot.cont.drivetrain
+			.control(
+				Robot.cont.drivetrain.joystickSpeeds.plus(Robot.cont.drivetrain.rod(new ChassisSpeeds(0, 0, 0))).div(2)
+			);
 
 		if(
 			(Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Tuning.ampAngle.get()) <= 20.5
