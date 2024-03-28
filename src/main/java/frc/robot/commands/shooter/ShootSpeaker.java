@@ -38,9 +38,7 @@ public class ShootSpeaker extends Command {
 	public void execute() {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
-		if(this.pivot.getVelocity().getValue() > Constants.Shooter.pivotMaxVelocityShoot) {
 			Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
-		}
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
 		if(forward == current) {
 			if(Robot.cont.drivetrain.limelightShooter.hasValidTargets()) {
@@ -76,8 +74,10 @@ public class ShootSpeaker extends Command {
 							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
 							|| this.fired != -1
 					) {
-						Robot.cont.shooter.io.runFeeder(Demand.Forward);
-						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
+						if(this.pivot.getVelocity().getValue() < Constants.Shooter.pivotMaxVelocityShoot) {
+							Robot.cont.shooter.io.runFeeder(Demand.Forward);
+							if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
+						}
 					}
 				}
 			} else if(!forward) {
