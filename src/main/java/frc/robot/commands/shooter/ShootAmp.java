@@ -33,8 +33,6 @@ public class ShootAmp extends Command {
 			Robot.cont.shooter.io.runFeeder(Demand.Forward);
 			this.fired = true;
 		}
-
-		// todo: auto align
 	}
 
 	@Override

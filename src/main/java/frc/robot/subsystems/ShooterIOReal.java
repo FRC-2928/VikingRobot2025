@@ -159,7 +159,6 @@ public class ShooterIOReal implements ShooterIO {
 
 	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 	public final CANcoder encoder = new CANcoder(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
-
 	public final STalonFX flywheelA = new STalonFX(Constants.CAN.CTRE.shooterFlywheelA, Constants.CAN.CTRE.bus);
 	public final STalonFX flywheelB = new STalonFX(Constants.CAN.CTRE.shooterFlywheelB, Constants.CAN.CTRE.bus);
 	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
@@ -186,14 +185,16 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void runFlywheelsVelocity(final double demand) {
-		this.flywheelA.setControl(new VelocityDutyCycle(demand));
-		this.flywheelB.setControl(new VelocityDutyCycle(demand));
+			this.flywheelA.setControl(new VelocityDutyCycle(demand));
+			this.flywheelB.setControl(new VelocityDutyCycle(demand));
+		
 	}
 
 	@Override
 	public void runFlywheels(final double demand) {
-		this.flywheelA.setControl(new DutyCycleOut(demand));
-		this.flywheelB.setControl(new DutyCycleOut(demand));
+			this.flywheelA.setControl(new DutyCycleOut(demand));
+			this.flywheelB.setControl(new DutyCycleOut(demand));
+		
 	}
 
 	@Override
