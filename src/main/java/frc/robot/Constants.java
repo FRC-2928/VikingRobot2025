@@ -293,8 +293,7 @@ public class Constants {
 			.withKD(0.05);
 
 		public static final double pivotCurrentLimit = 40;
-		//TODO: add real value
-		public static final double pivotMaxVelocityShoot = 0.1;
+		public static final Measure<Velocity<Angle>> pivotMaxVelocityShoot = Units.DegreesPerSecond.of(1);
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKP(0.05)
 			.withKI(0.0)

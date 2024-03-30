@@ -25,9 +25,6 @@ public class IntakeGround extends Command {
 	private final BaseOI.Haptics haptics = new BaseOI.Haptics(Robot.cont.driverOI.hid);
 
 	@Override
-	public void initialize() { Robot.cont.fxm.behHoldingNote.activate(); }
-
-	@Override
 	public void execute() {
 		final boolean pivotReady = Math
 			.abs(
@@ -67,8 +64,6 @@ public class IntakeGround extends Command {
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 		Robot.cont.shooter.io.runIntake(Demand.Halt);
-
-		Robot.cont.fxm.behHoldingNote.deactivate();
 
 		this.haptics.stop();
 	}

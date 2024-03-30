@@ -8,6 +8,7 @@ public interface ShooterIO {
 	@AutoLog
 	public static class ShooterIOInputs {
 		public Measure<Angle> angle = Units.Radians.zero();
+		public Measure<Velocity<Angle>> angleSpeed = Units.RadiansPerSecond.zero();
 		public boolean holdingNote;
 		public Measure<Velocity<Angle>> flywheelSpeedA;
 		public Measure<Velocity<Angle>> flywheelSpeedB;

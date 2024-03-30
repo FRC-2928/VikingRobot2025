@@ -29,11 +29,12 @@ import frc.robot.utils.STalonFX;
 
 public class ShooterIOReal implements ShooterIO {
 	public ShooterIOReal(final Shooter shooter) {
-		this.absolutePosition = this.encoder.getAbsolutePosition();
+		this.angle = this.encoder.getAbsolutePosition();
+		this.angleSpeed = this.encoder.getVelocity();
 		this.velocityA = this.flywheelA.getRotorVelocity();
 		this.velocityB = this.flywheelB.getRotorVelocity();
 
-		BaseStatusSignal.setUpdateFrequencyForAll(100, this.absolutePosition, this.velocityA, this.velocityB);
+		BaseStatusSignal.setUpdateFrequencyForAll(100, this.angle, this.velocityA, this.velocityB);
 		this.pivot.optimizeBusUtilization();
 		this.encoder.optimizeBusUtilization();
 		this.flywheelA.optimizeBusUtilization();
@@ -164,7 +165,8 @@ public class ShooterIOReal implements ShooterIO {
 	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
 	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
 
-	public final StatusSignal<Double> absolutePosition;
+	public final StatusSignal<Double> angle;
+	public final StatusSignal<Double> angleSpeed;
 	public final StatusSignal<Double> velocityA;
 	public final StatusSignal<Double> velocityB;
 	public final SensorCollection sensors;
@@ -185,16 +187,16 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void runFlywheelsVelocity(final double demand) {
-			this.flywheelA.setControl(new VelocityDutyCycle(demand));
-			this.flywheelB.setControl(new VelocityDutyCycle(demand));
-		
+		this.flywheelA.setControl(new VelocityDutyCycle(demand));
+		this.flywheelB.setControl(new VelocityDutyCycle(demand));
+
 	}
 
 	@Override
 	public void runFlywheels(final double demand) {
-			this.flywheelA.setControl(new DutyCycleOut(demand));
-			this.flywheelB.setControl(new DutyCycleOut(demand));
-		
+		this.flywheelA.setControl(new DutyCycleOut(demand));
+		this.flywheelB.setControl(new DutyCycleOut(demand));
+
 	}
 
 	@Override
@@ -211,9 +213,10 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void updateInputs(final ShooterIOInputs inputs) {
-		BaseStatusSignal.refreshAll(this.absolutePosition, this.velocityA);
+		BaseStatusSignal.refreshAll(this.angle, this.velocityA);
 
-		inputs.angle = Units.Rotations.of(this.absolutePosition.getValueAsDouble());
+		inputs.angle = Units.Rotations.of(this.angle.getValueAsDouble());
+		inputs.angleSpeed = Units.RotationsPerSecond.of(this.angleSpeed.getValueAsDouble());
 		inputs.flywheelSpeedA = Units.RotationsPerSecond.of(this.velocityA.getValueAsDouble());
 		inputs.flywheelSpeedB = Units.RotationsPerSecond.of(this.velocityB.getValueAsDouble());
 		inputs.holdingNote = !this.sensors.isFwdLimitSwitchClosed();

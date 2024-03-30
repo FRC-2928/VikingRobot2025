@@ -17,7 +17,6 @@ import frc.robot.subsystems.ShooterIO.Demand;
 import frc.robot.utils.STalonFX;
 
 public class ShootSpeaker extends Command {
-	public final STalonFX pivot = new STalonFX(Constants.CAN.CTRE.shooterPivot, Constants.CAN.CTRE.bus);
 	public ShootSpeaker(final boolean triggerFire) { this(triggerFire, Constants.Shooter.readyShootRear); }
 
 	public ShootSpeaker(final boolean triggerFire, final Measure<Angle> startAngle) {
@@ -41,7 +40,7 @@ public class ShootSpeaker extends Command {
 	public void execute() {
 		final boolean forward = Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getCos() < 0;
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
-			Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
+		Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
 		if(forward == current) {
 			if(Robot.cont.drivetrain.limelightShooter.hasValidTargets()) {
@@ -88,13 +87,15 @@ public class ShootSpeaker extends Command {
 						((Robot.cont.shooter.inputs.flywheelSpeedA
 							.in(Units.RotationsPerSecond) >= Tuning.flywheelVelocityThreshold.get()
 							|| Robot.cont.operatorOI.overrideShoot.getAsBoolean())
-							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire))
+							&& (Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire)
+							&& Math
+								.abs(
+									Robot.cont.shooter.inputs.angleSpeed.in(Units.RotationsPerSecond)
+								) < Constants.Shooter.pivotMaxVelocityShoot.in(Units.RotationsPerSecond))
 							|| this.fired != -1
 					) {
-						if(Math.abs(this.pivot.getVelocity().getValue()) < Constants.Shooter.pivotMaxVelocityShoot) {
-							Robot.cont.shooter.io.runFeeder(Demand.Forward);
-							if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
-						}
+						Robot.cont.shooter.io.runFeeder(Demand.Forward);
+						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 					}
 				}
 			} else if(!forward) {
