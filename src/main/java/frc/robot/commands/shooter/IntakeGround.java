@@ -67,7 +67,4 @@ public class IntakeGround extends Command {
 
 		this.haptics.stop();
 	}
-
-	@Override
-	public boolean isFinished() { return Robot.cont.shooter.inputs.holdingNote; }
 }

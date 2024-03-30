@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 import org.littletonrobotics.junction.Logger;
@@ -78,8 +79,14 @@ public class Diagnostics extends SubsystemBase {
 		public int ms;
 		public long start = 0;
 
-		public void play() { Robot.cont.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
+		public void play() { Robot.cont.fxm.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
 	}
+
+	private static final byte suffixRadio = 1;
+	private static final byte suffixDS = 1;
+	private static final byte suffixLLNote = 1;
+	private static final byte suffixLLShooter = 1;
+	private static final byte suffixLLRear = 1;
 
 	public Diagnostics() {
 		try {
@@ -92,37 +99,11 @@ public class Diagnostics extends SubsystemBase {
 
 	private final ArrayList<Chirp> chirps = new ArrayList<>();
 	private final Field loggedDashboardChooserSelectedValue;
-	private double lastCheck = 0;
-
-	private final Alert canDeviceMissing = new Alert("Warnings", "CAN Devices Missing: <none>", Alert.AlertType.ERROR);
-	private final Alert ethernetDeviceMissing = new Alert(
-		"Warnings",
-		"Ethernet Devices Missing: <none>",
-		Alert.AlertType.ERROR
-	);
-	private final Alert setupJumperPresent = new Alert("Warnings", "Setup Jumper is plugged in", Alert.AlertType.ERROR);
-
-	private final Alert invalidAutoRoutine = new Alert(
-		"Pre-Match",
-		"Autonomous Routine '<none>' is not ready for competition",
-		Alert.AlertType.ERROR
-	);
-	private final Alert shooterAngle = new Alert("Pre-Match", "Shooter is not upright", Alert.AlertType.ERROR);
-	private final Alert notePossession = new Alert("Pre-Match", "Not possessing a note", Alert.AlertType.ERROR);
-	private final Alert moduleOrientations = new Alert(
-		"Pre-Match",
-		"Swerve Modules are not oriented forward",
-		Alert.AlertType.ERROR
-	);
-	private final Alert climberStart = new Alert("Pre-Match", "Climber is not at home position", Alert.AlertType.ERROR);
-	private final Alert badVoltage = new Alert(
-		"Pre-Match",
-		"Battery Voltage is 0V, recommended to be 12.5V",
-		Alert.AlertType.WARNING
-	);
 
 	public final DigitalInput releaseInput = new DigitalInput(0);
 	public final Trigger release = new Trigger(() -> DriverStation.isDisabled() && !this.releaseInput.get());
+
+	public volatile LimelightFX.Behavior<?> active;
 
 	public void chirp(final boolean good) { this.chirps.add(new Chirp(good ? 500 : 125, 500)); }
 
@@ -151,17 +132,56 @@ public class Diagnostics extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		Logger.recordOutput("Diagnostics/Release", this.release.getAsBoolean());
+		if(this.chirps.size() > 0) {
+			final Chirp chirp = this.chirps.get(0);
+			if(chirp.start == 0) {
+				chirp.start = Logger.getRealTimestamp();
+				chirp.play();
+			}
 
-		Logger.recordOutput("Diagnostics/Competition", DriverStation.isFMSAttached());
+			if(Logger.getRealTimestamp() - chirp.start >= chirp.ms) this.chirps.remove(0);
+		}
+	}
 
-		if(
-			(DriverStation.isFMSAttached() || true)
-				&& DriverStation.isDisabled()
-				&& Timer.getFPGATimestamp() - this.lastCheck >= 1
-		) {
+	private void run() {
+		final Alert alertCanDeviceMissing = new Alert("Warnings", "CAN Devices Missing: <none>", Alert.AlertType.ERROR);
+		final Alert alertMissingRadio = new Alert("Warnings", "Radio missing", Alert.AlertType.ERROR);
+		final Alert alertMissingDs = new Alert("Warnings", "DS missing", Alert.AlertType.ERROR);
+		final Alert alertMissingLlNote = new Alert("Warnings", "Note Limelight Missing", Alert.AlertType.ERROR);
+		final Alert alertMissingLlShooter = new Alert("Warnings", "Shooter Limelight Missing", Alert.AlertType.ERROR);
+		final Alert alertMissingLlRear = new Alert("Warnings", "Rear Limelight Missing", Alert.AlertType.ERROR);
+		final Alert alertSetupJumperPresent = new Alert(
+			"Warnings",
+			"Setup Jumper is plugged in",
+			Alert.AlertType.ERROR
+		);
+
+		final Alert alertInvalidAutoRoutine = new Alert(
+			"Pre-Match",
+			"Autonomous Routine is not ready for competition",
+			Alert.AlertType.ERROR
+		);
+		final Alert alertShooterAngle = new Alert("Pre-Match", "Shooter is not upright", Alert.AlertType.ERROR);
+		final Alert alertClimberHome = new Alert("Pre-Match", "Climber is not at home position", Alert.AlertType.ERROR);
+		final Alert alertNotePossession = new Alert("Pre-Match", "Not possessing a note", Alert.AlertType.ERROR);
+		final Alert alertBadVoltage = new Alert(
+			"Pre-Match",
+			"Battery Voltage is 0V, recommended to be 12V",
+			Alert.AlertType.WARNING
+		);
+
+		while(true) {
+			try {
+				Thread.sleep(500);
+			} catch(final Exception e) {
+			}
+
+			Logger.recordOutput("Diagnostics/Release", this.release.getAsBoolean());
+
+			Logger.recordOutput("Diagnostics/Competition", DriverStation.isFMSAttached());
+
 			final boolean setupJumperPresent = this.release.getAsBoolean();
-			this.setupJumperPresent.active = setupJumperPresent;
+			alertSetupJumperPresent.active = setupJumperPresent;
 
 			final boolean invalidAutoRoutine;
 
@@ -180,41 +200,37 @@ public class Diagnostics extends SubsystemBase {
 			final boolean notePossession = !Robot.cont.shooter.inputs.holdingNote;
 			final boolean badVoltage = RobotController.getBatteryVoltage() < 12;
 
-			this.invalidAutoRoutine.text = "Autonomous routine '" + name + "' not ready for competition!";
-			this.invalidAutoRoutine.active = invalidAutoRoutine;
-			this.shooterAngle.text = "Not in starting configuration ("
+			alertInvalidAutoRoutine.text = "Autonomous routine '" + name + "' not ready for competition!";
+			alertInvalidAutoRoutine.active = invalidAutoRoutine;
+			alertShooterAngle.text = "Not in starting configuration ("
 				+ startingConfigurationAngleDifference
 				+ "deg off)";
-			this.shooterAngle.active = shooterAngle;
-			this.notePossession.active = notePossession;
-			this.moduleOrientations.active = false; // todo
-			this.climberStart.active = Robot.cont.climber.inputs.home;
-			this.badVoltage.text = "Battery Voltage is "
+			alertShooterAngle.active = shooterAngle;
+			alertNotePossession.active = notePossession;
+			alertClimberHome.active = Robot.cont.climber.inputs.home;
+			alertBadVoltage.text = "Battery Voltage is "
 				+ RobotController.getBatteryVoltage()
 				+ "V, recommended to be at least 12V";
-			this.badVoltage.active = badVoltage;
+			alertBadVoltage.active = badVoltage;
 
-			final boolean ready = !(invalidAutoRoutine || setupJumperPresent || shooterAngle || badVoltage);
+			//final boolean ready = !(canDeviceMissing || missingRadio || missingLLNote || missingLLShooter || missingLLRear || missingDS || setupJumperPresent || invalidAutoRoutine || shooterAngle || badVoltage);
 
-			Logger.recordOutput("Diagnostics/ReadyForCompetition", ready);
-			RobotController.setRadioLEDState(ready ? RadioLEDState.kGreen : RadioLEDState.kRed);
-
-			if(ready) {
-				this.chirp(2000, 100);
-				this.chirp(1000, 500);
-			}
-
-			this.lastCheck = Timer.getFPGATimestamp();
+			//Logger.recordOutput("Diagnostics/ReadyForCompetition", ready);
 		}
+	}
 
-		if(this.chirps.size() > 0) {
-			final Chirp chirp = this.chirps.get(0);
-			if(chirp.start == 0) {
-				chirp.start = Logger.getRealTimestamp();
-				chirp.play();
-			}
-
-			if(Logger.getRealTimestamp() - chirp.start >= chirp.ms) this.chirps.remove(0);
+	private final boolean reachable(final byte suffix, final int port) {
+		try {
+			return InetAddress.getByAddress(new byte[] { 10, 29, 28, suffix }).isReachable(2);
+		} catch(final Exception e) {
+			return false;
 		}
+	}
+
+	private final <T> T firstNonNull(final T... params) {
+		for(final T value : params)
+			if(value != null) return value;
+
+		return null;
 	}
 }

@@ -21,6 +21,7 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Velocity;
+import frc.robot.subsystems.LimelightFX.Color;
 
 public class Constants {
 	private static Mode currentMode() {
@@ -88,6 +89,12 @@ public class Constants {
 
 	public static final class LimelightFX {
 		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }
+
+		public static final class Colors {
+			private Colors() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX.Colors`"); }
+
+			public static final Color note = new Color(255, 127, 0);
+		}
 
 		public static final boolean enabled = true;
 	}
@@ -314,7 +321,7 @@ public class Constants {
 		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.1085);
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
-		public static final Measure<Angle> readyShootFront = Units.Degrees.of(30);
+		public static final Measure<Angle> readyShootFront = Units.Degrees.of(35);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
 		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);

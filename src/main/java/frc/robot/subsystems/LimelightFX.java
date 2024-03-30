@@ -148,7 +148,7 @@ public final class LimelightFX extends SubsystemBase {
 			public final int id;
 		}
 
-		Module(final int id, final LimelightFX fx, final Geometry geo, final Rotation rot) {
+		private Module(final int id, final LimelightFX fx, final Geometry geo, final Rotation rot) {
 			this.id = id;
 			this.fx = fx;
 
@@ -162,7 +162,7 @@ public final class LimelightFX extends SubsystemBase {
 		public final Geometry geo;
 		public final Rotation rot;
 
-		final Layer[] layers = new Layer[LimelightFX.maxLayers];
+		private final Layer[] layers = new Layer[LimelightFX.maxLayers];
 	}
 
 	/** Stores layer data. */
@@ -173,9 +173,9 @@ public final class LimelightFX extends SubsystemBase {
 		public final int id;
 
 		/** Behaviors on this layer. */
-		final HashSet<Behavior<?>> behaviors = new HashSet<>();
+		private final HashSet<Behavior<?>> behaviors = new HashSet<>();
 		/** Whether or not this layer had an active behavior last update. */
-		volatile boolean wasActive = false;
+		private volatile boolean wasActive = false;
 	}
 
 	/** A behavior on a module and layer. */
@@ -204,13 +204,13 @@ public final class LimelightFX extends SubsystemBase {
 			 * @param trans
 			 *                    The transformer function, defines how the parameter is sent.
 			 */
-			Param(final LimelightFX fx, final T initial, final Function<T, String> trans) {
+			private Param(final LimelightFX fx, final T initial, final Function<T, String> trans) {
 				this.storage = new Storage<>(fx);
 				this.storage.value = initial;
 				this.trans = trans;
 			}
 
-			Param(final LimelightFX fx, final T initial) { this(fx, initial, T::toString); }
+			private Param(final LimelightFX fx, final T initial) { this(fx, initial, T::toString); }
 
 			private volatile Storage<T> storage;
 
@@ -350,72 +350,56 @@ public final class LimelightFX extends SubsystemBase {
 			public final Param<Double> fadeInB = new Param<>(this.fx, 0.1, LimelightFX.time);
 			/** Time to fade out color B. (s) */
 			public final Param<Double> fadeOutB = new Param<>(this.fx, 1.0, LimelightFX.time);
+
+			public final BlinkBehavior solidColor(final Color color) {
+				this.colorA.set(color);
+				this.colorB.set(color);
+
+				this.timeOnA.set(1.0);
+				this.timeOffA.set(0.0);
+				this.timeBetween.set(0.0);
+				this.timeOnB.set(0.0);
+				this.timeOffB.set(0.0);
+				this.timeRepeat.set(0.0);
+
+				this.blinkCountA.set(1);
+				this.blinkCountB.set(0);
+				this.repeatCount.set(0);
+
+				this.fadeInA.set(0.0);
+				this.fadeOutA.set(0.0);
+				this.fadeInB.set(0.0);
+				this.fadeOutB.set(0.0);
+
+				return this;
+			}
 		}
 
-		// public static class ChevronsBehavior extends Behavior {
-		// 	public enum Direction {
-		// 		Up(0), Down(2), Left(1), Right(3);
+		public static class ImageBehavior extends Behavior<ImageBehavior> {
+			ImageBehavior(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Image, fx, module, layer);
 
-		// 		public final int value;
+				this.params = new Param<?>[] { this.filepath, this.xOffset, this.yOffset };
+			}
 
-		// 		private Direction(final int value) { this.value = value; }
-		// 	}
+			/**
+			 * The image to display. Loaded from the SD card.
+			 *
+			 * @apiNote Images are loaded from the SD card, use the PGImageTool to put them in a format understood by the FX.
+			 */
+			public final Param<String> filepath = new Param<>(this.fx, "");
 
-		// 	/** The Color for the A chevrons */
-		// 	public Color colorA = new Color(255, 127, 255);
-		// 	/** The Color for the B chevrons */9
-		// 	public Color colorB = new Color(127, 0, 255);
-		// 	/** The thickness for the A chevrons in pixels */
-		// 	public int thicknessA = 4;
-		// 	/** The thickness for the B chevrons in pixels */
-		// 	public int thicknessB = 2;
-		// 	/**
-		// 	 * The speed the chevrons should move at
-		// 	 *
-		// 	 * Measured in pixels per tick (100 ticks/sec)
-		// 	 */
-		// 	public int speed = 1;
-		// 	/** The direction the chevrons should move in */
-		// 	public Direction dir = Direction.Up;
+			/** The X offset of the image */
+			public final Param<Integer> xOffset = new Param<>(this.fx, 0);
 
-		// 	@Override
-		// 	public int id() { return 5; }
+			/** The Y offset of the image */
+			public final Param<Integer> yOffset = new Param<>(this.fx, 0);
 
-		// 	@Override
-		// 	public String[] params() {
-		// 		return new String[] {
-		// 			this.colorA.toString(),
-		// 			this.colorB.toString(),
-		// 			Integer.toString(this.thicknessA),
-		// 			Integer.toString(this.thicknessB),
-		// 			Integer.toString(this.speed * 255),
-		// 			Integer.toString(this.dir.value) };
-		// 	}
-		// }
-
-		// public static class CountdownBehavior extends Behavior {
-		// 	/** The Color for the countdown */
-		// 	//public Color colorA = new Color(255);
-		// 	public Color colorA = new Color(255);
-		// 	/** The total countdown time in milliseconds */
-		// 	public int ms = 15000;
-		// 	/** Whether the countdown should stop when it hits zero */
-		// 	public boolean stopAtZero = true;
-		// 	/** Whether the countdown should be paused */
-		// 	public boolean paused = false;
-
-		// 	@Override
-		// 	public int id() { return 11; }
-
-		// 	@Override
-		// 	public String[] params() {
-		// 		return new String[] {
-		// 			this.colorA.toString(),
-		// 			Integer.toString(this.ms),
-		// 			this.stopAtZero ? "1" : "0",
-		// 			this.paused ? "1" : "0" };
-		// 	}
-		// }
+			public final ImageBehavior of(final String filepath) {
+				this.filepath.set(filepath);
+				return this;
+			}
+		}
 
 		protected Behavior(final Kind kind, final LimelightFX fx, final Module module, final int layer) {
 			this.fx = fx;
@@ -432,13 +416,13 @@ public final class LimelightFX extends SubsystemBase {
 		public final Module module;
 		public final Layer layer;
 
-		final Kind kind;
-		final Param<Boolean> active;
-		volatile Param<?>[] params;
-		volatile HashSet<Behavior<?>> fused = new HashSet<>();
+		private final Kind kind;
+		private final Param<Boolean> active;
+		protected volatile Param<?>[] params;
+		private volatile HashSet<Behavior<?>> fused = new HashSet<>();
 
 		@SuppressWarnings("unchecked")
-		public final Behavior<T> on(final Module module, final int layer) {
+		public final T on(final Module module, final int layer) {
 			// doesnt need synchronized, background thread doesn't exist yet
 
 			if(this.fx.initialized)
@@ -461,20 +445,22 @@ public final class LimelightFX extends SubsystemBase {
 			module.layers[layer].behaviors.add(fused);
 
 			this.fuse(fused);
-			fused.link(this);
+			fused.link((T) this);
 			fused.params = this.params;
 
-			return this;
+			return (T) this;
 		}
 
-		public final Behavior<T> on(final Module[] modules, final int layer) {
+		@SuppressWarnings({ "unchecked" })
+		public final T on(final Module[] modules, final int layer) {
 			for(final Module module : modules)
 				this.on(module, layer);
 
-			return this;
+			return (T) this;
 		}
 
-		public final Behavior<T> fuse(final Behavior<?> with) {
+		@SuppressWarnings({ "unchecked" })
+		public final T fuse(final Behavior<?> with) {
 			if(this.fx.initialized)
 				throw new Error("[ERROR] LimelightFX: Cannot create/modify Behaviors after initialization is complete");
 
@@ -495,7 +481,7 @@ public final class LimelightFX extends SubsystemBase {
 				seen.add(fused.layer);
 			}
 
-			return this;
+			return (T) this;
 		}
 
 		public synchronized final void activate() {
@@ -525,7 +511,8 @@ public final class LimelightFX extends SubsystemBase {
 			return current;
 		}
 
-		public Behavior<T> link(final Behavior<T> fused) {
+		@SuppressWarnings({ "unchecked" })
+		public final T link(final T fused) {
 			if(this.fx.initialized)
 				throw new Error("[ERROR] LimelightFX: Cannot create/modify Behaviors after initialization is complete");
 			if(fused.getClass() != this.getClass())
@@ -533,7 +520,15 @@ public final class LimelightFX extends SubsystemBase {
 
 			for(int i = 0; i < this.params.length; i++)
 				this.params[i] = fused.params[i];
-			return this;
+
+			return (T) this;
+		}
+
+		@SuppressWarnings({ "unchecked" })
+		public final T cfg(final Consumer<T> configurator) {
+			configurator.accept((T) this);
+
+			return (T) this;
 		}
 	}
 
@@ -561,7 +556,7 @@ public final class LimelightFX extends SubsystemBase {
 	private volatile Function<String, Boolean> serial;
 
 	private final Module orphan = new Module(-1, this, null, Module.Rotation.R0);
-	private final List<Module> modules = Collections.synchronizedList(new ArrayList<>());
+	private final ArrayList<Module> modules = new ArrayList<>();
 	private final List<String> rawMessageQueue = Collections.synchronizedList(new ArrayList<>());
 
 	private final ArrayList<Selector> selectors = new ArrayList<>();
@@ -576,7 +571,7 @@ public final class LimelightFX extends SubsystemBase {
 	 * @return The module
 	 * @apiNote Cannot be used after {@code LimelightFX.initialize(writer)}
 	 */
-	public synchronized final Module module(final Module.Geometry geo, final Module.Rotation rot) {
+	public final Module module(final Module.Geometry geo, final Module.Rotation rot) {
 		if(this.initialized)
 			throw new Error("[ERROR] LimelightFX: Cannot create Modules after initialization is complete");
 
@@ -598,7 +593,10 @@ public final class LimelightFX extends SubsystemBase {
 	 * @see Behavior#on(module, layer)
 	 * @apiNote Cannot be used after {@code LimelightFX.initialize(writer)}
 	 */
-	public synchronized final <T extends Behavior<T>> T behavior(final Class<T> kind) {
+	public final <T extends Behavior<T>> T behavior(final Class<T> kind) {
+		if(this.initialized)
+			throw new Error("[ERROR] LimelightFX: Cannot create Behaviors after initialization is complete");
+
 		T beh;
 		try {
 			final Constructor<T> constructor = kind.getDeclaredConstructor(LimelightFX.class, Module.class, int.class);
@@ -631,7 +629,7 @@ public final class LimelightFX extends SubsystemBase {
 	 * @param port
 	 *                 The serial port that is connected to the LimelightFX Core.
 	 */
-	public synchronized final void initialize(final Supplier<Function<String, Boolean>> writer) {
+	public final void initialize(final Supplier<Function<String, Boolean>> writer) {
 		if(this.initialized) throw new Error("[ERROR] LimelightFX: Cannot initialize, already initialized!");
 		this.initialized = true;
 
@@ -749,7 +747,7 @@ public final class LimelightFX extends SubsystemBase {
 	}
 
 	/** Disable the FX */
-	private synchronized final void disable(final String reason) {
+	private final void disable(final String reason) {
 		if(this.serial == null) return;
 
 		this.serial = null;
@@ -760,6 +758,13 @@ public final class LimelightFX extends SubsystemBase {
 	private final void serial(final Supplier<Function<String, Boolean>> writer) {
 		System.err.println("LimelightFX: Initializing Serial...");
 		this.serial = writer.get();
+		System.err.println("LimelightFX: Waiting for connection to finish initializing...");
+
+		try {
+			Thread.sleep(5000);
+		} catch(final Exception e) {
+		}
+
 		System.err.println("LimelightFX: Initializing FX...");
 		this.write("init 1");
 		for(final Module module : this.modules)
