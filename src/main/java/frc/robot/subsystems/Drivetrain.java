@@ -7,7 +7,9 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -66,7 +68,7 @@ public class Drivetrain extends SubsystemBase {
 	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelightNote = new Limelight("limelight-note");
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
-	public final Limelight limelightBack = new Limelight("limelight-rear");
+	public final Limelight limelightRear = new Limelight("limelight-rear");
 
 	public final JoystickDrive joystickDrive = new JoystickDrive(this);
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
@@ -97,7 +99,7 @@ public class Drivetrain extends SubsystemBase {
 			.configureHolonomic(
 				this::blueOriginPose,
 				null,
-				() -> this.robotChassisSpeeds,
+				this::getCurrentChassisSpeeds,
 				this::controlRobotOriented,
 				new HolonomicPathFollowerConfig(
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
@@ -108,11 +110,20 @@ public class Drivetrain extends SubsystemBase {
 							Constants.Drivetrain.trackWidth.in(Units.Meters) / 2,
 							Constants.Drivetrain.wheelBase.in(Units.Meters) / 2
 						),
-					new ReplanningConfig()
+					new ReplanningConfig(true, true)
 				),
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
 				this
 			);
+
+		PathPlannerLogging
+			.setLogActivePathCallback(
+				poses -> Logger.recordOutput("Drivetrain/Auto/PathPoses", poses.toArray(Pose2d[]::new))
+			);
+		PathPlannerLogging.setLogTargetPoseCallback(pose -> {
+			Logger.recordOutput("Drivetrain/Auto/PathKind", "PP");
+			Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose);
+		});
 	}
 
 	public void control(ChassisSpeeds speeds) {
@@ -185,12 +196,17 @@ public class Drivetrain extends SubsystemBase {
 
 	@AutoLogOutput(key = "Drivetrain/States/Desired")
 	public SwerveModuleState[] desiredModuleStates() {
-		return Arrays.stream(this.modules).map(module -> module.current).toArray(SwerveModuleState[]::new);
+		return Arrays.stream(this.modules).map(module -> module.desired).toArray(SwerveModuleState[]::new);
 	}
 
 	@AutoLogOutput(key = "Drivetrain/States/Current")
-	public SwerveModuleState[] currerntModuleStates() {
-		return Arrays.stream(this.modules).map(module -> module.desired).toArray(SwerveModuleState[]::new);
+	public SwerveModuleState[] currentModuleStates() {
+		return Arrays.stream(this.modules).map(module -> module.current).toArray(SwerveModuleState[]::new);
+	}
+
+	@AutoLogOutput(key = "Drivetrain/CurrentChassisSpeeds")
+	public ChassisSpeeds getCurrentChassisSpeeds() {
+		return this.kinematics.toChassisSpeeds(this.currentModuleStates());
 	}
 
 	// Returns the current odometry pose, transformed to blue origin coordinates.

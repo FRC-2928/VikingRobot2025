@@ -25,24 +25,24 @@ public final class Autonomous {
 				"[comp] Five Note",
 				new SequentialCommandGroup(
 					new ReadyShooter(Constants.Shooter.readyShootRear),
-					Autonomous.setInitialPose(Choreo.getTrajectory("MiddleFiveNote.1")),
+					Autonomous.setInitialPose("MiddleFiveNote.1"),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.1")),
+					Autonomous.path("MiddleFiveNote.1"),
 					new IntakeGround().withTimeout(2),
-					Autonomous.onTheFlyPath("MiddleFiveNote.3"),
+					Autonomous.dynamic("MiddleFiveNote.3"),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
 					new ReadyShooter(Constants.Shooter.readyIntake),
 					new IntakeGround().withTimeout(2),
-					Autonomous.onTheFlyPath("MiddleFiveNote.4"),
+					Autonomous.dynamic("MiddleFiveNote.4"),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
 					new ReadyShooter(Constants.Shooter.readyIntake),
 					new IntakeGround().withTimeout(2),
-					Autonomous.onTheFlyPath("MiddleFiveNote.4"),
+					Autonomous.dynamic("MiddleFiveNote.5"),
 					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4),
-					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.4")),
+					Autonomous.path("MiddleFiveNote.5"),
 					new IntakeGround().withTimeout(2),
-					Autonomous.onTheFlyPath("MiddleFiveNote.5"),
-					Autonomous.choreo(Choreo.getTrajectory("MiddleFiveNote.5")),
+					Autonomous.dynamic("MiddleFiveNote.6"),
+					Autonomous.path("MiddleFiveNote.6"),
 					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
 				)
 			);
@@ -52,34 +52,34 @@ public final class Autonomous {
 				"[testing] Five Note Middle",
 				new SequentialCommandGroup(
 					new ReadyShooter(Constants.Shooter.readyShootRear),
-					Autonomous.setInitialPose(Choreo.getTrajectory("5Note.1")),
+					Autonomous.setInitialPose("5Note.1"),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					Autonomous.choreo(Choreo.getTrajectory("5Note.1")),
+					Autonomous.path("5Note.1"),
 					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.onTheFlyPath("5Note.4")
+						Autonomous.dynamic("5Note.4")
 						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.3"))
 					),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
 					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.onTheFlyPath("5Note.6")
+						Autonomous.dynamic("5Note.6")
 						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.5"))
 					),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
 					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.choreo(Choreo.getTrajectory("5Note.7"))
+						Autonomous.path("5Note.7")
 					),
 					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					Autonomous.choreo(Choreo.getTrajectory("5Note.8")),
+					Autonomous.path("5Note.8"),
 					new IntakeGround().withTimeout(2),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.choreo(Choreo.getTrajectory("5Note.9"))
+						Autonomous.path("5Note.9")
 					),
 					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
 				)
@@ -89,15 +89,15 @@ public final class Autonomous {
 			.addOption(
 				"[testing] Source Side Center Note",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose(Choreo.getTrajectory("SourceSideCenterNote.1")),
+					Autonomous.setInitialPose("SourceSideCenterNote.1"),
 					new ReadyShooter(Constants.Shooter.readyShootRear),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					Autonomous.choreo(Choreo.getTrajectory("SourceSideCenterNote.1")),
+					Autonomous.path("SourceSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
-					Autonomous.onTheFlyPath("SourceSideCenterNote.2"),
+					Autonomous.dynamic("SourceSideCenterNote.2"),
 					new ParallelCommandGroup(
 						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.choreo(Choreo.getTrajectory("SourceSideCenterNote.2"))
+						Autonomous.path("SourceSideCenterNote.2")
 					),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4)
 				)
@@ -123,12 +123,12 @@ public final class Autonomous {
 			.addOption(
 				"[comp] Amp Side Delay Strafe",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose(Choreo.getTrajectory("AmpSideCenterNote.1")),
+					Autonomous.setInitialPose("AmpSideCenterNote.1"),
 					new WaitCommand(10),
 					new ReadyShooter(Constants.Shooter.readyShootRear)
 						.alongWith(Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.1"))),
 					new ShootSpeaker(false).withTimeout(4),
-					Autonomous.onTheFlyPath("AmpSideCenterNote.2"),
+					Autonomous.dynamic("AmpSideCenterNote.2"),
 
 					Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.2")),
 					new IntakeGround()
@@ -148,19 +148,22 @@ public final class Autonomous {
 		return chooser;
 	}
 
-	public static Command setInitialPose(final ChoreoTrajectory trajectory) {
+	public static Command setInitialPose(final String name) {
+		final PathPlannerPath traj = PathPlannerPath.fromChoreoTrajectory(name);
+		final Pose2d initial = traj.getPathPoses().get(0);
+
 		return Commands.runOnce(() -> {
 			Robot.cont.drivetrain
 				.reset(
 					new Pose2d(
-						Autonomous.getPoseForAlliance(trajectory.getInitialPose()).getTranslation(),
+						Autonomous.getPoseForAlliance(initial).getTranslation(),
 						Robot.cont.drivetrain.est.getEstimatedPosition().getRotation()
 					)
 				);
 
-			Logger.recordOutput("Drivetrain/Choreo/x0", trajectory.getInitialPose().getX());
-			Logger.recordOutput("Drivetrain/Choreo/y0", trajectory.getInitialPose().getY());
-			Logger.recordOutput("Drivetrain/Choreo/r0", trajectory.getInitialPose().getRotation().getDegrees());
+			Logger.recordOutput("Drivetrain/Auto/x0", initial.getX());
+			Logger.recordOutput("Drivetrain/Auto/y0", initial.getY());
+			Logger.recordOutput("Drivetrain/Auto/r0", initial.getRotation().getDegrees());
 		});
 	}
 
@@ -192,31 +195,37 @@ public final class Autonomous {
 		}, () -> timer.hasElapsed(trajectory.getTotalTime()), Robot.cont.drivetrain);
 	}
 
-	public Command pathPlannerLib(final String trajectory) {
-		final PathPlannerPath choreoPath = PathPlannerPath.fromChoreoTrajectory(trajectory);
+	public static Command path(final String name) {
+		final PathPlannerPath choreoPath = PathPlannerPath.fromChoreoTrajectory(name);
 		return AutoBuilder.followPath(choreoPath);
 	}
 
-	public static Command onTheFlyPath(final String nextChoreoPath) {
-		final ChoreoTrajectory nextTrajectory = Choreo.getTrajectory(nextChoreoPath);
+	public static Command dynamic(final String next) {
+		final PathPlannerPath traj = PathPlannerPath.fromChoreoTrajectory(next);
 
 		return AutoBuilder
 			.pathfindToPoseFlipped(
-				nextTrajectory.getInitialPose(),
+				traj.getPathPoses().get(0),
 				new PathConstraints(
 					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
 					3,
 					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
 					2
 				)
-			)
-			.alongWith(
-				new InstantCommand(
-					() -> Logger
-						.recordOutput(
-							"Drivetrain/OnTheFlyTarget",
-							Autonomous.getPathPlannerPoseForAlliance(nextTrajectory).getInitialPose()
-						)
+			);
+	}
+
+	public static Command dynamicThen(final String next) {
+		final PathPlannerPath traj = PathPlannerPath.fromChoreoTrajectory(next);
+
+		return AutoBuilder
+			.pathfindThenFollowPath(
+				traj,
+				new PathConstraints(
+					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
+					3,
+					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
+					2
 				)
 			);
 	}
@@ -231,12 +240,6 @@ public final class Autonomous {
 				Constants.fieldDepth.in(Units.Meters) - initialPose.getY(),
 				initialPose.getRotation().unaryMinus()
 			);
-		} else return initialPose;
-	}
-
-	private static ChoreoTrajectory getPathPlannerPoseForAlliance(final ChoreoTrajectory initialPose) {
-		if(DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
-			return initialPose.flipped();
 		} else return initialPose;
 	}
 }

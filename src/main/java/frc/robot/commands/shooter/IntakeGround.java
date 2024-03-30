@@ -43,7 +43,7 @@ public class IntakeGround extends Command {
 						Robot.cont.drivetrain
 							.rod(
 								new ChassisSpeeds(
-									-0.5,
+									-1,
 									Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Rotations)
 										* 10,
 									0
@@ -67,4 +67,7 @@ public class IntakeGround extends Command {
 
 		this.haptics.stop();
 	}
+
+	@Override
+	public boolean isFinished() { return Robot.cont.shooter.inputs.holdingNote; }
 }

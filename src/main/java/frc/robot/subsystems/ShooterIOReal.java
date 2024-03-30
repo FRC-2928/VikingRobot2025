@@ -79,7 +79,7 @@ public class ShooterIOReal implements ShooterIO {
 		this.feeder.setNeutralMode(NeutralMode.Brake);
 		this.feeder.setInverted(true);
 		this.intake.setNeutralMode(NeutralMode.Brake);
-		this.intake.setInverted(false);
+		this.intake.setInverted(true);
 
 		this.sysIdPivot = new SysIdRoutine(
 			new SysIdRoutine.Config(Units.Volts.per(Units.Second).of(1), Units.Volts.of(7), null, state -> {

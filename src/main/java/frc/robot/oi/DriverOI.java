@@ -2,7 +2,10 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -38,6 +41,8 @@ public class DriverOI extends BaseOI {
 		this.resetFOD = this.controller.y();
 
 		this.initializeClimber = this.controller.rightStick();
+
+		this.moveAtSpeed = this.controller.x();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -56,6 +61,8 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger initializeClimber;
 
+	public final Trigger moveAtSpeed;
+
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
 		this.shootAmp.whileTrue(new ShootAmp());
@@ -66,5 +73,20 @@ public class DriverOI extends BaseOI {
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 
 		this.initializeClimber.onTrue(new Initialize());
+
+		this.moveAtSpeed
+			.whileTrue(
+				new RunCommand(
+					() -> Robot.cont.drivetrain
+						.control(
+							new ChassisSpeeds(
+								Units.MetersPerSecond.of(2),
+								Units.MetersPerSecond.zero(),
+								Units.RadiansPerSecond.of(0)
+							)
+						),
+					Robot.cont.drivetrain
+				)
+			);
 	}
 }

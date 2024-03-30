@@ -151,11 +151,13 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues x = new PIDValues(0.1, 0, 0.001, 0);
+			public static final PIDValues x = new PIDValues(0.15, 0, 0.001, 0);
 			public static final PIDValues y = new PIDValues(0.15, 0, 0.001, 0);
 			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
-			public static final PIDValues translationDynamic = new PIDValues(0.1375, 0, 0.002, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(0.06, 0, 0.0035, 0);
+			//public static final PIDValues translationDynamic = new PIDValues(0.15, 0, 0.005, 0);
+			//public static final PIDValues thetaDynamic = new PIDValues(0.05, 0, 0.01, 0);
+			public static final PIDValues translationDynamic = new PIDValues(0.2, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(0, 0, 0, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -198,7 +200,7 @@ public class Constants {
 		);
 		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
 		// todo: find
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 4, 0);
+		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 2.5, 0);
 
 		// public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
 		// public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0, 0, 0);
@@ -244,7 +246,7 @@ public class Constants {
 		public static final Measure<Distance> wheelRadius = Units.Inches.of(2);
 		public static final Measure<Distance> wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(3.78);
+		public static final Measure<Velocity<Distance>> maxVelocity = Units.Meters.per(Units.Second).of(3.4);
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final Measure<Velocity<Angle>> maxAngularVelocity = Units.RotationsPerSecond
@@ -321,7 +323,7 @@ public class Constants {
 		public static final Measure<Angle> intakeGround = Units.Rotations.of(-0.1085);
 
 		public static final Measure<Angle> readyDrive = Units.Degrees.zero();
-		public static final Measure<Angle> readyShootFront = Units.Degrees.of(35);
+		public static final Measure<Angle> readyShootFront = Units.Rotations.of(0.122);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
 		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
