@@ -26,6 +26,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.*;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -154,7 +155,16 @@ public class ModuleIOReal implements ModuleIO {
 
 	@Override
 	public void setDriveVoltage(final double volts) {
-		this.drive.setControl(new VoltageOut(volts, Robot.cont.operatorOI.foc.getAsBoolean(), true, false, false));
+		this.drive
+			.setControl(
+				new VoltageOut(
+					volts,
+					Robot.cont.operatorOI.foc.getAsBoolean() || DriverStation.isAutonomous(),
+					true,
+					false,
+					false
+				)
+			);
 	}
 
 	@Override

@@ -120,10 +120,8 @@ public class Drivetrain extends SubsystemBase {
 			.setLogActivePathCallback(
 				poses -> Logger.recordOutput("Drivetrain/Auto/PathPoses", poses.toArray(Pose2d[]::new))
 			);
-		PathPlannerLogging.setLogTargetPoseCallback(pose -> {
-			Logger.recordOutput("Drivetrain/Auto/PathKind", "PP");
-			Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose);
-		});
+		PathPlannerLogging.setLogCurrentPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/CurrentPose", pose));
+		PathPlannerLogging.setLogTargetPoseCallback(pose -> Logger.recordOutput("Drivetrain/Auto/DesiredPose", pose));
 	}
 
 	public void control(ChassisSpeeds speeds) {

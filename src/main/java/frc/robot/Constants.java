@@ -156,8 +156,8 @@ public class Constants {
 			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
 			//public static final PIDValues translationDynamic = new PIDValues(0.15, 0, 0.005, 0);
 			//public static final PIDValues thetaDynamic = new PIDValues(0.05, 0, 0.01, 0);
-			public static final PIDValues translationDynamic = new PIDValues(0.2, 0, 0, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(0, 0, 0, 0);
+			public static final PIDValues translationDynamic = new PIDValues(0.5, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(0.5, 0, 0, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
