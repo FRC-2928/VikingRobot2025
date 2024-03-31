@@ -121,17 +121,22 @@ public final class Autonomous {
 
 		chooser
 			.addOption(
-				"[comp] Amp Side Delay Strafe",
+				"[testing] Amp Side Center Note",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
-					new WaitCommand(10),
-					new ReadyShooter(Constants.Shooter.readyShootRear)
-						.alongWith(Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.1"))),
 					new ShootSpeaker(false).withTimeout(4),
-					Autonomous.dynamic("AmpSideCenterNote.2"),
-
-					Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.2")),
-					new IntakeGround()
+					Autonomous.path("AmpSideCenterNote.1"),
+					new IntakeGround().withTimeout(2),
+					Autonomous
+						.dynamicThen("AmpSideCenterNote.2")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear)),
+					new ShootSpeaker(false).withTimeout(4),
+					Autonomous.path("AmpSideCenterNote.3"),
+					new IntakeGround().withTimeout(2),
+					Autonomous
+						.dynamicThen("AmpSideCenterNote.4")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear)),
+					new ShootSpeaker(false).withTimeout(4)
 				)
 			);
 
