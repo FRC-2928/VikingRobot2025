@@ -201,11 +201,11 @@ public final class Autonomous {
 	}
 
 	public static Command dynamic(final String next) {
-		final PathPlannerPath traj = PathPlannerPath.fromChoreoTrajectory(next);
+		final ChoreoTrajectory traj = Choreo.getTrajectory(next);
 
 		return AutoBuilder
 			.pathfindToPoseFlipped(
-				traj.getPathPoses().get(0),
+				traj.getInitialPose(),
 				new PathConstraints(
 					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
 					3,
