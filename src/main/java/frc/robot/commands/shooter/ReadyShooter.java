@@ -7,17 +7,23 @@ package frc.robot.commands.shooter;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.Tuning;
 
 public class ReadyShooter extends Command {
-	public ReadyShooter(final Measure<Angle> angle) {
+	public ReadyShooter(final Measure<Angle> angle, final boolean spinUp) {
 		this.angle = angle;
+		this.spinUp = spinUp;
 		this.addRequirements(Robot.cont.shooter);
 	}
 
 	public final Measure<Angle> angle;
+	public final boolean spinUp;
 
 	@Override
-	public void execute() { Robot.cont.shooter.io.rotate(this.angle); }
+	public void execute() {
+		Robot.cont.shooter.io.rotate(this.angle);
+		Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
+	}
 
 	@Override
 	public boolean isFinished() {

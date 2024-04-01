@@ -175,14 +175,22 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void rotate(final Measure<Angle> target) {
-		final double rot = MathUtil
-			.clamp(
-				target.in(Units.Rotations),
-				Constants.Shooter.intakeGround.in(Units.Rotations),
-				Constants.Shooter.max.in(Units.Rotations)
+		final Measure<Angle> rot = Units.Radians
+			.of(
+				MathUtil
+					.clamp(
+						target.in(Units.Radians),
+						Constants.Shooter.intakeGround.in(Units.Radians),
+						Constants.Shooter.max.in(Units.Radians)
+					)
 			);
 		Logger.recordOutput("Shooter/PivotControl", rot);
-		this.pivot.setControl(new PositionDutyCycle(rot));
+		Logger
+			.recordOutput(
+				"Shooter/AngleDifference",
+				rot.minus(Units.Rotations.of(this.angle.getValueAsDouble())).in(Units.Degrees)
+			);
+		this.pivot.setControl(new PositionDutyCycle(rot.in(Units.Rotations)));
 	}
 
 	@Override

@@ -74,10 +74,8 @@ public class LimelightFXManager {
 			serial.reset();
 			serial.setTimeout(1);
 			serial.setWriteBufferMode(WriteBufferMode.kFlushOnAccess);
-			return str -> {
-				Logger.recordOutput("LLFX/Command", Timer.getFPGATimestamp() + ": " + str);
-				return serial.writeString(str) != 0;
-			};
+			//Logger.recordOutput("LLFX/Command", Timer.getFPGATimestamp() + ": " + str);
+			return str -> (serial.writeString(str) != 0);
 		});
 	}
 }

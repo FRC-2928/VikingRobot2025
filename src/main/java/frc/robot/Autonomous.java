@@ -24,64 +24,37 @@ public final class Autonomous {
 			.addOption(
 				"[comp] Five Note",
 				new SequentialCommandGroup(
-					new ReadyShooter(Constants.Shooter.readyShootRear),
+					new ReadyShooter(Constants.Shooter.readyShootRear, true),
 					Autonomous.setInitialPose("MiddleFiveNote.1"),
-					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					Autonomous.path("MiddleFiveNote.1"),
+					new ShootSpeaker(false, Units.Degrees.of(100)).withTimeout(4),
+					Autonomous
+						.path("MiddleFiveNote.1")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyIntake, false)),
 					new IntakeGround().withTimeout(2),
-					Autonomous.dynamic("MiddleFiveNote.3"),
-					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
-					new ReadyShooter(Constants.Shooter.readyIntake),
+					Autonomous
+						.dynamic("MiddleFiveNote.3")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false).withTimeout(4),
+					new ReadyShooter(Constants.Shooter.readyIntake, false),
 					new IntakeGround().withTimeout(2),
-					Autonomous.dynamic("MiddleFiveNote.4"),
-					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					new ReadyShooter(Constants.Shooter.readyIntake),
+					Autonomous
+						.dynamic("MiddleFiveNote.4")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false).withTimeout(4),
+					new ReadyShooter(Constants.Shooter.readyIntake, false),
 					new IntakeGround().withTimeout(2),
-					Autonomous.dynamic("MiddleFiveNote.5"),
-					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4),
+					Autonomous
+						.dynamic("MiddleFiveNote.5")
+						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false).withTimeout(4),
 					Autonomous.path("MiddleFiveNote.5"),
 					new IntakeGround().withTimeout(2),
-					Autonomous.dynamic("MiddleFiveNote.6"),
-					Autonomous.path("MiddleFiveNote.6"),
-					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
-				)
-			);
-
-		chooser
-			.addOption(
-				"[testing] Five Note Middle",
-				new SequentialCommandGroup(
-					new ReadyShooter(Constants.Shooter.readyShootRear),
-					Autonomous.setInitialPose("5Note.1"),
-					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
-					Autonomous.path("5Note.1"),
-					new IntakeGround().withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.dynamic("5Note.4")
-						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.3"))
-					),
-					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4),
-					new IntakeGround().withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.dynamic("5Note.6")
-						// AutonomousRoutines.choreo(Choreo.getTrajectory("5Note.5"))
-					),
-					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					new IntakeGround().withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.path("5Note.7")
-					),
-					new ShootSpeaker(false, Units.Degrees.of(117)).withTimeout(4),
-					Autonomous.path("5Note.8"),
-					new IntakeGround().withTimeout(2),
-					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear),
-						Autonomous.path("5Note.9")
-					),
-					new ShootSpeaker(false, Units.Degrees.of(118)).withTimeout(4)
+					Autonomous
+						.dynamicThen("MiddleFiveNote.6")
+						.alongWith(
+							new WaitCommand(2).andThen(new ReadyShooter(Constants.Shooter.readyShootRear, true))
+						),
+					new ShootSpeaker(false).withTimeout(4)
 				)
 			);
 
@@ -90,13 +63,13 @@ public final class Autonomous {
 				"[testing] Source Side Center Note",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("SourceSideCenterNote.1"),
-					new ReadyShooter(Constants.Shooter.readyShootRear),
+					new ReadyShooter(Constants.Shooter.readyShootRear, true),
 					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
 					Autonomous.path("SourceSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous.dynamic("SourceSideCenterNote.2"),
 					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear),
+						new ReadyShooter(Constants.Shooter.readyShootRear, true),
 						Autonomous.path("SourceSideCenterNote.2")
 					),
 					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4)
@@ -106,16 +79,25 @@ public final class Autonomous {
 		chooser
 			.addOption(
 				"[comp] Drive",
-				new SequentialCommandGroup(new ReadyShooter(Constants.Shooter.readyShootRear), new DriveTime(1))
+				new SequentialCommandGroup(new ReadyShooter(Constants.Shooter.readyShootRear, true), new DriveTime(1))
 			);
 
 		chooser
 			.addOption(
 				"[comp] Shoot/Drive",
 				new SequentialCommandGroup(
-					new ReadyShooter(Constants.Shooter.readyShootRear),
+					new ReadyShooter(Constants.Shooter.readyShootRear, true),
 					new ShootSpeaker(false),
 					new DriveTime(1)
+				)
+			);
+
+		chooser
+			.addOption(
+				"[comp] Shoot",
+				new SequentialCommandGroup(
+					new ReadyShooter(Constants.Shooter.readyShootRear, true),
+					new ShootSpeaker(false)
 				)
 			);
 
@@ -125,12 +107,10 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
 					new WaitCommand(10),
-					new ReadyShooter(Constants.Shooter.readyShootRear)
-						.alongWith(Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.1"))),
+					new ReadyShooter(Constants.Shooter.readyShootRear, true)
+						.alongWith(Autonomous.path("AmpSideCenterNote.1")),
 					new ShootSpeaker(false).withTimeout(4),
-					Autonomous.dynamic("AmpSideCenterNote.2"),
-
-					Autonomous.choreo(Choreo.getTrajectory("AmpSideCenterNote.2")),
+					Autonomous.dynamicThen("AmpSideCenterNote.2"),
 					new IntakeGround()
 				)
 			);
@@ -212,6 +192,9 @@ public final class Autonomous {
 					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
 					2
 				)
+			)
+			.alongWith(
+				new InstantCommand(() -> Logger.recordOutput("Drivetrain/Auto/DynamicTarget", traj.getInitialPose()))
 			);
 	}
 
@@ -226,6 +209,12 @@ public final class Autonomous {
 					3,
 					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
 					2
+				)
+			)
+			.alongWith(
+				new InstantCommand(
+					() -> Logger
+						.recordOutput("Drivetrain/Auto/DynamicTarget", Choreo.getTrajectory(next).getInitialPose())
 				)
 			);
 	}

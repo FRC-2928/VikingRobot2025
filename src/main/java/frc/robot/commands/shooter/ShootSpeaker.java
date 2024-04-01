@@ -31,7 +31,7 @@ public class ShootSpeaker extends Command {
 	private double fired;
 	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 5);
 
-	private final PIDController pitch = new PIDController(4, 0, 0.01);
+	private final PIDController pitch = new PIDController(6, 0, 0.01);
 
 	@Override
 	public void initialize() { this.fired = -1; }
@@ -42,6 +42,7 @@ public class ShootSpeaker extends Command {
 		final boolean current = Robot.cont.shooter.inputs.angle.in(Units.Degrees) - 90 < 0;
 		Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
 		Robot.cont.drivetrain.limelightShooter.setPipeline(forward ? 0 : 1);
+
 		if(forward == current) {
 			final boolean shooterLLSees = Robot.cont.drivetrain.limelightShooter.hasValidTargets();
 			final boolean rearLLSees = Robot.cont.drivetrain.limelightRear.hasValidTargets();
@@ -125,7 +126,10 @@ public class ShootSpeaker extends Command {
 								)
 						);
 				} else {
-					if((((flywheelSpeed && pivotVelocity) || overrideShoot) && demandFire) || this.fired != -1) {
+					if(
+						(((flywheelSpeed && pivotVelocity && yo.in(Units.Degrees) < 10) || overrideShoot) && demandFire)
+							|| this.fired != -1
+					) {
 						Robot.cont.shooter.io.runFeeder(Demand.Forward);
 						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 					}

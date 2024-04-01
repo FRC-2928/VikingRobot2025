@@ -74,7 +74,7 @@ public class SwerveModule {
 		final double ffw = this.driveFFW.calculate(speed.in(Units.MetersPerSecond));
 		final double output = this.drivePID
 			.calculate(this.inputs.driveVelocity.in(Units.MetersPerSecond), speed.in(Units.MetersPerSecond));
-		final double driveVolts = MathUtil.clamp(ffw + output, -10, 10);
+		final double driveVolts = MathUtil.clamp(ffw + output, -12, 12);
 
 		// inputs.driveAppliedVolts will track the applied voltage
 		this.io.setDriveVoltage(driveVolts);
