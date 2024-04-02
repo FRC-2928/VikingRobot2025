@@ -110,8 +110,8 @@ public class Drivetrain extends SubsystemBase {
 							Constants.Drivetrain.trackWidth.in(Units.Meters) / 2,
 							Constants.Drivetrain.wheelBase.in(Units.Meters) / 2
 						),
-					//new ReplanningConfig(true, true, 0.5, 0.5)
-					new ReplanningConfig(false, false)
+					new ReplanningConfig(true, false, 0.1, 0.0)
+					//new ReplanningConfig(false, false)
 				),
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
 				this

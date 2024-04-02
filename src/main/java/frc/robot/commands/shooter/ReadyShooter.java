@@ -22,7 +22,7 @@ public class ReadyShooter extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(this.angle);
-		Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
+		if(this.spinUp) Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());
 	}
 
 	@Override

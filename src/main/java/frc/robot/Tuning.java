@@ -24,4 +24,13 @@ public final class Tuning {
 		"Tuning/AmpPower",
 		Constants.Shooter.flywheels.ampPower
 	);
+
+	public static final LoggedDashboardNumber shootSpeakerPivotThreshold = new LoggedDashboardNumber(
+		"Tuning/ShootSpeakerPivotThreshold",
+		1.25
+	);
+	public static final LoggedDashboardNumber shootSpeakerExponent = new LoggedDashboardNumber(
+		"Tuning/ShootSpeakerExponent",
+		1
+	);
 }

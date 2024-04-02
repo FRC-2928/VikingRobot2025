@@ -1,5 +1,6 @@
 package frc.robot.oi;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -19,6 +20,8 @@ public abstract class BaseOI {
 		public double powerFalse;
 
 		public void update() {
+			if(DriverStation.isAutonomous()) return;
+
 			this.hid
 				.setRumble(
 					this.type,

@@ -10,6 +10,7 @@ import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -17,24 +18,38 @@ import frc.robot.Tuning;
 import frc.robot.subsystems.ShooterIO.Demand;
 
 public class ShootSpeaker extends Command {
-	public ShootSpeaker(final boolean triggerFire) { this(triggerFire, Constants.Shooter.readyShootRear); }
+	private static final PIDController pitch = new PIDController(0.75, 0, 0);
 
-	public ShootSpeaker(final boolean triggerFire, final Measure<Angle> startAngle) {
+	static {
+		SmartDashboard.putData(ShootSpeaker.pitch);
+	}
+
+	public ShootSpeaker(final boolean triggerFire) { this(triggerFire, Constants.Shooter.readyShootRear, 0); }
+
+	public ShootSpeaker(final boolean triggerFire, final double timeout) {
+		this(triggerFire, Constants.Shooter.readyShootRear, timeout);
+	}
+
+	public ShootSpeaker(final boolean triggerFire, final Measure<Angle> startAngle, final double timeout) {
 		this.addRequirements(Robot.cont.shooter);
 		this.triggerFire = triggerFire;
 		this.rearAngle = startAngle;
+		this.timeout = timeout;
 	}
 
 	public final boolean triggerFire;
 	public final Measure<Angle> rearAngle;
+	public final double timeout;
 
 	private double fired;
+	private double startTime;
 	private final SimpleMotorFeedforward targetRotationFeedforward = new SimpleMotorFeedforward(0, 5);
 
-	private final PIDController pitch = new PIDController(6, 0, 0.01);
-
 	@Override
-	public void initialize() { this.fired = -1; }
+	public void initialize() {
+		this.fired = -1;
+		this.startTime = Timer.getFPGATimestamp();
+	}
 
 	@Override
 	public void execute() {
@@ -67,6 +82,12 @@ public class ShootSpeaker extends Command {
 				);
 			Logger.recordOutput("Shooter/ShootSpeaker/FlywheelSpeed", flywheelSpeed);
 			Logger.recordOutput("Shooter/ShootSpeaker/PivotVelocity", pivotVelocity);
+			Logger
+				.recordOutput(
+					"Shooter/ShootSpeaker/PivotVelocityDifference",
+					Math.abs(Robot.cont.shooter.inputs.angleSpeed.in(Units.RotationsPerSecond))
+					//- Constants.Shooter.pivotMaxVelocityShoot.in(Units.RotationsPerSecond)
+				);
 			Logger.recordOutput("Shooter/ShootSpeaker/DemandFire", demandFire);
 			Logger.recordOutput("Shooter/ShootSpeaker/OverrideShoot", overrideShoot);
 			Logger.recordOutput("Shooter/ShootSpeaker/Fired", this.fired != -1);
@@ -98,9 +119,7 @@ public class ShootSpeaker extends Command {
 											0,
 											MathUtil
 												.clamp(
-													this.targetRotationFeedforward
-														//.calculate(Math.copySign(Math.pow(yo.in(Units.Rotations), 0.8), yo.in(Units.Rotations)))
-														.calculate(yo.in(Units.Rotations)),
+													this.targetRotationFeedforward.calculate(yo.in(Units.Rotations)),
 													-0.125,
 													0.125
 												)
@@ -109,19 +128,15 @@ public class ShootSpeaker extends Command {
 							)
 					);
 
-				if(Math.abs(po.in(Units.Degrees)) >= 1.25 && this.fired == -1) {
+				if(Math.abs(po.in(Units.Degrees)) >= Tuning.shootSpeakerPivotThreshold.get() && this.fired == -1) {
 					Robot.cont.shooter.io
 						.rotate(
 							Units.Rotations
 								.of(
 									Robot.cont.shooter.inputs.angle.in(Units.Rotations)
-										+ this.pitch
+										+ ShootSpeaker.pitch
 											.calculate(
-												Math
-													.copySign(
-														Math.pow(Math.abs(po.in(Units.Rotations)), 1.5),
-														po.in(Units.Rotations)
-													)
+												this.pow(po.in(Units.Rotations), Tuning.shootSpeakerExponent.get())
 											)
 								)
 						);
@@ -134,8 +149,7 @@ public class ShootSpeaker extends Command {
 						if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
 					}
 
-					Robot.cont.shooter.io
-						.rotate(Units.Rotations.of(Robot.cont.shooter.inputs.angle.in(Units.Rotations)));
+					//Robot.cont.shooter.io.rotate(Units.Rotations.of(Robot.cont.shooter.inputs.angle.in(Units.Rotations)));
 				}
 			} else if(!forward) {
 				Logger
@@ -182,6 +196,11 @@ public class ShootSpeaker extends Command {
 			Robot.cont.drivetrain.control(Robot.cont.drivetrain.joystickSpeeds);
 			Robot.cont.shooter.io.rotate(forward ? Constants.Shooter.readyShootFront : this.rearAngle);
 		}
+
+		if(this.timeout > 0 && Timer.getFPGATimestamp() > this.startTime + this.timeout) {
+			Robot.cont.shooter.io.runFeeder(Demand.Forward);
+			if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
+		}
 	}
 
 	@Override
@@ -204,5 +223,9 @@ public class ShootSpeaker extends Command {
 
 	private ChassisSpeeds norot(final ChassisSpeeds speeds) {
 		return new ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, 0);
+	}
+
+	private double pow(final double base, final double exp) {
+		return Math.copySign(Math.pow(Math.abs(base), exp), base);
 	}
 }

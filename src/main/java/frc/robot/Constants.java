@@ -151,13 +151,8 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues x = new PIDValues(0.15, 0, 0.001, 0);
-			public static final PIDValues y = new PIDValues(0.15, 0, 0.001, 0);
-			public static final PIDValues theta = new PIDValues(0.0525, 0, 0.0035, 0);
-			//public static final PIDValues translationDynamic = new PIDValues(0.15, 0, 0.005, 0);
-			//public static final PIDValues thetaDynamic = new PIDValues(0.05, 0, 0.01, 0);
-			public static final PIDValues translationDynamic = new PIDValues(8, 0, 0, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(7, 0, 0.02, 0);
+			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
 		}
 
 		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
@@ -302,7 +297,7 @@ public class Constants {
 			.withKD(0.05);
 
 		public static final double pivotCurrentLimit = 40;
-		public static final Measure<Velocity<Angle>> pivotMaxVelocityShoot = Units.DegreesPerSecond.of(1);
+		public static final Measure<Velocity<Angle>> pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKP(0.05)
 			.withKI(0.0)

@@ -7,10 +7,8 @@ import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.path.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.drivetrain.DriveTime;
@@ -26,35 +24,35 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
 					Autonomous.setInitialPose("MiddleFiveNote.1"),
-					new ShootSpeaker(false, Units.Degrees.of(100)).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous
 						.path("MiddleFiveNote.1")
-						.alongWith(new ReadyShooter(Constants.Shooter.readyIntake, false)),
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyIntake, false)),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamic("MiddleFiveNote.3")
-						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4),
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false, 2),
 					new ReadyShooter(Constants.Shooter.readyIntake, false),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamic("MiddleFiveNote.4")
-						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4),
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false, 2),
 					new ReadyShooter(Constants.Shooter.readyIntake, false),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamic("MiddleFiveNote.5")
-						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4),
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("MiddleFiveNote.5"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamicThen("MiddleFiveNote.6")
-						.alongWith(
+						.deadlineWith(
 							new WaitCommand(2).andThen(new ReadyShooter(Constants.Shooter.readyShootRear, true))
 						),
-					new ShootSpeaker(false).withTimeout(4)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -64,7 +62,7 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("SourceSideCenterNote.1"),
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootSpeaker(false, Units.Degrees.of(107)).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("SourceSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous.dynamic("SourceSideCenterNote.2"),
@@ -72,7 +70,7 @@ public final class Autonomous {
 						new ReadyShooter(Constants.Shooter.readyShootRear, true),
 						Autonomous.path("SourceSideCenterNote.2")
 					),
-					new ShootSpeaker(false, Units.Degrees.of(119)).withTimeout(4)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -87,7 +85,7 @@ public final class Autonomous {
 				"[comp] Shoot/Drive",
 				new SequentialCommandGroup(
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootSpeaker(false),
+					new ShootSpeaker(false, 2),
 					new DriveTime(1)
 				)
 			);
@@ -97,7 +95,7 @@ public final class Autonomous {
 				"[comp] Shoot",
 				new SequentialCommandGroup(
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootSpeaker(false)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -106,19 +104,19 @@ public final class Autonomous {
 				"[testing] Amp Side Center Note",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("AmpSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamicThen("AmpSideCenterNote.2")
 						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("AmpSideCenterNote.3"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamicThen("AmpSideCenterNote.4")
 						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -128,19 +126,19 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
 					new WaitCommand(10),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("AmpSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamicThen("AmpSideCenterNote.2")
 						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					Autonomous.path("AmpSideCenterNote.3"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
 						.dynamicThen("AmpSideCenterNote.4")
 						.alongWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
-					new ShootSpeaker(false).withTimeout(4)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -148,9 +146,9 @@ public final class Autonomous {
 			.addOption(
 				"[comp] Two Note",
 				new SequentialCommandGroup(
-					new ShootSpeaker(false).withTimeout(4),
+					new ShootSpeaker(false, 2),
 					new IntakeGround().withTimeout(2),
-					new ShootSpeaker(false).withTimeout(4)
+					new ShootSpeaker(false, 2)
 				)
 			);
 
@@ -176,34 +174,6 @@ public final class Autonomous {
 		});
 	}
 
-	public static Command choreo(final ChoreoTrajectory trajectory) {
-		final ChoreoControlFunction controller = Choreo
-			.choreoSwerveController(
-				Constants.Drivetrain.Auto.x.createController(), // PID to correct for field-relative X error
-				Constants.Drivetrain.Auto.y.createController(), // PID to correct for field-relative Y error
-				Constants.Drivetrain.Auto.theta.createController()
-			);
-
-		final Timer timer = new Timer();
-		return new FunctionalCommand(timer::restart, () -> {
-			final ChoreoTrajectoryState poseDemand = trajectory
-				.sample(
-					timer.get(),
-					DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red
-				);
-
-			Logger.recordOutput("Choreo/DesiredPose", poseDemand.getPose());
-
-			Robot.cont.drivetrain
-				.controlRobotOriented(controller.apply(Robot.cont.drivetrain.blueOriginPose(), poseDemand));
-		}, interrupted -> {
-			timer.stop();
-			if(interrupted) {
-				Robot.cont.drivetrain.controlRobotOriented(new ChassisSpeeds());
-			}
-		}, () -> timer.hasElapsed(trajectory.getTotalTime()), Robot.cont.drivetrain);
-	}
-
 	public static Command path(final String name) {
 		final PathPlannerPath choreoPath = PathPlannerPath.fromChoreoTrajectory(name);
 		return AutoBuilder.followPath(choreoPath);
@@ -217,7 +187,7 @@ public final class Autonomous {
 				traj.getInitialPose(),
 				new PathConstraints(
 					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
-					3,
+					2,
 					Constants.Drivetrain.maxAngularVelocity.in(Units.RadiansPerSecond),
 					2
 				)
