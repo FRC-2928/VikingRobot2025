@@ -10,11 +10,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.Tuning;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.climber.Initialize;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootAmp;
+import frc.robot.commands.shooter.ShootFixed;
 import frc.robot.commands.shooter.ShootSpeaker;
 
 public class DriverOI extends BaseOI {
@@ -40,9 +42,7 @@ public class DriverOI extends BaseOI {
 
 		this.resetFOD = this.controller.y();
 
-		this.initializeClimber = this.controller.rightStick();
-
-		this.moveAtSpeed = this.controller.x();
+		this.ferry = this.controller.x();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -59,9 +59,7 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger resetFOD;
 
-	public final Trigger initializeClimber;
-
-	public final Trigger moveAtSpeed;
+	public final Trigger ferry;
 
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
@@ -72,21 +70,6 @@ public class DriverOI extends BaseOI {
 
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 
-		this.initializeClimber.onTrue(new Initialize());
-
-		this.moveAtSpeed
-			.whileTrue(
-				new RunCommand(
-					() -> Robot.cont.drivetrain
-						.control(
-							new ChassisSpeeds(
-								Units.MetersPerSecond.of(2),
-								Units.MetersPerSecond.zero(),
-								Units.RadiansPerSecond.of(0)
-							)
-						),
-					Robot.cont.drivetrain
-				)
-			);
+		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));
 	}
 }

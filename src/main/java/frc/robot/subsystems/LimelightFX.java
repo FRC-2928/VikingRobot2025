@@ -268,27 +268,44 @@ public final class LimelightFX extends SubsystemBase {
 
 		public static enum Kind {
 			Null(-1),
-			Blink(0),
-			Scroll(1),
-			Cylon(2),
-			Emoji(3),
-			Chevrons(4),
-			Shapes(5),
-			SwerveRing(6),
-			BarGraph(7),
-			AudioWave(8),
-			SlotMachine(9),
-			CountdownTimer(10),
-			TeamNumber(11),
-			BubbleLevel(12),
-			Image(13),
-			Video(14),
-			LineGraph(15),
-			SlideShow(16);
+			SolidColor(0),
+			Gradient(1),
+			Blink(2),
+			Scroll(3),
+			Cylon(4),
+			Emoji(5),
+			Chevrons(6),
+			Shapes(7),
+			SwerveRing(8),
+			BarGraph(9),
+			AudioWave(10),
+			SlotMachine(11),
+			CountdownTimer(12),
+			TeamNumber(13),
+			BubbleLevel(14),
+			Image(15),
+			Video(16),
+			LineGraph(17),
+			SlideShow(18);
 
 			private Kind(final int id) { this.id = id; }
 
 			public final int id;
+		}
+
+		/** Single color with a fade time. */
+		public static class SolidColorBehavior extends Behavior<SolidColorBehavior> {
+			SolidColorBehavior(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Blink, fx, module, layer);
+
+				this.params = new Param<?>[] { this.color, this.fade, };
+			}
+
+			/** The color. */
+			public final Param<Color> color = new Param<>(this.fx, Color.RED);
+
+			/** The time to fade between colors. (s) */
+			public final Param<Double> fade = new Param<>(this.fx, 0.0, LimelightFX.time);
 		}
 
 		/** A simple configurable blink pattern. */
@@ -350,29 +367,6 @@ public final class LimelightFX extends SubsystemBase {
 			public final Param<Double> fadeInB = new Param<>(this.fx, 0.1, LimelightFX.time);
 			/** Time to fade out color B. (s) */
 			public final Param<Double> fadeOutB = new Param<>(this.fx, 1.0, LimelightFX.time);
-
-			public final BlinkBehavior solidColor(final Color color) {
-				this.colorA.set(color);
-				this.colorB.set(color);
-
-				this.timeOnA.set(1.0);
-				this.timeOffA.set(0.0);
-				this.timeBetween.set(0.0);
-				this.timeOnB.set(0.0);
-				this.timeOffB.set(0.0);
-				this.timeRepeat.set(0.0);
-
-				this.blinkCountA.set(1);
-				this.blinkCountB.set(0);
-				this.repeatCount.set(0);
-
-				this.fadeInA.set(0.0);
-				this.fadeOutA.set(0.0);
-				this.fadeInB.set(0.0);
-				this.fadeOutB.set(0.0);
-
-				return this;
-			}
 		}
 
 		public static class ImageBehavior extends Behavior<ImageBehavior> {
@@ -739,7 +733,7 @@ public final class LimelightFX extends SubsystemBase {
 			final String command = String.format(data, args);
 			if(this.serial == null) return;
 
-			if(!this.serial.apply(command + "\n")) this.disable("cannot write");
+			if(!this.serial.apply(command)) this.disable("cannot write");
 		} catch(final Exception e) {
 			this.disable(e.getMessage());
 			e.printStackTrace();
@@ -761,7 +755,7 @@ public final class LimelightFX extends SubsystemBase {
 		System.err.println("LimelightFX: Waiting for connection to finish initializing...");
 
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(1000);
 		} catch(final Exception e) {
 		}
 
@@ -770,6 +764,12 @@ public final class LimelightFX extends SubsystemBase {
 		for(final Module module : this.modules)
 			this.write("module %d %d %d %d", module.geo.kind.id, module.geo.width, module.geo.height, module.rot.id);
 		this.write("start");
+		System.err.println("LimelightFX: Waiting for LimelightFX to finish initializing...");
+
+		try {
+			Thread.sleep(500);
+		} catch(final Exception e) {
+		}
 		System.err.println("LimelightFX: Initialized");
 
 		while(true) {

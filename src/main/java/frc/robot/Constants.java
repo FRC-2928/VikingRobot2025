@@ -267,8 +267,7 @@ public class Constants {
 			public static final FlywheelConfiguration greenBane = new FlywheelConfiguration(
 				Units.RotationsPerSecond.of(40),
 				Units.RotationsPerSecond.of(37),
-				//0.16
-				0.21
+				0.18
 			);
 
 			public FlywheelConfiguration(
@@ -321,9 +320,12 @@ public class Constants {
 		public static final Measure<Angle> readyShootFront = Units.Rotations.of(0.122);
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
 		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
-		public static final Measure<Angle> shootAmp = Units.Degrees.of(115);
+		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
+
+		public static final Measure<Angle> shootSub = Units.Degrees.of(115);
+		public static final Measure<Angle> shootFerry = Units.Degrees.of(130);
 
 		// max angle before exiting allowed extension range
 		public static final Measure<Angle> max = Units.Rotations.of(0.39);

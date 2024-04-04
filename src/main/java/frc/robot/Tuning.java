@@ -33,4 +33,13 @@ public final class Tuning {
 		"Tuning/ShootSpeakerExponent",
 		1
 	);
+
+	public static final LoggedDashboardNumber ferryAngle = new LoggedDashboardNumber(
+		"Tuning/FerryAngle",
+		Constants.Shooter.shootFerry.in(Units.Degrees)
+	);
+	public static final LoggedDashboardNumber subAngle = new LoggedDashboardNumber(
+		"Tuning/SubAngle",
+		Constants.Shooter.shootSub.in(Units.Degrees)
+	);
 }

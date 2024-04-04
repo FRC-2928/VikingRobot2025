@@ -15,7 +15,7 @@ public interface ShooterIO {
 	}
 
 	public static enum Demand {
-		Reverse(-1), Halt(0), Forward(1);
+		Reverse(-1), SlowReverse(-0.25), Halt(0), SlowForward(0.25), Forward(1);
 
 		private Demand(final double dir) { this.dir = dir; }
 

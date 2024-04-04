@@ -22,9 +22,9 @@ public final class Autonomous {
 			.addOption(
 				"[comp] Five Note",
 				new SequentialCommandGroup(
-					new ReadyShooter(Constants.Shooter.readyShootRear, true),
+					new ReadyShooter(Units.Degrees.of(114), true),
 					Autonomous.setInitialPose("MiddleFiveNote.1"),
-					new ShootSpeaker(false, 2),
+					new ShootFixed(false, 2),
 					Autonomous
 						.path("MiddleFiveNote.1")
 						.deadlineWith(new ReadyShooter(Constants.Shooter.readyIntake, false)),
@@ -104,7 +104,7 @@ public final class Autonomous {
 				"[testing] Amp Side Center Note",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
-					new ShootSpeaker(false, 2),
+					new ShootFixed(false, 2),
 					Autonomous.path("AmpSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
@@ -126,7 +126,7 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("AmpSideCenterNote.1"),
 					new WaitCommand(10),
-					new ShootSpeaker(false, 2),
+					new ShootFixed(false, 2),
 					Autonomous.path("AmpSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous
@@ -156,17 +156,11 @@ public final class Autonomous {
 	}
 
 	public static Command setInitialPose(final String name) {
-		final PathPlannerPath traj = PathPlannerPath.fromChoreoTrajectory(name);
-		final Pose2d initial = traj.getPathPoses().get(0);
+		final ChoreoTrajectory traj = Choreo.getTrajectory(name);
+		final Pose2d initial = traj.getInitialPose();
 
 		return Commands.runOnce(() -> {
-			Robot.cont.drivetrain
-				.reset(
-					new Pose2d(
-						Autonomous.getPoseForAlliance(initial).getTranslation(),
-						Robot.cont.drivetrain.est.getEstimatedPosition().getRotation()
-					)
-				);
+			Robot.cont.drivetrain.reset(Autonomous.getPoseForAlliance(initial));
 
 			Logger.recordOutput("Drivetrain/Auto/x0", initial.getX());
 			Logger.recordOutput("Drivetrain/Auto/y0", initial.getY());

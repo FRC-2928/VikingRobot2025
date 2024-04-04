@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.commands.climber.Initialize;
+import frc.robot.commands.shooter.ShootFixed;
 import frc.robot.subsystems.ShooterIO;
 
 public class OperatorOI extends BaseOI {
@@ -25,11 +26,11 @@ public class OperatorOI extends BaseOI {
 
 		this.intakeOut = this.controller.b();
 		this.intakeIn = this.controller.a();
-		this.shooterLevel = this.controller.start();
 
+		this.fixedShoot = this.controller.leftTrigger();
 		this.overrideShoot = this.controller.rightTrigger();
 
-		this.foc = this.controller.a();
+		this.foc = this.controller.rightBumper();
 	}
 
 	public final Trigger climberDown;
@@ -42,7 +43,7 @@ public class OperatorOI extends BaseOI {
 
 	public final Trigger intakeOut;
 	public final Trigger intakeIn;
-	public final Trigger shooterLevel;
+	public final Trigger fixedShoot;
 
 	public final Trigger overrideShoot;
 
@@ -71,6 +72,7 @@ public class OperatorOI extends BaseOI {
 			interrupt -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Halt),
 			() -> false
 		));
-		this.shooterLevel.whileTrue(new InstantCommand(() -> Robot.cont.shooter.io.rotate(Units.Radians.zero())));
+
+		this.fixedShoot.whileTrue(new ShootFixed(false));
 	}
 }

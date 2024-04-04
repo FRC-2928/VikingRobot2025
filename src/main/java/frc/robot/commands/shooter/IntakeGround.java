@@ -34,7 +34,7 @@ public class IntakeGround extends Command {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
 		Robot.cont.shooter.io.runFlywheels(-0.25);
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
-		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.Halt);
+		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.SlowReverse);
 
 		Robot.cont.drivetrain
 			.control(
@@ -63,7 +63,7 @@ public class IntakeGround extends Command {
 			);
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
-		Robot.cont.shooter.io.runIntake(Demand.Halt);
+		Robot.cont.shooter.io.runIntake(Demand.SlowReverse);
 
 		this.haptics.stop();
 	}
