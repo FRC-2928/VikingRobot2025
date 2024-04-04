@@ -152,6 +152,18 @@ public final class Autonomous {
 				)
 			);
 
+		chooser
+			.addOption(
+				"[testing] Source Side Centerline Disruption",
+				new SequentialCommandGroup(
+					Autonomous.setInitialPose("SourceSideCenterDisrupt.1"),
+					new ReadyShooter(Constants.Shooter.readyShootRear, true),
+					new ShootSpeaker(false, 2),
+					Autonomous.path("SourceSideCenterDisrupt.1"),
+					new IntakeGround().withTimeout(2)
+				)
+			);
+
 		return chooser;
 	}
 
