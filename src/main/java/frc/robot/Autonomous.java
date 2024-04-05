@@ -58,11 +58,11 @@ public final class Autonomous {
 
 		chooser
 			.addOption(
-				"[testing] Source Side Center Note",
+				"[comp] Source Side Center Note",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("SourceSideCenterNote.1"),
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootSpeaker(false, 2),
+					new ShootFixed(false, 2),
 					Autonomous.path("SourceSideCenterNote.1"),
 					new IntakeGround().withTimeout(2),
 					Autonomous.dynamic("SourceSideCenterNote.2"),
@@ -146,7 +146,7 @@ public final class Autonomous {
 			.addOption(
 				"[comp] Two Note",
 				new SequentialCommandGroup(
-					new ShootSpeaker(false, 2),
+					new ShootFixed(false, 2),
 					new IntakeGround().withTimeout(2),
 					new ShootSpeaker(false, 2)
 				)
@@ -154,12 +154,12 @@ public final class Autonomous {
 
 		chooser
 			.addOption(
-				"[testing] Source Side Centerline Disruption",
+				"[testing] Source Side Bulldoze",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose("SourceSideCenterDisrupt.1"),
+					Autonomous.setInitialPose("Bulldoze.1"),
 					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootSpeaker(false, 2),
-					Autonomous.path("SourceSideCenterDisrupt.1"),
+					new ShootFixed(false, 2),
+					Autonomous.path("Bulldoze.1"),
 					new IntakeGround().withTimeout(2)
 				)
 			);

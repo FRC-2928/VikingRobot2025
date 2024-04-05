@@ -2,17 +2,14 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.Tuning;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.climber.Initialize;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootAmp;
