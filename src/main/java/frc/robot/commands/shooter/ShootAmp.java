@@ -28,7 +28,7 @@ public class ShootAmp extends Command {
 
 		if(
 			(Math.abs(Robot.cont.shooter.inputs.angle.in(Units.Degrees) - Tuning.ampAngle.get()) <= 20.5
-				&& Robot.cont.driverOI.intakeShoot.getAsBoolean()) || this.fired
+				&& Robot.cont.driverOI.intake.getAsBoolean()) || this.fired
 		) {
 			Robot.cont.shooter.io.runFeeder(Demand.Forward);
 			this.fired = true;

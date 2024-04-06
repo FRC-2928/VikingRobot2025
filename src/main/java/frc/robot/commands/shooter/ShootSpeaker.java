@@ -67,7 +67,7 @@ public class ShootSpeaker extends Command {
 				.abs(
 					Robot.cont.shooter.inputs.angleSpeed.in(Units.RotationsPerSecond)
 				) < Constants.Shooter.pivotMaxVelocityShoot.in(Units.RotationsPerSecond);
-			final boolean demandFire = Robot.cont.driverOI.intakeShoot.getAsBoolean() || !this.triggerFire;
+			final boolean demandFire = Robot.cont.driverOI.intake.getAsBoolean() || !this.triggerFire;
 			final boolean overrideShoot = Robot.cont.operatorOI.overrideShoot.getAsBoolean();
 
 			Logger.recordOutput("Shooter/ShootSpeaker/ShooterLLSees", shooterLLSees);

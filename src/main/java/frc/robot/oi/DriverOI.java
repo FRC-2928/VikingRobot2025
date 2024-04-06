@@ -31,9 +31,9 @@ public class DriverOI extends BaseOI {
 			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
 
-		this.shootSpeaker = new Trigger(() -> this.controller.getLeftTriggerAxis() > 0.5);
+		this.shootSpeaker = this.controller.leftTrigger();
 		this.shootAmp = this.controller.leftBumper();
-		this.intakeShoot = new Trigger(() -> this.controller.getRightTriggerAxis() > 0.5);
+		this.intake = this.controller.rightTrigger();
 
 		this.lockWheels = this.controller.rightBumper();
 
@@ -50,7 +50,7 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger shootSpeaker;
 	public final Trigger shootAmp;
-	public final Trigger intakeShoot;
+	public final Trigger intake;
 
 	public final Trigger lockWheels;
 
@@ -61,7 +61,7 @@ public class DriverOI extends BaseOI {
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
 		this.shootAmp.whileTrue(new ShootAmp());
-		this.intakeShoot.whileTrue(new IntakeGround());
+		this.intake.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());
 

@@ -12,17 +12,22 @@ import frc.robot.subsystems.ShooterIO.Demand;
 public class IntakeGround extends Command {
 	public static double lastTime = 0; // this is a bad way to do this but its necessary for right now, please do real path planning in the future
 
-	public IntakeGround() {
+	public IntakeGround(final boolean correction) {
 		this.haptics.type = RumbleType.kBothRumble;
 		this.haptics.interval = 1;
 		this.haptics.dutyCycle = 1;
 		this.haptics.powerTrue = 1;
 		this.haptics.powerFalse = 0;
 
-		this.addRequirements(Robot.cont.shooter, Robot.cont.drivetrain);
+		this.correction = correction;
+
+		this.addRequirements(Robot.cont.shooter);
+		if(correction) this.addRequirements(Robot.cont.drivetrain);
 	}
 
 	private final BaseOI.Haptics haptics = new BaseOI.Haptics(Robot.cont.driverOI.hid);
+
+	public final boolean correction;
 
 	@Override
 	public void execute() {
@@ -34,23 +39,26 @@ public class IntakeGround extends Command {
 		Robot.cont.shooter.io.rotate(Constants.Shooter.intakeGround);
 		Robot.cont.shooter.io.runFlywheels(-0.25);
 		Robot.cont.shooter.io.runFeeder(Demand.Reverse);
-		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.SlowReverse);
+		Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.Halt);
 
-		Robot.cont.drivetrain
-			.control(
-				Robot.cont.drivetrain.joystickSpeeds
-					.plus(
-						Robot.cont.drivetrain
-							.rod(
-								new ChassisSpeeds(
-									-1,
-									Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Rotations)
-										* 10,
-									0
-								).times(pivotReady ? 1 : 1)
-							)
-					)
-			);
+		if(this.correction)
+			Robot.cont.drivetrain
+				.control(
+					Robot.cont.drivetrain.joystickSpeeds
+						.plus(
+							Robot.cont.drivetrain
+								.rod(
+									new ChassisSpeeds(
+										-1,
+										Robot.cont.drivetrain.limelightNote
+											.getTargetHorizontalOffset()
+											.in(Units.Rotations)
+											* 10,
+										0
+									).times(pivotReady ? 1 : 1)
+								)
+						)
+				);
 
 		this.haptics.update();
 	}
@@ -63,7 +71,9 @@ public class IntakeGround extends Command {
 			);
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
-		Robot.cont.shooter.io.runIntake(Demand.SlowReverse);
+		Robot.cont.shooter.io.runIntake(Demand.Halt);
+
+		Robot.cont.drivetrain.control(new ChassisSpeeds());
 
 		this.haptics.stop();
 	}
