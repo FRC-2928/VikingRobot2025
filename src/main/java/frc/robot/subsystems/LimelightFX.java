@@ -21,10 +21,13 @@ public final class LimelightFX extends SubsystemBase {
 	public static final int fps = 33;
 
 	private static final Function<Double, String> time = time -> Integer.toString((int) (time * LimelightFX.fps));
+	private static final Function<
+		Double,
+		String> speed = time -> Integer.toString((int) (time * LimelightFX.fps * 255));
 
 	/** An RGBA color. Components are 0-1. */
 	public static final class Color {
-		public static final Color BLACK = new Color(0);
+		public static final Color black = new Color(0);
 		public static final Color WHITE = new Color(1);
 		public static final Color RED = new Color(1, 0, 0);
 		public static final Color GREEN = new Color(0, 1, 0);
@@ -293,9 +296,17 @@ public final class LimelightFX extends SubsystemBase {
 			public final int id;
 		}
 
+		public static enum Direction {
+			Up(0), Right(1), Down(2), Left(3);
+
+			private Direction(final int id) { this.id = id; }
+
+			public final int id;
+		}
+
 		/** Single color with a fade time. */
-		public static class SolidColorBehavior extends Behavior<SolidColorBehavior> {
-			SolidColorBehavior(final LimelightFX fx, final Module module, final int layer) {
+		public static class SolidColor extends Behavior<SolidColor> {
+			SolidColor(final LimelightFX fx, final Module module, final int layer) {
 				super(Kind.Blink, fx, module, layer);
 
 				this.params = new Param<?>[] { this.color, this.fade, };
@@ -308,9 +319,24 @@ public final class LimelightFX extends SubsystemBase {
 			public final Param<Double> fade = new Param<>(this.fx, 0.0, LimelightFX.time);
 		}
 
+		/** Rainbow. */
+		public static class Gradient extends Behavior<Gradient> {
+			Gradient(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Gradient, fx, module, layer);
+
+				this.params = new Param<?>[] { this.colorA, this.colorB, this.fade, this.dir };
+			}
+
+			public final Param<Color> colorA = new Param<>(this.fx, new Color(255, 0, 0));
+			public final Param<Color> colorB = new Param<>(this.fx, new Color(255, 0, 0));
+
+			public final Param<Double> fade = new Param<>(this.fx, 0.0, LimelightFX.time);
+			public final Param<Direction> dir = new Param<>(this.fx, Direction.Up);
+		}
+
 		/** A simple configurable blink pattern. */
-		public static class BlinkBehavior extends Behavior<BlinkBehavior> {
-			BlinkBehavior(final LimelightFX fx, final Module module, final int layer) {
+		public static class Blink extends Behavior<Blink> {
+			Blink(final LimelightFX fx, final Module module, final int layer) {
 				super(Kind.Blink, fx, module, layer);
 
 				this.params = new Param<?>[] {
@@ -369,8 +395,85 @@ public final class LimelightFX extends SubsystemBase {
 			public final Param<Double> fadeOutB = new Param<>(this.fx, 1.0, LimelightFX.time);
 		}
 
-		public static class ImageBehavior extends Behavior<ImageBehavior> {
-			ImageBehavior(final LimelightFX fx, final Module module, final int layer) {
+		/** A simple configurable blink pattern. */
+		public static class Scroll extends Behavior<Scroll> {
+			Scroll(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Scroll, fx, module, layer);
+
+				this.params = new Param<?>[] {
+					this.colorA,
+					this.colorB,
+
+					this.speed,
+					this.widthA,
+					this.widthB, };
+			}
+
+			/** The A color. */
+			public final Param<Color> colorA = new Param<>(this.fx, new Color(255, 0, 0));
+			/** The B color. */
+			public final Param<Color> colorB = new Param<>(this.fx, new Color(0, 255, 0));
+
+			/** Speed fraction. (frac) */
+			public final Param<Double> speed = new Param<>(this.fx, 1.0, LimelightFX.time);
+			/** Width of color A. (px) */
+			public final Param<Integer> widthA = new Param<>(this.fx, 2);
+			/** Width of color B. (px) */
+			public final Param<Integer> widthB = new Param<>(this.fx, 2);
+		}
+
+		/** Battlestar Galactica quote not included. */
+		public static class Cylon extends Behavior<Cylon> {
+			Cylon(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Cylon, fx, module, layer);
+
+				this.params = new Param<?>[] {
+					this.colorA,
+
+					this.speed,
+					this.fade, };
+			}
+
+			/** The A color. */
+			public final Param<Color> colorA = new Param<>(this.fx, new Color(255, 0, 0));
+			/** The B color. */
+			public final Param<Color> colorB = new Param<>(this.fx, new Color(0, 255, 0));
+
+			/** How fast to sweep. (s, max is {@code LimelightFX.fps}) */
+			public final Param<Double> speed = new Param<>(this.fx, 1.0, LimelightFX.time);
+			/** Fade percentage over a second (px) */
+			public final Param<Double> fade = new Param<>(this.fx, 0.25, LimelightFX.time);
+			/** Width of color A. (px) */
+			public final Param<Integer> flip = new Param<>(this.fx, 0);
+		}
+
+		/** Scrolls some chevrons in a direction. */
+		public static class Chevrons extends Behavior<Chevrons> {
+			Chevrons(final LimelightFX fx, final Module module, final int layer) {
+				super(Kind.Chevrons, fx, module, layer);
+
+				this.params = new Param<?>[] {
+					this.colorA,
+
+					this.speed,
+					this.widthB, };
+			}
+
+			/** The A color. */
+			public final Param<Color> colorA = new Param<>(this.fx, new Color(255, 0, 0));
+			/** The B color. */
+			public final Param<Color> colorB = new Param<>(this.fx, new Color(0, 255, 0));
+
+			/** Width of color A. (px) */
+			public final Param<Integer> widthA = new Param<>(this.fx, 0);
+			/** Width of color B. (px) */
+			public final Param<Integer> widthB = new Param<>(this.fx, 0);
+			/** Speed fraction. (frac) */
+			public final Param<Double> speed = new Param<>(this.fx, 30.0, LimelightFX.speed);
+		}
+
+		public static class Image extends Behavior<Image> {
+			Image(final LimelightFX fx, final Module module, final int layer) {
 				super(Kind.Image, fx, module, layer);
 
 				this.params = new Param<?>[] { this.filepath, this.xOffset, this.yOffset };
@@ -389,7 +492,7 @@ public final class LimelightFX extends SubsystemBase {
 			/** The Y offset of the image */
 			public final Param<Integer> yOffset = new Param<>(this.fx, 0);
 
-			public final ImageBehavior of(final String filepath) {
+			public final Image of(final String filepath) {
 				this.filepath.set(filepath);
 				return this;
 			}

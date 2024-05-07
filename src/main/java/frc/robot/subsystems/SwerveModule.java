@@ -29,15 +29,12 @@ public class SwerveModule {
 		};
 		default -> throw new Error();
 		};
-
-		this.azimuthPID.enableContinuousInput(-180, 180);
 	}
 
 	public final Place place;
 	public final ModuleIO io;
 	public final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
 
-	private final PIDController azimuthPID = Constants.Drivetrain.swerveAzimuthPID.createController();
 	private final SimpleMotorFeedforward driveFFW = Constants.Drivetrain.driveFFW;
 	private final PIDController drivePID = Constants.Drivetrain.drivePID.createController();
 
@@ -52,22 +49,9 @@ public class SwerveModule {
 			);
 	}
 
-	public void halt() {
-		this.io.setAzimuthVoltage(0);
-		this.io.setDriveVoltage(0);
-	}
+	public void halt() { this.io.setDriveVoltage(0); }
 
-	private void azimuth(final Measure<Angle> desired) {
-		// Calculate azimuth power required to reach the setpoint
-		final double azimuth = this.azimuthPID
-			.calculate(this.inputs.angle.in(Units.Degrees), desired.in(Units.Degrees));
-
-		// Restrict the azimuth power and reverse the direction
-		final double azimuthVolts = MathUtil.clamp(-azimuth, -10, 10);
-
-		// inputs.azimuthAppliedVolts will track the applied voltage
-		this.io.setAzimuthVoltage(azimuthVolts);
-	}
+	private void azimuth(final Measure<Angle> desired) { this.io.azimuth(desired); }
 
 	private void drive(final Measure<Velocity<Distance>> speed) {
 		// Calculate drive power

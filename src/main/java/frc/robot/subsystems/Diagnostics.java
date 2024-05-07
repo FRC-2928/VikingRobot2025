@@ -221,7 +221,7 @@ public class Diagnostics extends SubsystemBase {
 
 	private final boolean reachable(final byte suffix, final int port) {
 		try {
-			return InetAddress.getByAddress(new byte[] { 10, 29, 28, suffix }).isReachable(2);
+			return InetAddress.getByAddress(new byte[] { 10, 29, 28, suffix }).isReachable(8);
 		} catch(final Exception e) {
 			return false;
 		}

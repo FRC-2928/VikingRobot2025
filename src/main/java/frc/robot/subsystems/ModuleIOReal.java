@@ -18,10 +18,13 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
@@ -81,25 +84,6 @@ public class ModuleIOReal implements ModuleIO {
 			throw new RuntimeException("Invalid module index");
 		}
 
-		final TalonFXConfiguration azimuthConfig = new TalonFXConfiguration();
-		// Peak output of 40 amps
-		azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-		azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		azimuthConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-		azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-		azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
-
-		// Supply current limits
-		azimuthConfig.CurrentLimits.SupplyCurrentLimit = 35;
-		azimuthConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-		azimuthConfig.CurrentLimits.SupplyCurrentThreshold = 60;
-		azimuthConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
-
-		azimuthConfig.Audio = Constants.talonFXAudio;
-
-		this.azimuth.getConfigurator().apply(azimuthConfig);
-		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
-
 		final TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 		// Peak output amps
 		driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
@@ -117,13 +101,37 @@ public class ModuleIOReal implements ModuleIO {
 		driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
 		// PID values
-		driveConfig.Slot0 = Constants.Drivetrain.driveGainsSlot0;
-		driveConfig.Slot1 = Constants.Drivetrain.driveGainsSlot1;
+		driveConfig.Slot0 = Slot0Configs.from(Constants.Drivetrain.drive);
 
 		driveConfig.Audio = Constants.talonFXAudio;
 
 		this.drive.getConfigurator().apply(driveConfig);
 		this.drive.setNeutralMode(NeutralModeValue.Brake);
+
+		final TalonFXConfiguration azimuthConfig = new TalonFXConfiguration();
+		// Peak output of 40 amps
+		azimuthConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+		azimuthConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+		azimuthConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+		azimuthConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+		azimuthConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+
+		// Supply current limits
+		azimuthConfig.CurrentLimits.SupplyCurrentLimit = 35;
+		azimuthConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+		azimuthConfig.CurrentLimits.SupplyCurrentThreshold = 60;
+		azimuthConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+
+		azimuthConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+		azimuthConfig.Feedback.FeedbackRemoteSensorID = this.cancoder.getDeviceID();
+		azimuthConfig.Feedback.RotorToSensorRatio = Constants.Drivetrain.azimuthGearRatio;
+
+		azimuthConfig.Slot0 = Slot0Configs.from(Constants.Drivetrain.azimuth);
+
+		azimuthConfig.Audio = Constants.talonFXAudio;
+
+		this.azimuth.getConfigurator().apply(azimuthConfig);
+		this.azimuth.setNeutralMode(NeutralModeValue.Brake);
 
 		if(this.place == Place.FrontRight || this.place == Place.BackRight) this.drive.setInverted(true);
 
@@ -168,7 +176,9 @@ public class ModuleIOReal implements ModuleIO {
 	}
 
 	@Override
-	public void setAzimuthVoltage(final double volts) { this.azimuth.setControl(new VoltageOut(volts)); }
+	public void azimuth(final Measure<Angle> desired) {
+		this.azimuth.setControl(new PositionVoltage(desired.in(Units.Rotations)));
+	}
 
 	@Override
 	public void updateInputs(final ModuleIOInputs inputs) {

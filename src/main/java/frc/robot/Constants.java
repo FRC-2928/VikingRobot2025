@@ -155,68 +155,50 @@ public class Constants {
 			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
 		}
 
-		/* TORQUE-based velocity does not require a feed forward, as torque will accelerate the
-			rotor up to the desired velocity by itself */
-		// kP = 5 An error of 1 rotation per second results in 5 amps output
-		// kI = 0.1 An error of 1 rotation per second increases output by 0.1 amps every second
-		// kD = 0.001 A change of 1000 rotation per second squared results in 1 amp output
-		public static final Slot1Configs driveGainsSlot1 = new Slot1Configs()
-			.withKP(5)
-			.withKI(0.1)
-			.withKD(0.001)
+		public static final SlotConfigs azimuth = new SlotConfigs()
+			.withKP(-60)
+			.withKI(0)
+			.withKD(0)
 			.withKS(0)
 			.withKV(0)
 			.withKA(0);
 
-		/* VOLTAGE-based velocity requires a feed forward to account for the back-emf of the motor */
-		// kP = 0.11 An error of 1 rotation per second results in 2V output
-		// kI = 0.5 An error of 1 rotation per second increases output by 0.5V every second
-		// kD = 0.0001 A change of 1 rotation per second squared results in 0.01 volts output
-		// 0.12 Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12
-		public static final Slot0Configs driveGainsSlot0 = new Slot0Configs()
+		public static final SlotConfigs drive = new SlotConfigs()
 			.withKP(0.11)
 			.withKI(0.5)
 			.withKD(0.0001)
 			.withKS(0)
 			.withKV(0.12)
 			.withKA(0);
-		// .withKP(3).withKI(0).withKD(0)
-		// .withKS(0).withKV(0).withKA(0);
 
 		// todo: tune
 		public final static PIDValues drivePID = new PIDValues(0.1, 0, 0, 0);
-		// todo: tune
-		public static final PIDValues swerveAzimuthPID = new PIDValues(0.1, 0.01, 0.003, 0);
 		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
 		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
-			15
+			17
 		);
 		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 2.5, 0);
 
-		// public static final PIDValues targetVerticalControllerPID = new PIDValues(0.2, 0, 0, 0);
-		// public static final PIDValues targetHorizontalControllerPID = new PIDValues(0.2, 0, 0, 0);
-		// public static final PIDValues visionAbsoluteRotationErrorPID = new PIDValues(1, 0, 0, 0);
-
-		public static final double thetaCompensationFactor = 0.1;
+		public static final double thetaCompensationFactor = 0.4;
 
 		public static final Measure<Distance> wheelBase = Units.Inches.of(29 - 2.5 * 2);
 		public static final Measure<Distance> trackWidth = Drivetrain.wheelBase; // For a square drivetrain`
 
-		public static final Measure<Angle> swerveFrontLeftOffset = Units.Rotations.of(-0.42138671875);
+		public static final Measure<Angle> swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase,
 			Constants.Drivetrain.trackWidth
 		);
-		public static final Measure<Angle> swerveFrontRightOffset = Units.Rotations.of(0.2978515625);
+		public static final Measure<Angle> swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase,
 			Constants.Drivetrain.trackWidth.negate()
 		);
-		public static final Measure<Angle> swerveBackLeftOffset = Units.Rotations.of(0.027587890625);
+		public static final Measure<Angle> swerveBackLeftOffset = Units.Rotations.of(0.033203125);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.negate(),
 			Constants.Drivetrain.trackWidth
