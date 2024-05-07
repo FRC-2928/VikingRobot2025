@@ -11,6 +11,7 @@ import frc.robot.Robot;
 import frc.robot.Tuning;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.drivetrain.TestDrive;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.ShootAmp;
 import frc.robot.commands.shooter.ShootFixed;
@@ -30,6 +31,7 @@ public class DriverOI extends BaseOI {
 			this.driveFORX = () -> this.hid.getRawAxis(2);
 			this.driveFORY = () -> this.hid.getRawAxis(3);
 		}
+		this.manualRotation = this.controller.rightStick();
 
 		this.shootSpeaker = this.controller.leftTrigger();
 		this.shootAmp = this.controller.leftBumper();
@@ -47,6 +49,7 @@ public class DriverOI extends BaseOI {
 
 	public final Supplier<Double> driveFORX;
 	public final Supplier<Double> driveFORY;
+	public final Trigger manualRotation;
 
 	public final Trigger shootSpeaker;
 	public final Trigger shootAmp;
@@ -68,5 +71,7 @@ public class DriverOI extends BaseOI {
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 
 		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));
+
+		this.controller.a().whileTrue(new TestDrive());
 	}
 }

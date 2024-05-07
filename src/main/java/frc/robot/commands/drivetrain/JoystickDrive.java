@@ -66,30 +66,34 @@ public class JoystickDrive extends Command {
 	private Measure<Velocity<Angle>> theta() {
 		final double theta;
 
-		// Joystick Right Axis
-		final double rotX = this.oi.driveFORX.get();
-		final double rotY = this.oi.driveFORY.get();
+		if(Robot.cont.driverOI.manualRotation.getAsBoolean())
+			theta = MathUtil.applyDeadband(this.oi.driveFORX.get(), 0.075);
+		else {
+			// Joystick Right Axis
+			final double rotX = this.oi.driveFORX.get();
+			final double rotY = this.oi.driveFORY.get();
 
-		// This will determine the rotation speed based on how far the joystick is moved.
-		this.forMagnitude = Math.hypot(rotX, rotY);
-		Logger.recordOutput("JoystickDrive/AbsoluteRotation/Magnitude", this.forMagnitude);
+			// This will determine the rotation speed based on how far the joystick is moved.
+			this.forMagnitude = Math.hypot(rotX, rotY);
+			Logger.recordOutput("JoystickDrive/AbsoluteRotation/Magnitude", this.forMagnitude);
 
-		// Get a new rotation target if right joystick values are beyond the deadband.
-		// Otherwise, we'll keep the old one.
-		final boolean rotateRobot = this.forMagnitude > 0.5;
-		if(rotateRobot) this.forTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
-		Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", this.forTarget);
+			// Get a new rotation target if right joystick values are beyond the deadband.
+			// Otherwise, we'll keep the old one.
+			final boolean rotateRobot = this.forMagnitude > 0.5;
+			if(rotateRobot) this.forTarget = Units.Radians.of(-Math.atan2(rotX, rotY));
+			Logger.recordOutput("JoystickDrive/AbsoluteRotation/Target", this.forTarget);
 
-		this.forMagnitude = this.forMagnitude * 0.5 + 0.5;
+			this.forMagnitude = this.forMagnitude * 0.5 + 0.5;
 
-		final double measurement = this.drivetrain.est.getEstimatedPosition().getRotation().getRotations();
-		final double setpoint = this.forTarget.in(Units.Rotations);
+			final double measurement = this.drivetrain.est.getEstimatedPosition().getRotation().getRotations();
+			final double setpoint = this.forTarget.in(Units.Rotations);
 
-		theta = MathUtil
-			.applyDeadband(
-				-(this.absoluteController.calculate(measurement, setpoint)), // todo: determine whether this - is ok
-				0.075
-			);
+			theta = MathUtil
+				.applyDeadband(
+					-(this.absoluteController.calculate(measurement, setpoint)), // todo: determine whether this - is ok
+					0.075
+				);
+		}
 
 		return Constants.Drivetrain.maxAngularVelocity.times(theta * this.forMagnitude);
 	}

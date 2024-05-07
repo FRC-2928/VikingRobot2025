@@ -21,6 +21,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -126,6 +127,8 @@ public class ModuleIOReal implements ModuleIO {
 		azimuthConfig.Feedback.FeedbackRemoteSensorID = this.cancoder.getDeviceID();
 		azimuthConfig.Feedback.RotorToSensorRatio = Constants.Drivetrain.azimuthGearRatio;
 
+		azimuthConfig.ClosedLoopGeneral.ContinuousWrap = true;
+
 		azimuthConfig.Slot0 = Slot0Configs.from(Constants.Drivetrain.azimuth);
 
 		azimuthConfig.Audio = Constants.talonFXAudio;
@@ -173,6 +176,11 @@ public class ModuleIOReal implements ModuleIO {
 					false
 				)
 			);
+	}
+
+	@Override
+	public void drive(final Measure<Velocity<Distance>> demand) {
+		this.drive.setControl(new VelocityVoltage(demand.in(Units.MetersPerSecond)));
 	}
 
 	@Override

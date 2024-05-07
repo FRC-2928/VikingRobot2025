@@ -197,7 +197,6 @@ public class ShooterIOReal implements ShooterIO {
 	public void runFlywheelsVelocity(final double demand) {
 		this.flywheelA.setControl(new VelocityDutyCycle(demand));
 		this.flywheelB.setControl(new VelocityDutyCycle(demand));
-
 	}
 
 	@Override

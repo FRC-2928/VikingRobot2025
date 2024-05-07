@@ -175,7 +175,7 @@ public class Drivetrain extends SubsystemBase {
 		return ChassisSpeeds
 			.fromFieldRelativeSpeeds(
 				original,
-				Rotation2d.fromRadians(original.omegaRadiansPerSecond * Constants.Drivetrain.thetaCompensationFactor)
+				Rotation2d.fromRadians(original.omegaRadiansPerSecond * -Constants.Drivetrain.thetaCompensationFactor)
 			);
 	}
 

@@ -54,13 +54,17 @@ public class SwerveModule {
 	private void azimuth(final Measure<Angle> desired) { this.io.azimuth(desired); }
 
 	private void drive(final Measure<Velocity<Distance>> speed) {
+		/*
 		// Calculate drive power
 		final double ffw = this.driveFFW.calculate(speed.in(Units.MetersPerSecond));
 		final double output = this.drivePID
 			.calculate(this.inputs.driveVelocity.in(Units.MetersPerSecond), speed.in(Units.MetersPerSecond));
-
+		
 		// inputs.driveAppliedVolts will track the applied voltage
 		this.io.setDriveVoltage(ffw + output);
+		*/
+
+		this.io.drive(speed);
 	}
 
 	public void control(final SwerveModuleState state) {

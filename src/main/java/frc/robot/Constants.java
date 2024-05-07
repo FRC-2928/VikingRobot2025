@@ -164,11 +164,11 @@ public class Constants {
 			.withKA(0);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(0.11)
-			.withKI(0.5)
-			.withKD(0.0001)
+			.withKP(0.0)
+			.withKI(0.0)
+			.withKD(0)
 			.withKS(0)
-			.withKV(0.12)
+			.withKV(2.62)
 			.withKA(0);
 
 		// todo: tune
@@ -183,7 +183,7 @@ public class Constants {
 		// todo: find
 		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 2.5, 0);
 
-		public static final double thetaCompensationFactor = 0.4;
+		public static final double thetaCompensationFactor = 0.2;
 
 		public static final Measure<Distance> wheelBase = Units.Inches.of(29 - 2.5 * 2);
 		public static final Measure<Distance> trackWidth = Drivetrain.wheelBase; // For a square drivetrain`

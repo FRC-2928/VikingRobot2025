@@ -30,6 +30,8 @@ public interface ModuleIO {
 
 	public default void setDriveVoltage(final double volts) {}
 
+	public default void drive(final Measure<Velocity<Distance>> desired) {}
+
 	public default void azimuth(final Measure<Angle> desired) {}
 
 	public default void updateInputs(final ModuleIOInputs inputs) {}
