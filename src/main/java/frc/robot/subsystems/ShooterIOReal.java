@@ -20,6 +20,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.*;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -164,6 +165,8 @@ public class ShooterIOReal implements ShooterIO {
 	public final STalonFX flywheelB = new STalonFX(Constants.CAN.CTRE.shooterFlywheelB, Constants.CAN.CTRE.bus);
 	public final TalonSRX feeder = new TalonSRX(Constants.CAN.Misc.feederLauncher);
 	public final TalonSRX intake = new TalonSRX(Constants.CAN.Misc.intakeRoller);
+	private final Servo ampServoA = new Servo(Constants.PWM.ampBarServoA);
+	private final Servo ampServoB = new Servo(Constants.PWM.ampBarServoB);
 
 	public final StatusSignal<Double> angle;
 	public final StatusSignal<Double> angleSpeed;
@@ -216,6 +219,18 @@ public class ShooterIOReal implements ShooterIO {
 	public void runIntake(final Demand demand) {
 		this.intake.set(ControlMode.PercentOutput, demand.dir);
 		Logger.recordOutput("Shooter/IntakeDemand", demand.name());
+	}
+
+	@Override
+	public void extendAmpBar() {
+		this.ampServoA.setAngle(Constants.Shooter.ampBarServoAExtend.in(Units.Degrees));
+		this.ampServoB.setAngle(Constants.Shooter.ampBarServoBExtend.in(Units.Degrees));
+	}
+
+	@Override
+	public void retractAmpBar() {
+		this.ampServoA.setAngle(Constants.Shooter.ampBarServoARetract.in(Units.Degrees));
+		this.ampServoB.setAngle(Constants.Shooter.ampBarServoBRetract.in(Units.Degrees));
 	}
 
 	@Override

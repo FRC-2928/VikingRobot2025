@@ -32,5 +32,9 @@ public interface ShooterIO {
 
 	public default void runIntake(final Demand demand) {}
 
+	public default void extendAmpBar() {}
+
+	public default void retractAmpBar() {}
+
 	public default void updateInputs(final ShooterIOInputs inputs) {}
 }

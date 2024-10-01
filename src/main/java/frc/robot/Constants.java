@@ -138,6 +138,9 @@ public class Constants {
 		private PWM() { throw new IllegalCallerException("Cannot instantiate `Constants.PWM`"); }
 
 		public static final int climberRatchet = 9;
+
+		public static final int ampBarServoA = 0;
+		public static final int ampBarServoB = 1;
 	}
 
 	public static final class DIO {
@@ -303,6 +306,11 @@ public class Constants {
 		public static final Measure<Angle> readyShootRear = Units.Degrees.of(125);
 		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
+
+		public static final Measure<Angle> ampBarServoAExtend = Units.Degrees.of(175);
+		public static final Measure<Angle> ampBarServoBExtend = Units.Degrees.of(5);
+		public static final Measure<Angle> ampBarServoARetract = Units.Degrees.of(0);
+		public static final Measure<Angle> ampBarServoBRetract = Units.Degrees.of(180);
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 
