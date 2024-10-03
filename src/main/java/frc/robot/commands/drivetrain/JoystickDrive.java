@@ -66,7 +66,7 @@ public class JoystickDrive extends Command {
 	private Measure<Velocity<Angle>> theta() {
 		final double theta;
 
-		if(Robot.cont.driverOI.manualRotation.getAsBoolean())
+		if(!Robot.cont.driverOI.manualRotation.getAsBoolean())
 			theta = MathUtil.applyDeadband(this.oi.driveFORX.get(), 0.075);
 		else {
 			// Joystick Right Axis
