@@ -252,7 +252,7 @@ public class Constants {
 			public static final FlywheelConfiguration greenBane = new FlywheelConfiguration(
 				Units.RotationsPerSecond.of(40),
 				Units.RotationsPerSecond.of(37),
-				0.18
+				0.40
 			);
 
 			public FlywheelConfiguration(

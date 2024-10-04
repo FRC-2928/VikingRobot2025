@@ -63,7 +63,7 @@ public class DriverOI extends BaseOI {
 
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp.whileTrue(new ShootAmp());
+		this.shootAmp.onTrue(new PrepareAmpShot().withTimeout(0.5)).whileTrue(new ShootAmp());
 		this.intake.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());
