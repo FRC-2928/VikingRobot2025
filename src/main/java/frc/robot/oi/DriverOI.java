@@ -15,6 +15,7 @@ import frc.robot.commands.drivetrain.TestDrive;
 import frc.robot.commands.shooter.IntakeGround;
 import frc.robot.commands.shooter.PrepareAmpShot;
 import frc.robot.commands.shooter.ShootAmp;
+import frc.robot.commands.shooter.FinishAmpShot;
 import frc.robot.commands.shooter.ShootFixed;
 import frc.robot.commands.shooter.ShootSpeaker;
 
@@ -64,7 +65,9 @@ public class DriverOI extends BaseOI {
 
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp.onTrue(new PrepareAmpShot().withTimeout(0.5)).whileTrue(new ShootAmp());
+		this.shootAmp.onTrue(new PrepareAmpShot().withTimeout(0.3))
+					 .whileTrue(new ShootAmp())
+					 .onFalse(new FinishAmpShot().withTimeout(0.3));
 		this.intake.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());

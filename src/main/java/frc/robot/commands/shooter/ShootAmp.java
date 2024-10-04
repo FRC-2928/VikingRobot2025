@@ -36,18 +36,9 @@ public class ShootAmp extends Command {
 	}
 
 	@Override
-	public boolean isFinished() {
-		// NOTE: this may cause the command to terminate prematurely, needs to be worked out in testing
-		return this.fired;
-	}
-
-	@Override
 	public void end(final boolean interrupted) {
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
-		// retract the amp deflector and rotate to a safe position
-		Robot.cont.shooter.io.retractAmpBar();
-		Robot.cont.shooter.io.rotate(Units.Degrees.of(10));
 	}
 
 	@Override
