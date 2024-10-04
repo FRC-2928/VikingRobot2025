@@ -13,6 +13,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.drivetrain.TestDrive;
 import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.PrepareAmpShot;
 import frc.robot.commands.shooter.ShootAmp;
 import frc.robot.commands.shooter.ShootFixed;
 import frc.robot.commands.shooter.ShootSpeaker;
