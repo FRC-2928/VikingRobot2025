@@ -307,10 +307,10 @@ public class Constants {
 		// public static final Measure<Angle> readyShootRearSub = Units.Degrees.of(105);
 		public static final Measure<Angle> shootAmp = Units.Degrees.of(110);
 
-		public static final Measure<Angle> ampBarServoAExtend = Units.Degrees.of(175);
-		public static final Measure<Angle> ampBarServoBExtend = Units.Degrees.of(5);
-		public static final Measure<Angle> ampBarServoARetract = Units.Degrees.of(0);
-		public static final Measure<Angle> ampBarServoBRetract = Units.Degrees.of(180);
+		public static final double ampBarServoAExtend = 1.0;
+		public static final double ampBarServoBExtend = 0.0;
+		public static final double ampBarServoARetract = 0.0;
+		public static final double ampBarServoBRetract = 1.0;
 
 		public static final Measure<Angle> startingConfiguration = Units.Degrees.of(90);
 

@@ -229,8 +229,8 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void retractAmpBar() {
-		this.ampServoA.set(ampBarServoARetract);
-		this.ampServoB.set(ampBarServoBRetract);
+		this.ampServoA.set(Constants.Shooter.ampBarServoARetract);
+		this.ampServoB.set(Constants.Shooter.ampBarServoBRetract);
 	}
 
 	@Override
