@@ -46,7 +46,7 @@ public class ShootAmp extends Command {
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 		// retract the amp deflector and rotate to a safe position
-		Robot.cont.shooter.io.extendAmpBar();
+		Robot.cont.shooter.io.retractAmpBar();
 		Robot.cont.shooter.io.rotate(Units.Degrees.of(10));
 	}
 
