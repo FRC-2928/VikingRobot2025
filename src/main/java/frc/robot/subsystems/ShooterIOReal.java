@@ -223,14 +223,14 @@ public class ShooterIOReal implements ShooterIO {
 
 	@Override
 	public void extendAmpBar() {
-		this.ampServoA.setAngle(Constants.Shooter.ampBarServoAExtend.in(Units.Degrees));
-		this.ampServoB.setAngle(Constants.Shooter.ampBarServoBExtend.in(Units.Degrees));
+		this.ampServoA.set(Constants.Shooter.ampBarServoAExtend);
+		this.ampServoB.set(Constants.Shooter.ampBarServoBExtend);
 	}
 
 	@Override
 	public void retractAmpBar() {
-		this.ampServoA.setAngle(Constants.Shooter.ampBarServoARetract.in(Units.Degrees));
-		this.ampServoB.setAngle(Constants.Shooter.ampBarServoBRetract.in(Units.Degrees));
+		this.ampServoA.set(ampBarServoARetract);
+		this.ampServoB.set(ampBarServoBRetract);
 	}
 
 	@Override
