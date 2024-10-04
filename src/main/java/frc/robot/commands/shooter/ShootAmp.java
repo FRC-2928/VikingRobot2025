@@ -19,6 +19,7 @@ public class ShootAmp extends Command {
 	@Override
 	public void execute() {
 		Robot.cont.shooter.io.extendAmpBar();
+		Robot.cont.shooter.io.rotate(Units.Degrees.of(45));
 		// Robot.cont.shooter.io.rotate(Units.Degrees.of(Tuning.ampAngle.get()));
 		// Robot.cont.shooter.io.runFlywheels(Tuning.ampPower.get());
 
