@@ -76,6 +76,8 @@ public class Robot extends LoggedRobot {
 	public void autonomousInit() {
 		CommandScheduler.getInstance().cancelAll();
 
+		this.container.shooter.io.retractAmpBar();
+
 		// Get selected routine from the dashboard
 		this.autonomousCommand = this.container.getAutonomousCommand();
 

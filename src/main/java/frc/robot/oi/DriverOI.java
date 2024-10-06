@@ -39,11 +39,11 @@ public class DriverOI extends BaseOI {
 		this.shootAmp = this.controller.leftBumper();
 		this.intake = this.controller.rightTrigger();
 
-		this.lockWheels = this.controller.rightBumper();
+		this.ferry = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
 
-		this.ferry = this.controller.x();
+		this.lockWheels = this.controller.x();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -65,9 +65,10 @@ public class DriverOI extends BaseOI {
 
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp.onTrue(new PrepareAmpShot().withTimeout(0.3))
-					 .whileTrue(new ShootAmp())
-					 .onFalse(new FinishAmpShot().withTimeout(0.3));
+		this.shootAmp
+			.onTrue(new PrepareAmpShot().withTimeout(0.3))
+			.whileTrue(new ShootAmp())
+			.onFalse(new FinishAmpShot().withTimeout(0.6));
 		this.intake.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());

@@ -24,6 +24,7 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					new ReadyShooter(Units.Degrees.of(114), true),
 					Autonomous.setInitialPose("MiddleFiveNote.1"),
+					new WaitCommand(0.2),
 					new ShootFixed(false, 2),
 					Autonomous
 						.path("MiddleFiveNote.1")

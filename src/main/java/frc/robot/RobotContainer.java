@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
 import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Climber;
@@ -14,7 +15,7 @@ import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;
-
+	public final LoggedDashboardChooser<String> driveModeChooser;
 	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
 	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
@@ -45,6 +46,10 @@ public class RobotContainer {
 			"Autonomous Routine",
 			Autonomous.createAutonomousChooser()
 		);
+		this.driveModeChooser = new LoggedDashboardChooser<>(
+			"Drive Mode",
+			JoystickDrive.createDriveModeChooser()
+		);
 
 		this.driverOI.configureControls();
 		this.operatorOI.configureControls();
@@ -53,4 +58,6 @@ public class RobotContainer {
 	}
 
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
+
+	public String getDriveMode() { return this.driveModeChooser.get(); }
 }
