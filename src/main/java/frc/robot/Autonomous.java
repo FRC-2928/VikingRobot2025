@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.path.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -170,15 +171,15 @@ public final class Autonomous {
 				"[comp] The Jamp",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("jamp.1"),
-					new ShootFixed(false, 2),
+					new ShootFixedDiag(false, 2),
 					Autonomous.path("jamp.1").deadlineWith(new IntakeGround(false)),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround(true).withTimeout(1.3),
 					Autonomous
 						.dynamicThen("jamp.2")
 						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
 					new ShootSpeaker(false, 2),
 					Autonomous.path("jamp.3").deadlineWith(new IntakeGround(false)),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround(true).withTimeout(1.3),
 					Autonomous
 						.dynamicThen("jamp.4")
 						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootRear, true)),
@@ -188,16 +189,37 @@ public final class Autonomous {
 
 		chooser
 			.addOption(
+				"[comp] The Close Jamp",
+				new SequentialCommandGroup(
+					Autonomous.setInitialPose("closeJamp.1"),
+					new ShootFixedDiag(false, 2),
+					Autonomous.path("closeJamp.1").deadlineWith(new IntakeGround(false)),
+					new IntakeGround(true).withTimeout(1.3),
+					Autonomous
+						.dynamicThen("closeJamp.2")
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootFront, true)),
+					new ShootSpeaker(false, 2),
+					Autonomous.path("closeJamp.3").deadlineWith(new IntakeGround(false)),
+					new IntakeGround(true).withTimeout(1.3),
+					Autonomous
+						.dynamicThen("closeJamp.4")
+						.deadlineWith(new ReadyShooter(Constants.Shooter.readyShootFront, true)),
+					new ShootSpeaker(false, 2)
+				)
+			);
+
+		chooser
+			.addOption(
 				"[comp] The Jource",
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("jource.1"),
-					new ShootFixed(false, 2),
+					new ShootFixedDiag(false, 2),
 					Autonomous.path("jource.1").deadlineWith(new IntakeGround(false)),
-					new IntakeGround(true).withTimeout(2),
+					new IntakeGround(true).withTimeout(1.3),
 					Autonomous.dynamicThen("jource.2"),
 					new ShootSpeaker(false, 2),
 					Autonomous.path("jource.3").deadlineWith(new IntakeGround(false)),
-					new IntakeGround(true).withTimeout(2)
+					new IntakeGround(true).withTimeout(1.3)
 				)
 			);
 
@@ -222,7 +244,47 @@ public final class Autonomous {
 					new IntakeGround(true).withTimeout(2)
 				)
 			);
-
+		chooser.addOption("[testing] Intake Only", new SequentialCommandGroup(new IntakeGround(true).withTimeout(2)));
+		chooser
+			.addOption(
+				"[testing] forward only",
+				new SequentialCommandGroup(Autonomous.setInitialPose("forwardBack.1"), Autonomous.path("forwardBack.1"))
+			);
+		chooser
+			.addOption(
+				"[testing] forward Back",
+				new SequentialCommandGroup(
+					Autonomous.setInitialPose("forwardBack.1"),
+					Autonomous.path("forwardBack.1"),
+					new IntakeGround(true).withTimeout(2),
+					Autonomous.dynamic("forwardBack.2"),
+					Autonomous.path("forwardBack.2")
+				)
+			);
+		chooser
+			.addOption(
+				"[testing] dynamic path back",
+				new SequentialCommandGroup(
+					Autonomous.dynamic("forwardBack.2")
+				)
+			);
+		chooser
+			.addOption(
+				"[testing] return to start",
+				new SequentialCommandGroup(
+					Autonomous.path("forwardBack.2")
+				)
+			);
+		chooser
+			.addOption(
+				"[testing] forward path too back",
+				new SequentialCommandGroup(
+					Autonomous.setInitialPose("forwardBack.1"),
+					Autonomous.path("forwardBack.1"),
+					new IntakeGround(true).withTimeout(2),
+					Autonomous.dynamic("forwardBack.2")
+				)
+			);
 		return chooser;
 	}
 

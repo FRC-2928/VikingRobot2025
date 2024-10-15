@@ -154,7 +154,7 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0, 0);
+			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.1, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
 		}
 
@@ -252,7 +252,7 @@ public class Constants {
 			public static final FlywheelConfiguration greenBane = new FlywheelConfiguration(
 				Units.RotationsPerSecond.of(40),
 				Units.RotationsPerSecond.of(37),
-				0.40
+				0.60
 			);
 
 			public FlywheelConfiguration(

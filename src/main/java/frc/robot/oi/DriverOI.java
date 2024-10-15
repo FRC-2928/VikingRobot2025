@@ -71,8 +71,9 @@ public class DriverOI extends BaseOI {
 			.onFalse(new FinishAmpShot().withTimeout(0.6));
 		this.intake.whileTrue(new IntakeGround(true));
 
-		this.lockWheels.whileTrue(new LockWheels());
-
+		this.lockWheels.onTrue(new InstantCommand(() -> Robot.cont.ledState = true))
+		.onFalse(new InstantCommand(() -> Robot.cont.ledState = false));
+	//	this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 
 		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));

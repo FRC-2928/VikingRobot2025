@@ -52,6 +52,7 @@ public class LimelightFXManager {
 
 		this.fx.selector(() -> {
 			if(Robot.cont.shooter.inputs.holdingNote) return this.behHoldingNote;
+			else if(Robot.cont.ledState) return this.behHoldingNote;
 			else return null;
 		});
 

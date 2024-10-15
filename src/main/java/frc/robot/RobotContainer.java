@@ -27,6 +27,7 @@ public class RobotContainer {
 
 	public final LimelightFXManager fxm;
 
+	public static boolean ledState = false;
 	public RobotContainer() {
 		Robot.instance.container = this;
 		Robot.cont = this;
