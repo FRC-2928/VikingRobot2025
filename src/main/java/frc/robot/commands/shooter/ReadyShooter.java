@@ -20,6 +20,9 @@ public class ReadyShooter extends Command {
 	public final boolean spinUp;
 
 	@Override
+	public void initialize() { Robot.cont.shooter.io.retractAmpBar(); }
+
+	@Override
 	public void execute() {
 		Robot.cont.shooter.io.rotate(this.angle);
 		if(this.spinUp) Robot.cont.shooter.io.runFlywheelsVelocity(Tuning.flywheelVelocity.get());

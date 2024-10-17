@@ -87,7 +87,7 @@ public class ModuleIOReal implements ModuleIO {
 
 		final TalonFXConfiguration driveConfig = new TalonFXConfiguration();
 		// Peak output amps
-		driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+		driveConfig.CurrentLimits.StatorCurrentLimit = 80.0;
 		driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 		driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
 		driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;

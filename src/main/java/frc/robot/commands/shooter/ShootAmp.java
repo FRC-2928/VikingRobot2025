@@ -37,10 +37,6 @@ public class ShootAmp extends Command {
 
 	@Override
 	public void end(final boolean interrupted) {
-		Robot.cont.shooter.io
-			.rotate(
-				Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
-			);
 		Robot.cont.shooter.io.runFlywheels(0);
 		Robot.cont.shooter.io.runFeeder(Demand.Halt);
 	}

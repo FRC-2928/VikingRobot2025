@@ -13,7 +13,9 @@ import frc.robot.Constants.Mode;
 import frc.robot.commands.drivetrain.LockWheels;
 import frc.robot.commands.drivetrain.TestDrive;
 import frc.robot.commands.shooter.IntakeGround;
+import frc.robot.commands.shooter.PrepareAmpShot;
 import frc.robot.commands.shooter.ShootAmp;
+import frc.robot.commands.shooter.FinishAmpShot;
 import frc.robot.commands.shooter.ShootFixed;
 import frc.robot.commands.shooter.ShootSpeaker;
 
@@ -37,11 +39,11 @@ public class DriverOI extends BaseOI {
 		this.shootAmp = this.controller.leftBumper();
 		this.intake = this.controller.rightTrigger();
 
-		this.lockWheels = this.controller.rightBumper();
+		this.ferry = this.controller.rightBumper();
 
 		this.resetFOD = this.controller.y();
 
-		this.ferry = this.controller.x();
+		this.lockWheels = this.controller.x();
 	}
 
 	public final Supplier<Double> driveAxial;
@@ -63,11 +65,15 @@ public class DriverOI extends BaseOI {
 
 	public void configureControls() {
 		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp.whileTrue(new ShootAmp());
+		this.shootAmp
+			.onTrue(new PrepareAmpShot().withTimeout(0.3))
+			.whileTrue(new ShootAmp())
+			.onFalse(new FinishAmpShot().withTimeout(0.6));
 		this.intake.whileTrue(new IntakeGround(true));
 
-		this.lockWheels.whileTrue(new LockWheels());
-
+		this.lockWheels.onTrue(new InstantCommand(() -> Robot.cont.ledState = true))
+		.onFalse(new InstantCommand(() -> Robot.cont.ledState = false));
+	//	this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 
 		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));

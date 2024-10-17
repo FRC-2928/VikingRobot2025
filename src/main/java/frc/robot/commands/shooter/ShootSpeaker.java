@@ -92,6 +92,11 @@ public class ShootSpeaker extends Command {
 			Logger.recordOutput("Shooter/ShootSpeaker/OverrideShoot", overrideShoot);
 			Logger.recordOutput("Shooter/ShootSpeaker/Fired", this.fired != -1);
 
+			if(overrideShoot && demandFire) {
+				Robot.cont.shooter.io.runFeeder(Demand.Forward);
+				if(this.fired == -1) this.fired = Timer.getFPGATimestamp();
+			}
+
 			if(shooterLLSees) {
 				final Measure<Angle> po = Robot.cont.drivetrain.limelightShooter.getTargetHorizontalOffset();
 				final Measure<Angle> yo = Robot.cont.drivetrain.limelightShooter
