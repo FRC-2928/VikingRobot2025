@@ -1,5 +1,6 @@
 package frc.robot;
 
+import org.littletonrobotics.junction.networktables.LoggedDashboardInput;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 import edu.wpi.first.units.Units;

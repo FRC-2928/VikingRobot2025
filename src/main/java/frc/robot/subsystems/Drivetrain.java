@@ -188,6 +188,14 @@ public class Drivetrain extends SubsystemBase {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
 	}
 
+	@AutoLogOutput
+	public void runCharacterization(final double volts) {
+		for(int i = 0; i < this.modules.length; i++) {
+			this.modules[i].runCharacterization(volts);
+		}
+		Logger.recordOutput("Drivetrain/InputVoltage", volts);
+	}
+
 	@AutoLogOutput(key = "Drivetrain/CurrentPositions")
 	public SwerveModulePosition[] modulePositions() {
 		return Arrays.stream(this.modules).map(module -> module.position).toArray(SwerveModulePosition[]::new);

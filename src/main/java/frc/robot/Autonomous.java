@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.drivetrain.DriveTime;
 import frc.robot.commands.shooter.*;
+import frc.robot.commands.drivetrain.VoltageRampCommand;
 
 public final class Autonomous {
 	public static SendableChooser<Command> createAutonomousChooser() {
@@ -262,19 +263,8 @@ public final class Autonomous {
 				)
 			);
 		chooser
-			.addOption(
-				"[testing] dynamic path back",
-				new SequentialCommandGroup(
-					Autonomous.dynamic("forwardBack.2")
-				)
-			);
-		chooser
-			.addOption(
-				"[testing] return to start",
-				new SequentialCommandGroup(
-					Autonomous.path("forwardBack.2")
-				)
-			);
+			.addOption("[testing] dynamic path back", new SequentialCommandGroup(Autonomous.dynamic("forwardBack.2")));
+		chooser.addOption("[testing] return to start", new SequentialCommandGroup(Autonomous.path("forwardBack.2")));
 		chooser
 			.addOption(
 				"[testing] forward path too back",
@@ -285,6 +275,7 @@ public final class Autonomous {
 					Autonomous.dynamic("forwardBack.2")
 				)
 			);
+		chooser.addOption("[testing] voltage ramp", new VoltageRampCommand());
 		return chooser;
 	}
 

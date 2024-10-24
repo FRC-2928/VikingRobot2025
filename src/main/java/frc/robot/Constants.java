@@ -154,7 +154,7 @@ public class Constants {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
 		public static final class Auto {
-			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.1, 0);
+			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.5, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
 		}
 
@@ -167,10 +167,10 @@ public class Constants {
 			.withKA(0);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(0.0)
+			.withKP(0)
 			.withKI(0.0)
 			.withKD(0)
-			.withKS(0)
+			.withKS(0.225)
 			.withKV(2.62)
 			.withKA(0);
 
