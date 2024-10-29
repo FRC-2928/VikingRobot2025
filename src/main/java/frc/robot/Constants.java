@@ -22,7 +22,7 @@ import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Velocity;
 import frc.robot.subsystems.LimelightFX.Color;
-
+import frc.robot.Tuning;
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -34,7 +34,6 @@ public class Constants {
 
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
-
 	public static final Measure<Distance> fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
 	public static final Measure<Distance> fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
@@ -167,7 +166,7 @@ public class Constants {
 			.withKA(0);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(0)
+			.withKP(4) /* 0.15 */
 			.withKI(0.0)
 			.withKD(0)
 			.withKS(0.225)

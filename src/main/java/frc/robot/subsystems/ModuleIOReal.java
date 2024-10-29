@@ -100,7 +100,7 @@ public class ModuleIOReal implements ModuleIO {
 		driveConfig.CurrentLimits.SupplyCurrentThreshold = 60;
 		driveConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
 
-		// driveConfig.Feedback.SensorToMechanismRatio = Constants.Drivetrain.rotationsPerMeter;
+		driveConfig.Feedback.SensorToMechanismRatio =  Constants.Drivetrain.driveGearRatio  /Constants.Drivetrain.wheelCircumference.in(Units.Meters);
 		driveConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
 		// PID values

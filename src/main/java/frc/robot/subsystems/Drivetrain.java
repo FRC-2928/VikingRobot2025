@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -242,21 +243,21 @@ public class Drivetrain extends SubsystemBase {
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
-		/*
 		// Fuse odometry pose with vision data if we have it.
-		if(this.limelightShooter.hasValidTargets() && this.limelightShooter.getNumberOfAprilTags() >= 2) {
-			// distance from current pose to vision estimated pose
-			// double poseDifference = this.poseEstimator
-			// 	.getEstimatedPosition()
-			//	.getTranslation()
-			// 	.getDistance(this.limelight.getPose2d().getTranslation());
-		
-			// if (poseDifference < 0.5) {
-			this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
-			// }
-		}
-		*/
+		if(this.limelightShooter.hasValidTargets() && this.limelightRear.getNumberOfAprilTags() >= 2) {
+			// final distance from current final pose to vision final estimated pose
+			final double poseDifference = this.est
+				.getEstimatedPosition()
+				.getTranslation()
+				.getDistance(this.limelightRear.getPose2d().getTranslation());
 
+			if(poseDifference < 0.5) {
+				//0.3 subtracted to account for cam delay
+				// this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+
+			}
+		}
+		Logger.recordOutput("Drivetrain/LimelightRearPose", this.limelightRear.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/BlueOriginPose", this.blueOriginPose());
 	}
