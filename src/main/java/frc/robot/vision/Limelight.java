@@ -1,5 +1,7 @@
 package frc.robot.vision;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.units.*;
@@ -58,7 +60,7 @@ public class Limelight {
 	public Pose3d getPose3d() { return LimelightHelpers.getBotPose3d(this.limelightName); }
 
 	// Robot transform in 2D field-space. Translation (X,Y) Rotation(Z)
-	//@AutoLogOutput(key = "Odometry/Limelight")
+	@AutoLogOutput(key = "Odometry/Limelight")
 	public Pose2d getPose2d() {
 		// Pose2d botPose = getBotPose2d().relativeTo(new Pose2d(-8.27, -4.105, new Rotation2d()));
 		// This should do the same thing as the commented out line above, without need for manual coordinate transformation

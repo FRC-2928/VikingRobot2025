@@ -257,11 +257,16 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("forwardBack.1"),
 					Autonomous.path("forwardBack.1"),
+					new LookForNote(),
 					new IntakeGround(true).withTimeout(2),
 					Autonomous.dynamic("forwardBack.2"),
 					Autonomous.path("forwardBack.2")
 				)
 			);
+		chooser.addOption(
+			"[testing] LookForNote", 
+			new LookForNote()
+		);
 		chooser
 			.addOption("[testing] dynamic path back", new SequentialCommandGroup(Autonomous.dynamic("forwardBack.2")));
 		chooser.addOption("[testing] return to start", new SequentialCommandGroup(Autonomous.path("forwardBack.2")));

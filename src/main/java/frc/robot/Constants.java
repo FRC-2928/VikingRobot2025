@@ -23,6 +23,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Velocity;
 import frc.robot.subsystems.LimelightFX.Color;
 import frc.robot.Tuning;
+
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -168,9 +169,9 @@ public class Constants {
 		public static final SlotConfigs drive = new SlotConfigs()
 			.withKP(4) /* 0.15 */
 			.withKI(0.0)
-			.withKD(0)
+			.withKD(0.2)
 			.withKS(0.225)
-			.withKV(2.62)
+			.withKV(2.62) 
 			.withKA(0);
 
 		// todo: tune
