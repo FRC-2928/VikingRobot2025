@@ -1,5 +1,6 @@
 package frc.robot.commands.shooter;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -8,6 +9,7 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.oi.BaseOI;
 import frc.robot.subsystems.ShooterIO.Demand;
+import org.littletonrobotics.junction.Logger;
 
 public class IntakeGround extends Command {
 	public static double lastTime = 0; // this is a bad way to do this but its necessary for right now, please do real path planning in the future
@@ -49,7 +51,7 @@ public class IntakeGround extends Command {
 							Robot.cont.drivetrain
 								.rod(
 									new ChassisSpeeds(
-										-1,
+										this.calculateSpeedX(),
 										Robot.cont.drivetrain.limelightNote
 											.getTargetHorizontalOffset()
 											.in(Units.Rotations)
@@ -61,8 +63,15 @@ public class IntakeGround extends Command {
 				);
 
 		this.haptics.update();
+		
 	}
-
+	public double calculateSpeedX(){
+		Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-5/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
+		return( 
+				(-3/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
+		);
+	}
+	
 	@Override
 	public void end(final boolean interrupted) {
 		Robot.cont.shooter.io
