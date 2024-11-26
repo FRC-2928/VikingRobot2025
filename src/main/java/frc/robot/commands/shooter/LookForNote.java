@@ -34,7 +34,7 @@ public class LookForNote extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    // this.initalAngle = Robot.cont.drivetrain.gyroInputs.yawPosition;
+    this.currentAngle = Units.Rotations.of(Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRotations()); 
     this.initalAngle = Units.Rotations.of(Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRotations());
     this.absoluteController.enableContinuousInput(-0.5,0.5);
     this.setpoint = this.initalAngle.plus(this.rotationAmount);
@@ -79,7 +79,7 @@ public class LookForNote extends Command {
     double amountRotated = Math.abs(this.currentAngle.minus(this.initalAngle).in(Units.Radians));
     hasRotatedThruAngle = amountRotated >=  Math.abs(this.rotationAmount.in(Units.Radians)) - 0.03;
     Logger.recordOutput("Drivetrain/Auto/amountRotated",amountRotated);
-    Logger.recordOutput("Drivetrain/Auto/hasRotatedThruAngle",(hasRotatedThruAngle || Robot.cont.drivetrain.limelightNote.hasValidTargets()));
-    return Robot.cont.drivetrain.limelightNote.hasValidTargets() || hasRotatedThruAngle;
+    Logger.recordOutput("Drivetrain/Auto/hasRotatedThruAngle",(hasRotatedThruAngle));
+    return Robot.cont.drivetrain.limelightNote.hasValidTargets() || (hasRotatedThruAngle && (Math.abs(this.currentAngle.minus(this.setpoint).in(Units.Radians)) < 0.03 && this.computedPidValue < 0.1));
   }
 }

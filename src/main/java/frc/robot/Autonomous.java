@@ -267,7 +267,7 @@ public final class Autonomous {
 			"[testing] LookForNote", 
 			new SequentialCommandGroup(
 				new LookForNote(Units.Radians.of(Math.PI/4)),
-				(Robot.cont.drivetrain.limelightNote.hasValidTargets() ?  new IntakeGround(true).withTimeout(4) : new LookForNote(Units.Radians.of(-Math.PI/4)))
+				(Robot.cont.drivetrain.limelightNote.hasValidTargets() ?  new IntakeGround(true).withTimeout(4) : new LookForNote(Units.Radians.of(-Math.PI/2)))
 			)
 		);
 		chooser
