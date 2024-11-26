@@ -66,9 +66,9 @@ public class IntakeGround extends Command {
 		
 	}
 	public double calculateSpeedX(){
-		Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-5/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
+		Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
 		return( 
-				(-3/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
+				(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
 		);
 	}
 	

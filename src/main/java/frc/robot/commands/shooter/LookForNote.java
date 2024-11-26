@@ -10,7 +10,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Measure; 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,18 +19,16 @@ import frc.robot.Robot;
 
 public class LookForNote extends Command {
   /** Creates a new lookForNote. */
-  public LookForNote(Measure<Angle> rotAmount, Boolean repeat) { 
+  public LookForNote(Measure<Angle> rotAmount) { 
     this.addRequirements(Robot.cont.drivetrain); 
     this.rotationAmount = rotAmount;
-    this.repeat = repeat;
   }
 
   private Measure<Angle> initalAngle;
-  private boolean hasTurned;
   private Measure<Angle> currentAngle;
-  private final Boolean repeat;
   private final Measure<Angle> rotationAmount;
   private Measure<Angle> setpoint;
+  private double computedPidValue;
   private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
 		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
   // Called when the command is initially scheduled.
@@ -38,7 +36,6 @@ public class LookForNote extends Command {
   public void initialize() {
     // this.initalAngle = Robot.cont.drivetrain.gyroInputs.yawPosition;
     this.initalAngle = Units.Rotations.of(Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRotations());
-    this.hasTurned = false;
     this.absoluteController.enableContinuousInput(-0.5,0.5);
     this.setpoint = this.initalAngle.plus(this.rotationAmount);
     this.absoluteController.reset(this.initalAngle.in(Units.Rotations));
@@ -49,13 +46,8 @@ public class LookForNote extends Command {
   public void execute() {
     this.currentAngle = Units.Rotations.of(Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRotations()); 
     double measurement = this.currentAngle.in(Units.Rotations);
-    double computedPidValue = -this.absoluteController.calculate(measurement,this.setpoint.in(Units.Rotations));
-    double currentRotation = Math.abs(this.currentAngle.minus(this.initalAngle).in(Units.Radians));
-    if(currentRotation >= (Math.abs(this.rotationAmount.in(Units.Radians))-(0.06)) && !this.hasTurned){
-      this.setpoint = this.initalAngle.minus(this.rotationAmount);
-      this.hasTurned = true;
-    }
-    Measure<Velocity<Angle>> rotationSpeed = Constants.Drivetrain.maxAngularVelocity.times( MathUtil.applyDeadband(computedPidValue,0.015));
+    this.computedPidValue = -this.absoluteController.calculate(measurement,this.setpoint.in(Units.Rotations));
+    Measure<Velocity<Angle>> rotationSpeed = Constants.Drivetrain.maxAngularVelocity.times( MathUtil.applyDeadband(this.computedPidValue,0.008));
     Robot.cont.drivetrain
       .control(
         Robot.cont.drivetrain
@@ -70,7 +62,7 @@ public class LookForNote extends Command {
     Logger.recordOutput("Drivetrain/Auto/setpoint",(this.setpoint.in(Units.Radians)));
     Logger.recordOutput("Drivetrain/Auto/currentAngle",(this.currentAngle.in(Units.Radians)));
     Logger.recordOutput("Drivetrain/Auto/initialAngle",(this.initalAngle.in(Units.Radians)));
-    Logger.recordOutput("Drivetrain/Auto/PIDvalue", computedPidValue);
+    Logger.recordOutput("Drivetrain/Auto/PIDvalue", this.computedPidValue);
 
   }
 
@@ -85,17 +77,9 @@ public class LookForNote extends Command {
   public boolean isFinished() {
     boolean hasRotatedThruAngle;
     double amountRotated = Math.abs(this.currentAngle.minus(this.initalAngle).in(Units.Radians));
-    if(this.repeat && this.rotationAmount.in(Units.Radians)>0){
-      hasRotatedThruAngle = this.currentAngle.in(Units.Radians) <=  -this.rotationAmount.in(Units.Radians) + this.initalAngle.in(Units.Radians);
-    }
-    else if(this.repeat && this.rotationAmount.in(Units.Radians)<0){
-      hasRotatedThruAngle = this.currentAngle.in(Units.Radians) >=  -this.rotationAmount.in(Units.Radians) + this.initalAngle.in(Units.Radians);
-    }
-    else{
-      hasRotatedThruAngle = amountRotated >=  Math.abs(this.rotationAmount.in(Units.Radians));
-    }
+    hasRotatedThruAngle = amountRotated >=  Math.abs(this.rotationAmount.in(Units.Radians)) - 0.03;
     Logger.recordOutput("Drivetrain/Auto/amountRotated",amountRotated);
-    Logger.recordOutput("Drivetrain/Auto/hasRotatedThruAngle",hasRotatedThruAngle);
+    Logger.recordOutput("Drivetrain/Auto/hasRotatedThruAngle",(hasRotatedThruAngle || Robot.cont.drivetrain.limelightNote.hasValidTargets()));
     return Robot.cont.drivetrain.limelightNote.hasValidTargets() || hasRotatedThruAngle;
   }
 }

@@ -257,7 +257,7 @@ public final class Autonomous {
 				new SequentialCommandGroup(
 					Autonomous.setInitialPose("forwardBack.1"),
 					Autonomous.path("forwardBack.1"),
-					new LookForNote(Units.Radians.of(Math.PI/3),false),
+					new LookForNote(Units.Radians.of(Math.PI/3)),
 					new IntakeGround(true).withTimeout(2),
 					Autonomous.dynamic("forwardBack.2"),
 					Autonomous.path("forwardBack.2")
@@ -266,8 +266,8 @@ public final class Autonomous {
 		chooser.addOption(
 			"[testing] LookForNote", 
 			new SequentialCommandGroup(
-				new LookForNote(Units.Radians.of(Math.PI/4),true),
-				new IntakeGround(true).withTimeout(4)
+				new LookForNote(Units.Radians.of(Math.PI/4)),
+				(Robot.cont.drivetrain.limelightNote.hasValidTargets() ?  new IntakeGround(true).withTimeout(4) : new LookForNote(Units.Radians.of(-Math.PI/4)))
 			)
 		);
 		chooser
