@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.units.*;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Units.*;
+import edu.wpi.first.units.measure.*;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -8,9 +11,10 @@ import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
-import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,6 +23,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -75,6 +80,24 @@ public class Drivetrain extends SubsystemBase {
 	public ChassisSpeeds joystickSpeeds = new ChassisSpeeds();
 	private ChassisSpeeds robotChassisSpeeds = new ChassisSpeeds();
 
+	// PathPlanner config constants
+	private static final double ROBOT_MASS_KG = /*74.088*/ 57;
+	private static final double ROBOT_MOI = 6.883;
+	private static final double WHEEL_COF = 1.2;
+	private static final RobotConfig PP_CONFIG = /* TODO: TUNE THESE FOR OUR ROBOT */
+      new RobotConfig(
+          ROBOT_MASS_KG,
+          ROBOT_MOI,
+          new ModuleConfig(
+              Constants.Drivetrain.wheelRadius,
+              Constants.Drivetrain.maxVelocity,
+              WHEEL_COF,
+              DCMotor.getKrakenX60Foc(1)
+                  .withReduction(Constants.Drivetrain.driveGearRatio),
+              (Current)Units.Amps.of(120),
+              1),
+          Constants.Drivetrain.kinematics.getModules());
+
 	public Drivetrain() {
 		this.gyro = switch(Constants.mode) {
 		case REAL -> new GyroIOReal();
@@ -97,23 +120,15 @@ public class Drivetrain extends SubsystemBase {
 
 		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
 		AutoBuilder
-			.configureHolonomic(
+			.configure(
 				this::blueOriginPose,
 				null,
 				this::getCurrentChassisSpeeds,
 				this::controlRobotOriented,
-				new HolonomicPathFollowerConfig(
+				new PPHolonomicDriveController(
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
-					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic),
-					Constants.Drivetrain.maxVelocity.in(Units.MetersPerSecond),
-					Math
-						.hypot(
-							Constants.Drivetrain.trackWidth.in(Units.Meters) / 2,
-							Constants.Drivetrain.wheelBase.in(Units.Meters) / 2
-						),
-					new ReplanningConfig(true, false, 0.1, 0.0)
-					//new ReplanningConfig(false, false)
-				),
+					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
+				PP_CONFIG,
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
 				this
 			);

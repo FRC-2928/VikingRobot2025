@@ -1,12 +1,9 @@
 package frc.robot.commands.shooter;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.Tuning;
-import frc.robot.subsystems.ShooterIO.Demand;
 
 public class FinishAmpShot extends Command {
 	public FinishAmpShot() { this.addRequirements(Robot.cont.shooter, Robot.cont.drivetrain); }
