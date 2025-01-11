@@ -63,23 +63,14 @@ public final class Autonomous {
 				)
 			);*/
 
-		/*chooser
+		chooser
 			.addOption(
-				"[comp] Source Side Center Note",
+				"[Test] Forward Back",
 				new SequentialCommandGroup(
-					Autonomous.setInitialPose("SourceSideCenterNote.1"),
-					new ReadyShooter(Constants.Shooter.readyShootRear, true),
-					new ShootFixed(false, 2),
-					Autonomous.path("SourceSideCenterNote.1"),
-					new IntakeGround(true).withTimeout(2),
-					Autonomous.dynamic("SourceSideCenterNote.2"),
-					new ParallelCommandGroup(
-						new ReadyShooter(Constants.Shooter.readyShootRear, true),
-						Autonomous.path("SourceSideCenterNote.2")
-					),
-					new ShootSpeaker(false, 2)
+					Autonomous.setInitialPose("ForwardBack"),
+					Autonomous.path("ForwardBack")
 				)
-			);*/
+			);
 
 		chooser
 			.addOption(
