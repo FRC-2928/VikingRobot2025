@@ -121,7 +121,7 @@ public class Drivetrain extends SubsystemBase {
 		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
 		AutoBuilder
 			.configure(
-				this::blueOriginPose,
+				this::getEstimatedPosition,
 				null,
 				this::getCurrentChassisSpeeds,
 				this::controlRobotOriented,
@@ -129,7 +129,7 @@ public class Drivetrain extends SubsystemBase {
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
 				PP_CONFIG,
-				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+				() -> false,
 				this
 			);
 
@@ -244,11 +244,15 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
+	public Pose2d getEstimatedPosition(){
+		return this.est.getEstimatedPosition();
+	}
+
 	@Override
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
-
+        Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
 		this.joystickSpeeds = this.joystickDrive.speeds();
 		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
 

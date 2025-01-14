@@ -16,6 +16,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
+import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.DriveTime;
 import frc.robot.commands.shooter.*;
 import frc.robot.commands.drivetrain.VoltageRampCommand;
@@ -265,6 +266,10 @@ public final class Autonomous {
 				(Robot.cont.drivetrain.limelightNote.hasValidTargets() ?  new IntakeGround(true).withTimeout(4) : new LookForNote(Units.Radians.of(-Math.PI/2)))
 			)
 		);
+
+		chooser.addOption("Center On Limelight", 
+			new CenterLimelight(Units.Degree.of(-20.51),Units.Degrees.of(0))
+		);
 		// chooser
 		// 	.addOption("[testing] dynamic path back", new SequentialCommandGroup(Autonomous.dynamic("forwardBack.2")));
 		// chooser.addOption("[testing] return to start", new SequentialCommandGroup(Autonomous.path("forwardBack.2")));
@@ -287,11 +292,12 @@ public final class Autonomous {
 		final Pose2d initial = traj.get().getPoses()[0];
 
 		return Commands.runOnce(() -> {
-			Robot.cont.drivetrain.reset(Autonomous.getPoseForAlliance(initial));
+			Robot.cont.drivetrain.reset(initial);
 
 			Logger.recordOutput("Drivetrain/Auto/x0", initial.getX());
 			Logger.recordOutput("Drivetrain/Auto/y0", initial.getY());
 			Logger.recordOutput("Drivetrain/Auto/r0", initial.getRotation().getDegrees());
+			Logger.recordOutput("Drivetrain/Auto/AllyPose", initial);
 		});
 	}
 
@@ -354,7 +360,7 @@ public final class Autonomous {
 	private static Pose2d getPoseForAlliance(final Pose2d initialPose) {
 		if(DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
 			return new Pose2d(
-				initialPose.getX(),
+				Constants.fieldWidth.in(Units.Meters) - initialPose.getX(),
 				Constants.fieldDepth.in(Units.Meters) - initialPose.getY(),
 				initialPose.getRotation().unaryMinus()
 			);
