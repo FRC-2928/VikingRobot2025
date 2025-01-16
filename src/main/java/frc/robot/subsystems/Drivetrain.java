@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -72,6 +73,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
+	public final SwerveDrivePoseEstimator noLimelightEst;
 	public final Limelight limelightNote = new Limelight("limelight-note");
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
 	public final Limelight limelightRear = new Limelight("limelight-rear");
@@ -112,6 +114,12 @@ public class Drivetrain extends SubsystemBase {
 		this.modules[3] = new SwerveModule(Place.BackRight);
 
 		this.est = new SwerveDrivePoseEstimator(
+			this.kinematics,
+			new Rotation2d(this.gyroInputs.yawPosition),
+			this.modulePositions(),
+			new Pose2d()
+		);
+		this.noLimelightEst = new SwerveDrivePoseEstimator(
 			this.kinematics,
 			new Rotation2d(this.gyroInputs.yawPosition),
 			this.modulePositions(),
@@ -202,6 +210,13 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
+		this.noLimelightEst.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);	
+	}
+
+	public void resetLimelightPose(){
+		if(this.limelightNote.hasValidTargets()){
+			this.est.resetPose(this.limelightNote.getPose2d());
+		}
 	}
 
 	@AutoLogOutput
@@ -261,23 +276,24 @@ public class Drivetrain extends SubsystemBase {
 
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		this.noLimelightEst.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Fuse odometry pose with vision data if we have it.
-		if(this.limelightShooter.hasValidTargets() && this.limelightRear.getNumberOfAprilTags() >= 2) {
+		if(this.limelightShooter.hasValidTargets()) {
 			// final distance from current final pose to vision final estimated pose
 			final double poseDifference = this.est
 				.getEstimatedPosition()
 				.getTranslation()
-				.getDistance(this.limelightRear.getPose2d().getTranslation());
+				.getDistance(this.limelightNote.getPose2d().getTranslation());
 
 			if(poseDifference < 0.5) {
 				//0.3 subtracted to account for cam delay
-				// this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+				this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 
 			}
 		}
-		Logger.recordOutput("Drivetrain/LimelightRearPose", this.limelightRear.getPose2d());
-		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/BlueOriginPose", this.blueOriginPose());
+		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
+		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
+		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
 	}
 }

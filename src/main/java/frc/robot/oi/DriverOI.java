@@ -3,6 +3,7 @@ package frc.robot.oi;
 import java.util.function.Supplier;
 
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -43,6 +44,8 @@ public class DriverOI extends BaseOI {
 
 		this.resetFOD = this.controller.y();
 
+		this.resetPoseLimelight = this.controller.a();
+
 		this.lockWheels = this.controller.x();
 	}
 
@@ -61,6 +64,8 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger resetFOD;
 
+	public final Trigger resetPoseLimelight;
+
 	public final Trigger ferry;
 
 	public void configureControls() {
@@ -73,9 +78,7 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
-
+		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
 		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));
-
-		this.controller.a().whileTrue(new TestDrive());
 	}
 }
