@@ -277,21 +277,22 @@ public class Drivetrain extends SubsystemBase {
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 		this.noLimelightEst.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
-
-		// Fuse odometry pose with vision data if we have it.
-		if(this.limelightShooter.hasValidTargets()) {
-			// final distance from current final pose to vision final estimated pose
-			final double poseDifference = this.est
+		final double poseDifference = this.est
 				.getEstimatedPosition()
 				.getTranslation()
 				.getDistance(this.limelightNote.getPose2d().getTranslation());
+		// Fuse odometry pose with vision data if we have it.
+		if(this.limelightNote.hasValidTargets()) {
+			// final distance from current final pose to vision final estimated pose
+			
 
 			if(poseDifference < 0.5) {
 				//0.3 subtracted to account for cam delay
-				this.est.addVisionMeasurement(this.limelightShooter.getPose2d(), Timer.getFPGATimestamp() - 0.3);
+				this.est.addVisionMeasurement(this.limelightNote.getPose2d(), Timer.getFPGATimestamp() - 0.3);
 
 			}
 		}
+		Logger.recordOutput("Drivetrain/PoseDifference", poseDifference);
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
 		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
