@@ -27,10 +27,9 @@ import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog.State;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
-import frc.robot.utils.STalonFX;
 /* 1.Make a method that stops elevator pivot from going lower a certain angle
  * 2. Run fly wheels forward and backward TalonFX
- * 3. Detect coral in banana - Kraken 44x, limit switch
+ * 3. Detect coral in banana - Kraken x44, limit switch
  * 	Start spinning flywheel when preparing intake from trough
  * 	Limit switches (detect presence or absence of): elevator can move with coral, coral in trough
  * States: 
@@ -43,15 +42,32 @@ import frc.robot.utils.STalonFX;
 */
 public class BananaFlyWheels{
 	public static enum feeder {
-		Reverse(-2), Hold(1), Halt(0) Forward(1);
+		Hold(-2), Reverse(-1), Halt(0) Forward(1);
 
 	}
 
+	TalonFX wheels;
+	CANcoder cn;
+
 	public BananaFlyWheels(){
-		
+		this.wheels = new TalonFX(Constants.CAN.CTRE.shooterFlywheelA, Constants.CAN.CTRE.bus);
+		this.cn = new CANcoder(Constants.CAN.CTRE.swerveFrontLeftAzimuth, Constants.CAN.CTRE.bus);
 	}
 
 	public void runFlywheels(final Feeder demand){
-		
+		switch(demand){
+			case Forward:
+			case Halt:
+			case Reverse:
+				wheels.setControl(new VelocityDutyCycle(demand));
+				this.cn.getAbsolutePosition();
+				//this.angle = this.encoder.getAbsolutePosition();
+				break;
+			
+			case Hold:
+				this.wheels.
+				break;
+		}
+
 	}
 }
