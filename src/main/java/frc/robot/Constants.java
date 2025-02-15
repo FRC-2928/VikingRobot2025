@@ -113,6 +113,12 @@ public class Constants {
 			public static final int elevatorMotorA = 1;
 			public static final int elevatorMotorB = 4;
 
+			public static final int bananaWheels = 20;
+			public static final int intakeWheels = 99; //TODO: get right number
+			public static final int intakeBelt = 98;
+			public static final int intakePivot = 97;
+			public static final int troughWheels = 96;
+
 			public static final int climber = 17;
 		}
 	}
@@ -150,11 +156,11 @@ public class Constants {
 			.withKA(0);
 
 		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(4) /* 0.15 */
+			.withKP(0) /* 0.15 */
 			.withKI(0.0)
-			.withKD(0.2)
-			.withKS(0.225)
-			.withKV(2.62) 
+			.withKD(0)
+			.withKS(0)
+			.withKV(12.0/4.7244) 
 			.withKA(0);
 
 		// todo: tune
@@ -224,6 +230,12 @@ public class Constants {
 							))
 			);
 	}
+	public static class Intake {
+		// The minium value for the intake
+		public static final Angle pivotMin = Units.Rotations.of(-0.1085);
+		// max angle before exiting allowed extension range
+		public static final Angle max = Units.Rotations.of(0.39);
+	}
 
 	public static class Elevator {
 		public static final class FlywheelConfiguration {
@@ -261,7 +273,7 @@ public class Constants {
 			.withKS(0.025)
 			.withKG(0.028)
 			.withKP(10)
-			.withKD(0.05);
+			.withKD(0.05);		
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);

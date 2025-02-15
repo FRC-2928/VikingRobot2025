@@ -11,6 +11,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LimelightFXManager;
 
 public class RobotContainer {
@@ -24,6 +25,7 @@ public class RobotContainer {
 	public final Drivetrain drivetrain;
 	public final Climber climber;
 	public final Elevator elevator;
+	public final Intake intake;
 
 	public final LimelightFXManager fxm;
 
@@ -37,6 +39,7 @@ public class RobotContainer {
 		this.climber = new Climber();
 		this.fxm = new LimelightFXManager();
 		this.elevator = new Elevator();
+		this.intake = new Intake();
 
 		this.diag.chirp(600, 500);
 		this.diag.chirp(900, 500);
