@@ -7,8 +7,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.commands.climber.Initialize;
-import frc.robot.commands.shooter.ShootFixed;
-import frc.robot.subsystems.ShooterIO;
 
 public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {
@@ -58,19 +56,5 @@ public class OperatorOI extends BaseOI {
 
 		this.initializeClimber.onTrue(new Initialize());
 
-		this.intakeOut.whileTrue(new FunctionalCommand(() -> {
-		},
-			() -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Reverse),
-			interrupt -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Halt),
-			() -> false
-		));
-		this.intakeIn.whileTrue(new FunctionalCommand(() -> {
-		},
-			() -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Forward),
-			interrupt -> Robot.cont.shooter.io.runIntake(ShooterIO.Demand.Halt),
-			() -> false
-		));
-
-		this.fixedShoot.whileTrue(new ShootFixed(false));
 	}
 }

@@ -2,23 +2,13 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import frc.robot.Robot;
-import frc.robot.Tuning;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.drivetrain.TestDrive;
+import frc.robot.Robot;
 import frc.robot.commands.drivetrain.LockWheels;
-import frc.robot.commands.shooter.IntakeGround;
-import frc.robot.commands.shooter.PrepareAmpShot;
-import frc.robot.commands.shooter.ShootAmp;
-import frc.robot.commands.shooter.FinishAmpShot;
-import frc.robot.commands.shooter.ShootFixed;
-import frc.robot.commands.shooter.ShootSpeaker;
 
 public class DriverOI extends BaseOI {
 	public DriverOI(final CommandXboxController controller) {
@@ -69,16 +59,9 @@ public class DriverOI extends BaseOI {
 	public final Trigger ferry;
 
 	public void configureControls() {
-		this.shootSpeaker.whileTrue(new ShootSpeaker(true));
-		this.shootAmp
-			.onTrue(new PrepareAmpShot().withTimeout(0.3))
-			.whileTrue(new ShootAmp())
-			.onFalse(new FinishAmpShot().withTimeout(0.6));
-		this.intake.whileTrue(new IntakeGround(true));
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
-		this.ferry.whileTrue(new ShootFixed(() -> Units.Degrees.of(Tuning.ferryAngle.get()), false, 0));
 	}
 }

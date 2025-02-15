@@ -14,11 +14,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.Units;
 import frc.robot.subsystems.LimelightFX.Color;
 
 public class Constants {
@@ -109,9 +109,9 @@ public class Constants {
 			public static final int swerveBackRightAzimuth = 15;
 			public static final int swerveBackRightDrive = 16;
 
-			public static final int shooterPivot = 12;
-			public static final int shooterFlywheelA = 1;
-			public static final int shooterFlywheelB = 4;
+			public static final int bananaPivot = 12;
+			public static final int elevatorMotorA = 1;
+			public static final int elevatorMotorB = 4;
 
 			public static final int climber = 17;
 		}
@@ -225,7 +225,7 @@ public class Constants {
 			);
 	}
 
-	public static class Shooter {
+	public static class Elevator {
 		public static final class FlywheelConfiguration {
 			public static final FlywheelConfiguration yellowFairlane = new FlywheelConfiguration(
 				Units.RotationsPerSecond.of(30),
@@ -254,10 +254,10 @@ public class Constants {
 			public final double ampPower;
 		}
 
-		private Shooter() { throw new IllegalCallerException("Cannot instantiate `Constants.Shooter`"); }
+		private Elevator() { throw new IllegalCallerException("Cannot instantiate `Constants.Elevator`"); }
 
-		public static final SlotConfigs pivotConfig = new SlotConfigs()
-			.withGravityType(GravityTypeValue.Arm_Cosine)
+		public static final SlotConfigs elevatorConfig = new SlotConfigs()
+			.withGravityType(GravityTypeValue.Elevator_Static)
 			.withKS(0.025)
 			.withKG(0.028)
 			.withKP(10)
@@ -265,7 +265,8 @@ public class Constants {
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
-		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+		public static final Slot0Configs pivotConfig = new Slot0Configs()
+			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKP(0.05)
 			.withKI(0.0)
 			.withKD(0.0)

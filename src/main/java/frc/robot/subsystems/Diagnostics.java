@@ -7,11 +7,8 @@ import java.util.ArrayList;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -21,13 +18,12 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.utils.Alert;
 
 public class Diagnostics extends SubsystemBase {
 	public final class Release extends Command {
-		public Release() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.shooter, Robot.cont.climber); }
+		public Release() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.climber); }
 
 		@Override
 		public void initialize() {
@@ -37,7 +33,6 @@ public class Diagnostics extends SubsystemBase {
 				io.drive.setNeutralMode(NeutralModeValue.Coast);
 			}
 
-			((ShooterIOReal) Robot.cont.shooter.io).pivot.setNeutralMode(NeutralModeValue.Coast);
 			final ClimberIOReal climber = ((ClimberIOReal) Robot.cont.climber.io);
 			climber.actuator.setNeutralMode(NeutralModeValue.Coast);
 			//climber.lock.set(0);
@@ -54,7 +49,6 @@ public class Diagnostics extends SubsystemBase {
 				io.drive.setNeutralMode(NeutralModeValue.Brake);
 			}
 
-			((ShooterIOReal) Robot.cont.shooter.io).pivot.setNeutralMode(NeutralModeValue.Brake);
 			final ClimberIOReal climber = ((ClimberIOReal) Robot.cont.climber.io);
 			climber.actuator.setNeutralMode(NeutralModeValue.Brake);
 			//climber.lock.set(0);
@@ -113,19 +107,6 @@ public class Diagnostics extends SubsystemBase {
 		SmartDashboard
 			.putData("Diagnostics/C-Stop", new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
 
-		SmartDashboard.putData("Diagnostics/ZeroPivot", new InstantCommand(() -> {
-			if(!DriverStation.isTestEnabled()) {
-				System.out.println("Diagnostics: Cannot execute command ZeroPivot outside of Test mode");
-				return;
-			}
-			System.out
-				.println("Diagnostics: Pivot zeroed (was " + Robot.cont.shooter.inputs.angle.in(Units.Degrees) + ")");
-			final CANcoder enc = ((ShooterIOReal) Robot.cont.shooter.io).encoder;
-			final CANcoderConfiguration cfg = new CANcoderConfiguration();
-			enc.getConfigurator().refresh(cfg);
-			cfg.MagnetSensor.MagnetOffset = 0;
-			enc.getConfigurator().apply(cfg);
-		}));
 	}
 
 	@Override
@@ -192,19 +173,10 @@ public class Diagnostics extends SubsystemBase {
 				throw new Error(e);
 			}
 
-			final double startingConfigurationAngleDifference = Math
-				.abs(Robot.cont.shooter.inputs.angle.minus(Constants.Shooter.startingConfiguration).in(Units.Degrees));
-			final boolean shooterAngle = startingConfigurationAngleDifference > 6;
-			final boolean notePossession = !Robot.cont.shooter.inputs.holdingNote;
 			final boolean badVoltage = RobotController.getBatteryVoltage() < 12;
 
 			alertInvalidAutoRoutine.text = "Autonomous routine '" + name + "' not ready for competition!";
 			alertInvalidAutoRoutine.active = invalidAutoRoutine;
-			alertShooterAngle.text = "Not in starting configuration ("
-				+ startingConfigurationAngleDifference
-				+ "deg off)";
-			alertShooterAngle.active = shooterAngle;
-			alertNotePossession.active = notePossession;
 			alertClimberHome.active = Robot.cont.climber.inputs.home;
 			alertBadVoltage.text = "Battery Voltage is "
 				+ RobotController.getBatteryVoltage()

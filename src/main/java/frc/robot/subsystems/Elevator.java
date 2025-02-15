@@ -5,20 +5,20 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class Shooter extends SubsystemBase {
-	public Shooter() {
+public class Elevator extends SubsystemBase {
+	public Elevator() {
 		this.io = switch(Constants.mode) {
-		case REAL -> new ShooterIOReal(this);
+		case REAL -> new ElevatorIOReal(this);
 		default -> throw new Error();
 		};
 	}
 
-	public final ShooterIO io;
-	public final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
+	public final ElevatorIO io;
+	public final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
 	@Override
 	public void periodic() {
 		this.io.updateInputs(this.inputs);
-		Logger.processInputs("Shooter", this.inputs);
+		Logger.processInputs("Elevator", this.inputs);
 	}
 }

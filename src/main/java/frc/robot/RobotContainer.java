@@ -10,8 +10,8 @@ import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.LimelightFXManager;
-import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
 	public final LoggedDashboardChooser<Command> autonomousChooser;
@@ -22,8 +22,8 @@ public class RobotContainer {
 	public final Diagnostics diag;
 
 	public final Drivetrain drivetrain;
-	public final Shooter shooter;
 	public final Climber climber;
+	public final Elevator elevator;
 
 	public final LimelightFXManager fxm;
 
@@ -32,13 +32,11 @@ public class RobotContainer {
 		Robot.instance.container = this;
 		Robot.cont = this;
 
-		Tuning.flywheelVelocity.get(); // load the class to put the tuning controls on the dashboard
-
 		this.diag = new Diagnostics();
 		this.drivetrain = new Drivetrain();
-		this.shooter = new Shooter();
 		this.climber = new Climber();
 		this.fxm = new LimelightFXManager();
+		this.elevator = new Elevator();
 
 		this.diag.chirp(600, 500);
 		this.diag.chirp(900, 500);

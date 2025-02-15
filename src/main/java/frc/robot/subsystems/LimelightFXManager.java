@@ -2,10 +2,15 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.SerialPort;
 import frc.robot.Constants;
-import frc.robot.Robot;
-import frc.robot.subsystems.LimelightFX.*;
-import frc.robot.subsystems.LimelightFX.Behavior.*;
-import frc.robot.subsystems.LimelightFX.Module.*;
+import frc.robot.subsystems.LimelightFX.Behavior;
+import frc.robot.subsystems.LimelightFX.Behavior.Blink;
+import frc.robot.subsystems.LimelightFX.Behavior.Chevrons;
+import frc.robot.subsystems.LimelightFX.Behavior.Image;
+import frc.robot.subsystems.LimelightFX.Behavior.SolidColor;
+import frc.robot.subsystems.LimelightFX.Color;
+import frc.robot.subsystems.LimelightFX.Module.Geometry;
+import frc.robot.subsystems.LimelightFX.Module.Rotation;
+import frc.robot.subsystems.LimelightFX.SystemSound;
 
 public class LimelightFXManager {
 	public final LimelightFX fx = new LimelightFX();
@@ -49,12 +54,6 @@ public class LimelightFXManager {
 	@SuppressWarnings({ "resource" })
 	public LimelightFXManager() {
 		if(!Constants.LimelightFX.enabled) return;
-
-		this.fx.selector(() -> {
-			if(Robot.cont.shooter.inputs.holdingNote) return this.behHoldingNote;
-			else if(Robot.cont.ledState) return this.behHoldingNote;
-			else return null;
-		});
 
 		this.fx.initialize(() -> {
 			final SerialPort serial = new SerialPort(115200, SerialPort.Port.kUSB1);
