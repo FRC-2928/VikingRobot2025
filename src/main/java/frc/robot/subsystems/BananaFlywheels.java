@@ -70,7 +70,7 @@ public class BananaFlywheels extends SubsystemBase {
 		flyWheelConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
 		// PID values
-		flyWheelConfig.Slot0 = Constants.Shooter.flywheelGainsSlot0;
+		flyWheelConfig.Slot0 = Constants.Banana.flywheelGainsSlot0;
 
 		flyWheelConfig.Audio = Constants.talonFXAudio;
 

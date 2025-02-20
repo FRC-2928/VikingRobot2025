@@ -19,6 +19,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -97,12 +98,12 @@ public class Intake extends SubsystemBase {
 		intakeWheelsConfig.Audio = Constants.talonFXAudio;
 		pivotWheelConfig = intakeWheelsConfig;
 		pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-		pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Shooter.max.in(Units.Rotations);
+		pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Intake.max.in(Units.Rotations);
 		pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-		pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Shooter.intakeGround.in(Units.Rotations);
+		pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Intake.pivotMin.in(Units.Rotations);
 		// PID values
-		pivotWheelConfig.Slot0 =  Slot0Configs.from(Constants.Shooter.pivotConfig);
-		intakeWheelsConfig.Slot0 = Constants.Shooter.flywheelGainsSlot0;
+		pivotWheelConfig.Slot0 =  Constants.Intake.pivotConfig;
+		intakeWheelsConfig.Slot0 = Constants.Intake.flywheelGainsSlot0;
 
 		this.wheels.getConfigurator().apply(intakeWheelsConfig);
 		this.wheels.setNeutralMode(NeutralModeValue.Brake);
@@ -129,8 +130,8 @@ public class Intake extends SubsystemBase {
 				MathUtil
 					.clamp(
 						target.in(Units.Radians),
-						Constants.Shooter.intakeGround.in(Units.Radians),
-						Constants.Shooter.max.in(Units.Radians)
+						0,
+						1
 					)
 			);
 		Logger.recordOutput("intake/PivotControl", rot);
@@ -155,18 +156,20 @@ public class Intake extends SubsystemBase {
 			new RunCommand(() -> {
 				rotatePivot(Units.Radians.of(0));
 			}, this),
-			new ParallelCommandGroup(
+			Commands.deadline(
 				new RunCommand(() -> {
 					runIntake(Feeder.Forward);
 				},this).until(this::holdingGamePeice),
 				new RunCommand(() -> {
 					runBelt(Feeder.Forward);
-				},this).until(this::holdingGamePeice),
+				},this),
 				new RunCommand(() -> {
 					runTrough(Feeder.Reverse);
-				},this).until(this::holdingGamePeice)
-			
-			)
+				},this)
+			),
+			new RunCommand(() -> {
+				rotatePivot(Units.Radians.of(1));
+			}, this)
 		);
 	}
 }

@@ -188,17 +188,17 @@ public class Constants {
 		public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase,
-			Constants.Drivetrain.trackWidth.negate()
+			Constants.Drivetrain.trackWidth.unaryMinus()
 		);
 		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.negate(),
+			Constants.Drivetrain.wheelBase.unaryMinus(),
 			Constants.Drivetrain.trackWidth
 		);
 		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.negate(),
-			Constants.Drivetrain.trackWidth.negate()
+			Constants.Drivetrain.wheelBase.unaryMinus(),
+			Constants.Drivetrain.trackWidth.unaryMinus()
 		);
 
 		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
@@ -225,8 +225,8 @@ public class Constants {
 						* Math.PI
 						* Math
 							.hypot(
-								Drivetrain.trackWidth.divide(2).in(Units.Meters),
-								Drivetrain.wheelBase.divide(2).in(Units.Meters)
+								Drivetrain.trackWidth.div(2).in(Units.Meters),
+								Drivetrain.wheelBase.div(2).in(Units.Meters)
 							))
 			);
 	}
@@ -235,6 +235,23 @@ public class Constants {
 		public static final Angle pivotMin = Units.Rotations.of(-0.1085);
 		// max angle before exiting allowed extension range
 		public static final Angle max = Units.Rotations.of(0.39);
+
+		public static final Slot0Configs pivotConfig = new Slot0Configs()
+			.withGravityType(GravityTypeValue.Arm_Cosine)
+			.withKP(0.05)
+			.withKI(0.0)
+			.withKD(0.0)
+			.withKS(0)
+			.withKV(0.015)
+			.withKA(0);
+
+			public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+			.withKP(0.05)
+			.withKI(0.0)
+			.withKD(0.0)
+			.withKS(0)
+			.withKV(0.015)
+			.withKA(0);
 	}
 
 	public static class Elevator {
@@ -317,6 +334,15 @@ public class Constants {
 		public static final Angle max = Units.Rotations.of(0.39);
 
 		public static final double fireTimeout = 0.3;
+	}
+
+	public static class Banana {
+		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
+
+		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+			.withKS(0)
+			.withKV(0.015)
+			.withKA(0);
 	}
 
 	public static class Climber {
