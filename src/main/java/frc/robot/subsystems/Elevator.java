@@ -3,12 +3,15 @@ package frc.robot.subsystems;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -21,18 +24,23 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 
 public class Elevator extends SubsystemBase {
-	public class ElevatorIOInputs {
-		public Distance height = Units.Meters.zero();
+	@AutoLog
+	public static class ElevatorInputs {
+		public Distance height;
 		public boolean homePos;
 		public LinearVelocity speed;
 	}
 
-	// public final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
-	public final ElevatorIOInputs inputs = new ElevatorIOInputs();
+	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
+	// public final ElevatorInputs inputs = new ElevatorInputs();
 
 	private final TalonFX liftMotorA;
 	private final TalonFX liftMotorB;
@@ -40,21 +48,19 @@ public class Elevator extends SubsystemBase {
 
 	private final StatusSignal<Angle> elevatorMotorPosition;
 	private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
-
-	private static final double ELEVATOR_GEARING = 12d;
-
-	// This variable is the ratio of elevator motor rotations / elevator height meters
-	// It factors for motor gearbox, elevator drum radius (tangential motion of the elevator belt), and number of elevator stages
-	private final double DISTANCE_CONVERSION_RATIO = 5.0;
+	
 
 	// Simulation objects
-	ElevatorSim elevatorSim = new ElevatorSim(LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60(2), 0.01, ELEVATOR_GEARING), 
-		DCMotor.getKrakenX60(2), 
+	private final ElevatorSim elevatorSim = new ElevatorSim(
+		LinearSystemId.createElevatorSystem(
+			DCMotor.getKrakenX60Foc(2), 3, 
+			Constants.Elevator.DRUM_RADIUS.in(Units.Meters), 
+			Constants.Elevator.ELEVATOR_GEARING / Constants.Elevator.NUMBER_OF_STAGES), 
+		DCMotor.getKrakenX60Foc(2), 
 		0, 
-		1, 
+		2,
 		true, 
-		0
-	);
+		0);
 
 	public Elevator() {
 
@@ -100,8 +106,10 @@ public class Elevator extends SubsystemBase {
 		bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
 
 		// Motion Magic Params
-		elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
-		elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 10;
+		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
+		elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 3.099 / Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.01;
 
 		this.liftMotorA.getConfigurator().apply(elevatorConfig);
 		this.liftMotorA.setNeutralMode(NeutralModeValue.Brake);
@@ -113,22 +121,30 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public void moveToPosition(final Distance position) {
-		liftMotorA.setControl(new MotionMagicVoltage(DISTANCE_CONVERSION_RATIO * position.in(Units.Meters)));
+		Logger.recordOutput("Elevator/DesiredPosition", position.in(Units.Meters));
+		liftMotorA.setControl(new MotionMagicExpoVoltage(Constants.Elevator.DISTANCE_CONVERSION_RATIO * position.in(Units.Meters)));
 	}
 
 	public void pivotBanana(final Angle rotation) {
 		pivot.setControl(new PositionVoltage(rotation));
 	}
 
-	public void updateInputs(final ElevatorIOInputs inputs) {
-		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations) /  DISTANCE_CONVERSION_RATIO);
-		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond) /  DISTANCE_CONVERSION_RATIO);
+	public void updateInputs(final ElevatorInputs inputs) {
+		BaseStatusSignal
+			.refreshAll(
+				this.elevatorMotorPosition,
+				this.elevatorMotorVelocity
+			);
+
+		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations) /  Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond) /  Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+		inputs.homePos = inputs.height.in(Units.Meters) < 1e-7;
 	}
 
 	@Override
 	public void periodic() {
 		this.updateInputs(this.inputs);
-		// Logger.processInputs("Elevator", this.inputs);
+		Logger.processInputs("Elevator", this.inputs);
 	}
 
 	@Override
@@ -139,9 +155,12 @@ public class Elevator extends SubsystemBase {
 		elevatorSim.setInputVoltage(liftMotorASimState.getMotorVoltage());
 		elevatorSim.update(0.02);
 
-		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters() * DISTANCE_CONVERSION_RATIO);
-		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * DISTANCE_CONVERSION_RATIO);
-		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters() * DISTANCE_CONVERSION_RATIO);
-		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * DISTANCE_CONVERSION_RATIO);
+		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO);
+
+		Logger.recordOutput("Elevator/Sim/LiftVoltage", liftMotorASimState.getMotorVoltage());
 	}
+
 }

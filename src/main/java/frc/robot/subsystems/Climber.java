@@ -9,6 +9,7 @@ public class Climber extends SubsystemBase {
 	public Climber() {
 		this.io = switch(Constants.mode) {
 		case REAL -> new ClimberIOReal();
+		case SIM -> new ClimberIOReal();
 		default -> throw new Error();
 		};
 	}

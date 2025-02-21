@@ -285,12 +285,19 @@ public class Constants {
 
 		private Elevator() { throw new IllegalCallerException("Cannot instantiate `Constants.Elevator`"); }
 
+		public static final double ELEVATOR_GEARING = 12d;
+		public static final int NUMBER_OF_STAGES = 3;
+		public static final Distance DRUM_RADIUS = Units.Inches.of(1);
+		public static final double DISTANCE_CONVERSION_RATIO = ELEVATOR_GEARING / NUMBER_OF_STAGES / (2 * Math.PI * DRUM_RADIUS.in(Units.Meters));
+
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Elevator_Static)
-			.withKS(0.025)
-			.withKG(0.028)
-			.withKP(10)
-			.withKD(0.05);		
+			.withKS(0.0)
+			.withKG(0.12)
+			.withKV(3.099 / DISTANCE_CONVERSION_RATIO)
+			.withKA(0.012 / DISTANCE_CONVERSION_RATIO)
+			.withKP(0.5)
+			.withKD(0.01);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);

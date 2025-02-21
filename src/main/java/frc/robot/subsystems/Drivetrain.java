@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -73,7 +72,6 @@ public class Drivetrain extends SubsystemBase {
 
 	public final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
-	public final SwerveDrivePoseEstimator noLimelightEst;
 	public final Limelight limelightNote = new Limelight("limelight-note");
 	public final Limelight limelightShooter = new Limelight("limelight-shooter");
 	public final Limelight limelightRear = new Limelight("limelight-rear");
@@ -103,6 +101,7 @@ public class Drivetrain extends SubsystemBase {
 	public Drivetrain() {
 		this.gyro = switch(Constants.mode) {
 		case REAL -> new GyroIOReal();
+		case SIM -> new GyroIOReal();
 		case REPLAY -> new GyroIO() {
 		};
 		default -> throw new Error();
@@ -119,17 +118,11 @@ public class Drivetrain extends SubsystemBase {
 			this.modulePositions(),
 			new Pose2d()
 		);
-		this.noLimelightEst = new SwerveDrivePoseEstimator(
-			this.kinematics,
-			new Rotation2d(this.gyroInputs.yawPosition),
-			this.modulePositions(),
-			new Pose2d()
-		);
 
 		// PathPlannerLib auto configuration. Refer https://pathplanner.dev/pplib-getting-started.html
 		AutoBuilder
 			.configure(
-				this::getEstimatedPosition,
+				this::blueOriginPose,
 				null,
 				this::getCurrentChassisSpeeds,
 				this::controlRobotOriented,
@@ -137,7 +130,7 @@ public class Drivetrain extends SubsystemBase {
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.translationDynamic),
 					Constants.fromPIDValues(Constants.Drivetrain.Auto.thetaDynamic)),
 				PP_CONFIG,
-				() -> false,
+				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
 				this
 			);
 
@@ -210,13 +203,6 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		this.noLimelightEst.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);	
-	}
-
-	public void resetLimelightPose(){
-		if(this.limelightNote.hasValidTargets()){
-			this.est.resetPose(this.limelightNote.getPose2d());
-		}
 	}
 
 	@AutoLogOutput
@@ -259,15 +245,11 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
-	public Pose2d getEstimatedPosition(){
-		return this.est.getEstimatedPosition();
-	}
-
 	@Override
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
-        Logger.recordOutput("Drivetrain/Botpose",limelightNote.getBluePose3d());
+
 		this.joystickSpeeds = this.joystickDrive.speeds();
 		if(this.getCurrentCommand() == this.joystickDrive) this.control(this.joystickSpeeds);
 
@@ -276,7 +258,6 @@ public class Drivetrain extends SubsystemBase {
 
 		// Update the odometry pose
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
-		this.noLimelightEst.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 		final double poseDifference = this.est
 				.getEstimatedPosition()
 				.getTranslation()
@@ -295,6 +276,5 @@ public class Drivetrain extends SubsystemBase {
 		Logger.recordOutput("Drivetrain/PoseDifference", poseDifference);
 		Logger.recordOutput("Drivetrain/LimelightNotePose", this.limelightNote.getPose2d());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());	
-		Logger.recordOutput("Drivetrain/Pose with out limelight", this.noLimelightEst.getEstimatedPosition());
 	}
 }

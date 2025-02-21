@@ -2,7 +2,9 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -35,6 +37,7 @@ public class DriverOI extends BaseOI {
 		this.resetFOD = this.controller.y();
 
 		this.resetPoseLimelight = this.controller.a();
+		this.moveElevatorUp = this.controller.a();
 
 		this.lockWheels = this.controller.x();
 	}
@@ -55,6 +58,7 @@ public class DriverOI extends BaseOI {
 	public final Trigger resetFOD;
 
 	public final Trigger resetPoseLimelight;
+	public final Trigger moveElevatorUp;
 
 	public final Trigger ferry;
 
@@ -62,6 +66,13 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
-		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
+		// this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
+		this.moveElevatorUp
+		.whileTrue(new RunCommand(() -> {
+			Robot.cont.elevator.moveToPosition(Units.Feet.of(5));
+		}, Robot.cont.elevator))
+		.whileFalse(new RunCommand(() -> {
+			Robot.cont.elevator.moveToPosition(Units.Feet.of(1));
+		}, Robot.cont.elevator));
 	}
 }
