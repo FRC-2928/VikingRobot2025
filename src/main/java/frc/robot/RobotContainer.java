@@ -3,6 +3,7 @@ package frc.robot;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
@@ -60,6 +61,12 @@ public class RobotContainer {
 	}
 
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
+
+	public Command scoreCoral(int level, Constants.ReefPosition position) {
+		return new SequentialCommandGroup() {
+			
+		};
+	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }
 }

@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.List;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.AudioConfigs;
@@ -49,6 +51,37 @@ public class Constants {
 
 		/** Replaying from a log file. */
 		REPLAY
+	}
+
+	public static enum ReefPosition {
+		A(-1, List.of(18, 7)),
+		B(1, List.of(18, 7)),
+		C(-1, List.of(17, 8)),
+		D(1, List.of(17, 8)),
+		E(-1, List.of(22, 9)),
+		F(1, List.of(22, 9)),
+		G(-1, List.of(21, 10)),
+		H(1, List.of(21, 10)),
+		I(-1, List.of(20, 11)),
+		J(1, List.of(20, 11)),
+		K(-1, List.of(19, 6)),
+		L(1, List.of(19, 6));
+
+		private int direction;
+		private List<Integer> tags;
+
+		private ReefPosition(int direction, List<Integer> tags) {
+			this.direction = direction;
+			this.tags = tags;
+		}
+
+		public int getDirection() {
+			return direction;
+		}
+
+		public List<Integer> getTagID() {
+			return tags;
+		}
 	}
 
 	public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }
@@ -290,14 +323,20 @@ public class Constants {
 		public static final Distance DRUM_RADIUS = Units.Inches.of(1.128);
 		public static final double DISTANCE_CONVERSION_RATIO = ELEVATOR_GEARING / NUMBER_OF_STAGES / (2 * Math.PI * DRUM_RADIUS.in(Units.Meters));
 
+		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
+		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
+
+		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(40);
+		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
+
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Elevator_Static)
-			.withKS(0.0)
+			.withKS(0.1)
 			//.withKG(0.1)
 			.withKV(2.76)
 			.withKA(0.1 / 9.8)
-			//.withKP(1)
-			/*.withKD(0.01)*/;
+			.withKP(1)
+			.withKD(1);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
