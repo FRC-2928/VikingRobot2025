@@ -9,9 +9,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -24,11 +22,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 
 public class Elevator extends SubsystemBase {
@@ -53,13 +47,13 @@ public class Elevator extends SubsystemBase {
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
 		LinearSystemId.createElevatorSystem(
-			DCMotor.getKrakenX60Foc(2), 3, 
+			DCMotor.getKrakenX60Foc(2), Units.Pounds.of(12).in(Units.Kilogram), 
 			Constants.Elevator.DRUM_RADIUS.in(Units.Meters), 
 			Constants.Elevator.ELEVATOR_GEARING / Constants.Elevator.NUMBER_OF_STAGES), 
 		DCMotor.getKrakenX60Foc(2), 
 		0, 
-		2,
-		true, 
+		Units.Inches.of(75).in(Units.Meters),
+		false, 
 		0);
 
 	public Elevator() {
@@ -102,13 +96,14 @@ public class Elevator extends SubsystemBase {
 
 		// PID values
 		elevatorConfig.Slot0 = Slot0Configs.from(Constants.Elevator.elevatorConfig);
+		elevatorConfig.Feedback.SensorToMechanismRatio = Constants.Elevator.DISTANCE_CONVERSION_RATIO;
 
 		bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
 
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
-		elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 3.099 / Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 2.76;
 		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.01;
 
 		this.liftMotorA.getConfigurator().apply(elevatorConfig);
