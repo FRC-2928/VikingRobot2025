@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
 import frc.robot.oi.OperatorOI;
+import frc.robot.subsystems.BananaFlywheels;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
@@ -27,6 +28,7 @@ public class RobotContainer {
 	public final Climber climber;
 	public final Elevator elevator;
 	public final Intake intake;
+	public final BananaFlywheels bananaFlywheels;
 
 	public final LimelightFXManager fxm;
 
@@ -41,6 +43,7 @@ public class RobotContainer {
 		this.fxm = new LimelightFXManager();
 		this.elevator = new Elevator();
 		this.intake = new Intake();
+		this.bananaFlywheels = new BananaFlywheels();
 
 		this.diag.chirp(600, 500);
 		this.diag.chirp(900, 500);
@@ -63,9 +66,9 @@ public class RobotContainer {
 	public Command getAutonomousCommand() { return this.autonomousChooser.get(); }
 
 	public Command scoreCoral(int level, Constants.ReefPosition position) {
-		return new SequentialCommandGroup() {
-			
-		};
+		return new SequentialCommandGroup(
+
+		);
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

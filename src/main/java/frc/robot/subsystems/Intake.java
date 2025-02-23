@@ -3,24 +3,22 @@ package frc.robot.subsystems;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.hardware.TalonFXS;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.*;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -60,12 +58,13 @@ public class Intake extends SubsystemBase {
 		public AngularVelocity troughSpeed;
 	}
 
+	public final IntakeInputsAutoLogged inputs = new IntakeInputsAutoLogged();
 
 	private final TalonFX wheels;
 	private final TalonFXS belt;
 	private final TalonFX pivot;
 	private final TalonFXS trough;
-	private final SensorCollection sensors;
+	//private final SensorCollection sensors;
 	private final StatusSignal<AngularVelocity> intakeSpeed;
 	private final StatusSignal<Angle> pivotAngle;
 	private final StatusSignal<AngularVelocity> troughSpeed;
@@ -80,7 +79,7 @@ public class Intake extends SubsystemBase {
 		this.intakeSpeed = this.wheels.getRotorVelocity();
 		this.pivotAngle = this.pivot.getRotorPosition();
 		this.troughSpeed = this.trough.getVelocity();
-		this.sensors = null;
+		//this.sensors = trough.;
 		
 
 		// Peak output amps
@@ -142,7 +141,7 @@ public class Intake extends SubsystemBase {
 		inputs.intakeSpeed = this.intakeSpeed.getValue();
 		inputs.pivotAngle = this.pivotAngle.getValue();
 		inputs.troughSpeed = this.troughSpeed.getValue();
-	 	inputs.troughHasCoral = !this.sensors.isFwdLimitSwitchClosed();
+	 	inputs.troughHasCoral = false;//!this.sensors.isFwdLimitSwitchClosed();
 	}
 
 	public Command IntakeUp() {
@@ -171,5 +170,10 @@ public class Intake extends SubsystemBase {
 				rotatePivot(Units.Radians.of(1));
 			}, this)
 		);
+	}
+
+	@Override
+	public void periodic() {
+		updateInputs(this.inputs);
 	}
 }

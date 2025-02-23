@@ -66,6 +66,7 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
+		Logger.recordOutput("ControllerInputs/ReefHeight", cont.driverOI.targetScoringLevel);
 		
 	}
 

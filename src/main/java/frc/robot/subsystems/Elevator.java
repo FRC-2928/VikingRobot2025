@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import java.util.Map;
+import java.util.function.IntSupplier;
+
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
@@ -62,6 +65,17 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
+
+	private final Map<Integer, Distance> coralReefPositions = Map.of(
+		1, Units.Feet.of(2.5), 
+		2, Units.Feet.of(3.5), 
+		3, Units.Feet.of(4.5), 
+		4, Units.Feet.of(6.4)); 
+	private final Map<Integer, Angle> coralReefPivots = Map.of(
+		1, Units.Degrees.of(0), 
+		2, Units.Degrees.of(0), 
+		3, Units.Degrees.of(0), 
+		4, Units.Degrees.of(45));
 	
 
 	// Simulation objects
@@ -77,6 +91,10 @@ public class Elevator extends SubsystemBase {
 		0);
 
 	public Elevator() {
+		this.elevatorTargetPosition = Units.Feet.of(0);
+		this.elevatorCommandedPosition = Units.Feet.of(0);
+		this.pivotTargetAngle = Units.Degrees.of(0);
+		this.pivotCommmandedAngle = Units.Degrees.of(0);
 
 		liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA);
 		liftMotorB = new TalonFX(Constants.CAN.CTRE.elevatorMotorB);
@@ -247,20 +265,14 @@ public class Elevator extends SubsystemBase {
 		); 
 	}
 
-	public Command toL1Coral() {
-		return setTargetCommand(Units.Feet.of(2.5), Units.Degrees.of(0));
-	}
-
-	public Command toL2Coral() {
-		return setTargetCommand(Units.Feet.of(3.5), Units.Degrees.of(0));
-	}
-
-	public Command toL3Coral() {
-		return setTargetCommand(Units.Feet.of(4.5), Units.Degrees.of(0));
-	}
-
-	public Command toL4Coral() {
-		return setTargetCommand(Units.Feet.of(6.4), Units.Degrees.of(45));
+	public Command goToCoralHeight(IntSupplier level) {
+		return new SequentialCommandGroup(
+			new RunCommand(() -> {
+				moveToPosition(coralReefPositions.getOrDefault(level.getAsInt(), coralReefPositions.get(1)));
+				pivotBanana(coralReefPivots.getOrDefault(level.getAsInt(), coralReefPivots.get(1)));
+			}, this),
+			new RunCommand(() -> {}, this).until(this::isInTargetPos)
+		); 
 	}
 
 	public Command toL2Algae() {

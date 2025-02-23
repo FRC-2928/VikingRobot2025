@@ -91,7 +91,7 @@ public class BananaFlywheels extends SubsystemBase {
 
 
 	}
-	private boolean holdingCoral() {
+	public boolean holdingCoral() {
 		return false;
 	}
 	public void updateInputs(final BananaFlywheelsInputs inputs) {
@@ -118,7 +118,7 @@ public class BananaFlywheels extends SubsystemBase {
 		// 2. Run the wheels another 0.2 seconds
 		// 3. Stop the wheels
 	}
-	public Command rejectCoral(){
+	public Command outputForward(){
 		return new RunCommand(() -> {
 			runFlywheels(Feeder.Forward);
 		}, this);
