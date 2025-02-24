@@ -92,7 +92,7 @@ public class BananaFlywheels extends SubsystemBase {
 
 	}
 	public boolean holdingCoral() {
-		return false;
+		return true;
 	}
 	public void updateInputs(final BananaFlywheelsInputs inputs) {
 		BaseStatusSignal.refreshAll(this.angle, this.velocity);

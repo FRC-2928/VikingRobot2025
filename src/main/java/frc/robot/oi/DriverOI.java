@@ -36,7 +36,7 @@ public class DriverOI extends BaseOI {
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
 
-	private final BooleanSupplier holdingCoral;
+	private final Trigger holdingCoral;
 
 	public int targetScoringLevel;
 
@@ -46,7 +46,7 @@ public class DriverOI extends BaseOI {
 		this.driveAxial = this.controller::getLeftY;
 		this.driveLateral = this.controller::getLeftX;
 
-		this.holdingCoral = () -> (Robot.cont.intake.inputs.troughHasCoral || Robot.cont.bananaFlywheels.holdingCoral());
+		this.holdingCoral = new Trigger(() -> (Robot.cont.intake.inputs.troughHasCoral || Robot.cont.bananaFlywheels.holdingCoral()));
 
 		if(Constants.mode == Mode.REAL) {
 			this.driveFORX = this.controller::getRightX;
@@ -57,10 +57,12 @@ public class DriverOI extends BaseOI {
 		}
 		this.manualRotation = this.controller.rightStick();
 
-		this.alignReefLeft = this.controller.leftBumper();
-		this.alignReefRight = this.controller.rightBumper();
-		this.alignHP = this.controller.leftBumper().or(this.controller.rightBumper());
-		this.alignProcessor = this.controller.leftBumper().or(this.controller.rightBumper());
+		this.alignReefLeft = this.controller.leftBumper().and(this.holdingCoral);
+		this.alignReefRight = this.controller.rightBumper().and(this.holdingCoral);
+		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
+							.and(this.holdingCoral.negate());
+		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
+							.and(this.holdingCoral.negate());
 
 		this.resetFOD = this.controller.y();
 
@@ -88,8 +90,8 @@ public class DriverOI extends BaseOI {
 		.whileFalse(new RunCommand(() -> {
 			Robot.cont.elevator.moveToPosition(Units.Feet.of(1));
 		}, Robot.cont.elevator));*/
-		this.alignReefLeft.whileTrue(Robot.cont.elevator.goToCoralHeight(() -> targetScoringLevel));
-		this.alignReefRight.whileTrue(Robot.cont.elevator.goToCoralHeight(() -> targetScoringLevel));
+		this.alignReefLeft.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
+		this.alignReefRight.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
 		this.alignProcessor.whileTrue(Robot.cont.elevator.processorAlgae());
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {

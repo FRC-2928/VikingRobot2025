@@ -81,12 +81,12 @@ public class Elevator extends SubsystemBase {
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
 		LinearSystemId.createElevatorSystem(
-			DCMotor.getKrakenX60Foc(2), Units.Pounds.of(12).in(Units.Kilogram), 
+			DCMotor.getKrakenX60Foc(2), Units.Pounds.of(36).in(Units.Kilogram), 
 			Constants.Elevator.DRUM_RADIUS.in(Units.Meters), 
-			Constants.Elevator.ELEVATOR_GEARING / Constants.Elevator.NUMBER_OF_STAGES), 
+			Constants.Elevator.ELEVATOR_GEARING), 
 		DCMotor.getKrakenX60Foc(2), 
 		0, 
-		Units.Inches.of(75).in(Units.Meters),
+		Units.Inches.of(30).in(Units.Meters),
 		false, 
 		0);
 
@@ -101,8 +101,8 @@ public class Elevator extends SubsystemBase {
 
 		pivot = new TalonFX(Constants.CAN.CTRE.bananaPivot);
 
-		this.elevatorMotorPosition = this.liftMotorA.getRotorPosition();
-		this.elevatorMotorVelocity = this.liftMotorA.getRotorVelocity();
+		this.elevatorMotorPosition = this.liftMotorA.getPosition();
+		this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
 
 		this.pivotMotorPosition = this.pivot.getRotorPosition();
 		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
@@ -144,8 +144,8 @@ public class Elevator extends SubsystemBase {
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
 		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 0.15;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.01;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6.81655937847;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.55;
 
 		this.liftMotorA.getConfigurator().apply(elevatorConfig);
 		this.liftMotorA.setNeutralMode(NeutralModeValue.Brake);
@@ -157,12 +157,10 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public void moveToPosition(final Distance position) {
-		
 		this.elevatorTargetPosition = Units.Meters.of(MathUtil.clamp(position.in(Units.Meters), Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters), Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meter)));
 	}
 
 	public void pivotBanana(final Angle rotation) {
-		
 		this.pivotTargetAngle = Units.Degrees.of(MathUtil.clamp(rotation.in(Units.Degrees), Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees), Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
 	}
 	
@@ -246,12 +244,13 @@ public class Elevator extends SubsystemBase {
 		elevatorSim.setInputVoltage(liftMotorASimState.getMotorVoltage());
 		elevatorSim.update(0.02);
 
-		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters());
-		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond());
-		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters());
-		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond());
+		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
 
 		Logger.recordOutput("Elevator/Sim/LiftVoltage", liftMotorASimState.getMotorVoltage());
+		// Logger.recordOutput("Elevator/Sim/Height", elevatorSim.getPositionMeters());
 	}
 
 
@@ -266,13 +265,14 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public Command goToCoralHeight(IntSupplier level) {
-		return new SequentialCommandGroup(
-			new RunCommand(() -> {
-				moveToPosition(coralReefPositions.getOrDefault(level.getAsInt(), coralReefPositions.get(1)));
-				pivotBanana(coralReefPivots.getOrDefault(level.getAsInt(), coralReefPivots.get(1)));
-			}, this),
-			new RunCommand(() -> {}, this).until(this::isInTargetPos)
-		); 
+		return goToCoralHeightEndless(level).until(this::isInTargetPos);
+	}
+
+	public Command goToCoralHeightEndless(IntSupplier level) {
+		return new RunCommand(() -> {
+			moveToPosition(coralReefPositions.getOrDefault(level.getAsInt(), coralReefPositions.get(1)));
+			pivotBanana(coralReefPivots.getOrDefault(level.getAsInt(), coralReefPivots.get(1)));
+		}, this);
 	}
 
 	public Command toL2Algae() {

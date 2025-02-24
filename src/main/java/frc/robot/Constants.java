@@ -331,12 +331,12 @@ public class Constants {
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 			.withGravityType(GravityTypeValue.Elevator_Static)
-			.withKS(0.1)
+			.withKS(0)
 			//.withKG(0.1)
-			.withKV(2.76)
-			.withKA(0.1 / 9.8)
-			.withKP(1)
-			.withKD(1);
+			.withKV(6.81655937847)
+			.withKA(0.53)
+			.withKP(20)
+			.withKD(0);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
