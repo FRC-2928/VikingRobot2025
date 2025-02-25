@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Map;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -47,6 +48,23 @@ public class Elevator extends SubsystemBase {
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 	// public final ElevatorInputs inputs = new ElevatorInputs();
 
+	private enum HomePosition {
+		CORAL(Units.Feet.of(0), Units.Degrees.of(0)),
+		ALGAE(Units.Feet.of(0.5), Units.Degrees.of(0)),
+		CLIMB(Units.Feet.of(2), Units.Degrees.of(0));
+
+		private Distance height;
+		private Angle pivot;
+
+		private HomePosition(Distance height, Angle pivot) {
+			this.height = height;
+			this.pivot = pivot;
+		}
+
+		public Distance getHeight() { return height; }
+		public Angle getPivot() { return pivot; }
+	}
+
 	private final TalonFX liftMotorA;
 	private final TalonFX liftMotorB;
 	private final TalonFX pivot;
@@ -77,6 +95,7 @@ public class Elevator extends SubsystemBase {
 		3, Units.Degrees.of(0), 
 		4, Units.Degrees.of(45));
 	
+	private HomePosition homePos; 
 
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
@@ -154,6 +173,10 @@ public class Elevator extends SubsystemBase {
 		this.pivot.setNeutralMode(NeutralModeValue.Brake);
 
 		StatusSignal.setUpdateFrequencyForAll(50, elevatorMotorPosition, elevatorMotorVelocity, pivotMotorPosition, pivotMotorVelocity);
+
+		homePos = HomePosition.CORAL;
+
+		this.setDefaultCommand(toHome());
 	}
 
 	public void moveToPosition(final Distance position) {
@@ -272,6 +295,17 @@ public class Elevator extends SubsystemBase {
 		return new RunCommand(() -> {
 			moveToPosition(coralReefPositions.getOrDefault(level.getAsInt(), coralReefPositions.get(1)));
 			pivotBanana(coralReefPivots.getOrDefault(level.getAsInt(), coralReefPivots.get(1)));
+		}, this);
+	}
+
+	public Command goToCoralHeight(Supplier<HomePosition> level) {
+		return goToCoralHeightEndless(level).until(this::isInTargetPos);
+	}
+
+	public Command goToCoralHeightEndless(Supplier<HomePosition> level) {
+		return new RunCommand(() -> {
+			moveToPosition(level.get().getHeight());
+			pivotBanana(level.get().getPivot());
 		}, this);
 	}
 
