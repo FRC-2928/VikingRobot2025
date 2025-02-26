@@ -71,7 +71,7 @@ public class Diagnostics extends SubsystemBase {
 		public int ms;
 		public long start = 0;
 
-		public void play() { Robot.cont.fxm.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
+		// public void play() { Robot.cont.fxm.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
 	}
 
 	private static final byte suffixRadio = 1;
@@ -115,7 +115,7 @@ public class Diagnostics extends SubsystemBase {
 			final Chirp chirp = this.chirps.get(0);
 			if(chirp.start == 0) {
 				chirp.start = Logger.getTimestamp();
-				chirp.play();
+				// chirp.play();
 			}
 
 			if(Logger.getRealTimestamp() - chirp.start >= chirp.ms) this.chirps.remove(0);
@@ -166,7 +166,7 @@ public class Diagnostics extends SubsystemBase {
 
 			String name;
 			try {
-				name = (String) this.loggedDashboardChooserSelectedValue.get(Robot.cont.autonomousChooser);
+				name = (String) this.loggedDashboardChooserSelectedValue.get(Robot.cont.autoChooser);
 				if(name == null) name = "<none>";
 				invalidAutoRoutine = !name.contains("[comp]");
 			} catch(final Exception e) {

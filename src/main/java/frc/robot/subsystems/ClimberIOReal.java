@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
@@ -16,7 +17,6 @@ import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
-import frc.robot.utils.STalonFX;
 import edu.wpi.first.units.measure.Angle;
 
 public class ClimberIOReal implements ClimberIO {
@@ -48,7 +48,7 @@ public class ClimberIOReal implements ClimberIO {
 		this.lock(true);
 	}
 
-	public final STalonFX actuator = new STalonFX(Constants.CAN.CTRE.climber, Constants.CAN.CTRE.bus);
+	public final TalonFX actuator = new TalonFX(Constants.CAN.CTRE.climber, Constants.CAN.CTRE.bus);
 
 	public final Servo lock = new Servo(9);
 

@@ -36,7 +36,7 @@ public class LimelightFXManager {
 	public final Behavior<?> behTeleop = this.fx.behavior(Image.class).of("teleop");
 	public final Behavior<?> behHoldingNote = this.fx
 		.behavior(SolidColor.class)
-		.cfg(beh -> beh.color.set(Constants.LimelightFX.Colors.note))
+		.cfg(beh -> beh.color.set(Color.ORANGE))
 		.on(this.grid, 0)
 		.on(this.strips, 0);
 
@@ -45,7 +45,7 @@ public class LimelightFXManager {
 		.cfg(beh -> beh.filepath.set("dropnote"))
 		.on(this.grid, 1)
 		.fuse(this.fx.behavior(Chevrons.class).cfg(beh -> {
-			beh.colorA.set(Constants.LimelightFX.Colors.note);
+			beh.colorA.set(Color.ORANGE);
 			beh.colorB.set(Color.black);
 			beh.widthA.set(2);
 			beh.widthB.set(2);

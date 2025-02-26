@@ -10,19 +10,18 @@ import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.pathplanner.lib.config.PIDConstants;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import frc.robot.subsystems.LimelightFX.Color;
-
+import edu.wpi.first.units.Units;
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -34,13 +33,11 @@ public class Constants {
 
 	public static final Mode mode = Constants.currentMode();
 	public static final boolean real = Constants.mode == Constants.Mode.REAL;
-	public static final Distance fieldWidth = Units.Meters.of(16.541); // Correlates to Field oriented x coordinate
-	public static final Distance fieldDepth = Units.Meters.of(8.211); // Correlates to Field oriented y coordinate
 
 	public static final AudioConfigs talonFXAudio = new AudioConfigs()
 		.withAllowMusicDurDisable(true)
 		.withBeepOnBoot(true)
-		.withBeepOnConfig(false);
+		.withBeepOnConfig(true);
 
 	public static enum Mode {
 		/** Running on a real robot. */
@@ -103,16 +100,12 @@ public class Constants {
 
 	public static PIDConstants fromPIDValues(final PIDValues pid) { return new PIDConstants(pid.p, pid.d, pid.d); }
 
+	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+
 	public static final class LimelightFX {
 		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }
 
-		public static final class Colors {
-			private Colors() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX.Colors`"); }
-
-			public static final Color note = new Color(255, 127, 0);
-		}
-
-		public static final boolean enabled = true;
+		public static final boolean enabled = false;
 	}
 
 	public static final class CAN {
@@ -175,43 +168,59 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
+		// Gear ratios for SDS MK4i L2, adjust as necessary
+		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
+		public static final double azimuthGearRatio = 150.0 / 7.0;
+
+		public static final Distance wheelRadius = Units.Inches.of(1.85);
+		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
+
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
+
+		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
+		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
+		public static final Distance halfRobotWidth = Units.Inches.of(27.0/2);
+		public static final Distance halfRobotWidthBumpersOn = Units.Inches.of(27.0/2 + 3);
+
+		// max angular velocity computes to 6.41 radians per second
+		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond
+			.of(
+				Drivetrain.maxVelocity.in(Units.MetersPerSecond)
+					/ (2
+						* Math.PI
+						* Math
+							.hypot(
+								Drivetrain.trackWidth.div(2).in(Units.Meters),
+								Drivetrain.wheelBase.div(2).in(Units.Meters)
+							))
+			);
+
 		public static final class Auto {
-			public static final PIDValues translationDynamic = new PIDValues(7.5, 0, 0.5, 0);
-			public static final PIDValues thetaDynamic = new PIDValues(5, 0, 0.02, 0);
+			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
+			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
+			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 
 		public static final SlotConfigs azimuth = new SlotConfigs()
-			.withKP(-60)
+			.withKP(-50)
+			.withKI(0)
+			.withKD(-0.5)
+			.withKS(-2);
+
+		public static final SlotConfigs drive = new SlotConfigs()
+			.withKP(0)
 			.withKI(0)
 			.withKD(0)
 			.withKS(0)
-			.withKV(0)
+			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond))
 			.withKA(0);
 
-		public static final SlotConfigs drive = new SlotConfigs()
-			.withKP(0) /* 0.15 */
-			.withKI(0.0)
-			.withKD(0)
-			.withKS(0)
-			.withKV(12.0/4.7244) 
-			.withKA(0);
-
-		// todo: tune
-		public final static PIDValues drivePID = new PIDValues(0.1, 0, 0, 0);
-		//public static final PIDValues swerveAzimuthPID = new PIDValues(0.01, 0, 0.005, 0);
 		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
 			17
 		);
-		public static final SimpleMotorFeedforward absoluteRotationFeedforward = new SimpleMotorFeedforward(2, 1);
-		// todo: find
-		public static final SimpleMotorFeedforward driveFFW = new SimpleMotorFeedforward(0, 2.5, 0);
-
-		public static final double thetaCompensationFactor = 0.2;
-
-		public static final Distance wheelBase = Units.Inches.of(29 - 2.5 * 2);
-		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain`
 
 		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
@@ -240,51 +249,6 @@ public class Constants {
 			Constants.Drivetrain.swerveBackLeftTranslation,
 			Constants.Drivetrain.swerveBackRightTranslation
 		);
-
-		// Gear ratios for SDS MK4i L2, adjust as necessary
-		public static final double driveGearRatio = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0); // ~= 6.746
-		public static final double azimuthGearRatio = 150.0 / 7.0;
-
-		public static final Distance wheelRadius = Units.Inches.of(2);
-		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
-
-		public static final LinearVelocity maxVelocity = Units.Meters.per(Units.Second).of(5.0);
-
-		// max angular velocity computes to 6.41 radians per second
-		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond
-			.of(
-				Drivetrain.maxVelocity.in(Units.MetersPerSecond)
-					/ (2
-						* Math.PI
-						* Math
-							.hypot(
-								Drivetrain.trackWidth.div(2).in(Units.Meters),
-								Drivetrain.wheelBase.div(2).in(Units.Meters)
-							))
-			);
-	}
-	public static class Intake {
-		// The minium value for the intake
-		public static final Angle pivotMin = Units.Rotations.of(-0.1085);
-		// max angle before exiting allowed extension range
-		public static final Angle max = Units.Rotations.of(0.39);
-
-		public static final Slot0Configs pivotConfig = new Slot0Configs()
-			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(0.05)
-			.withKI(0.0)
-			.withKD(0.0)
-			.withKS(0)
-			.withKV(0.015)
-			.withKA(0);
-
-			public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
-			.withKP(0.05)
-			.withKI(0.0)
-			.withKD(0.0)
-			.withKS(0)
-			.withKV(0.015)
-			.withKA(0);
 	}
 
 	public static class Elevator {
@@ -330,13 +294,13 @@ public class Constants {
 		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
-			.withGravityType(GravityTypeValue.Elevator_Static)
-			.withKS(0)
-			//.withKG(0.1)
-			.withKV(6.81655937847)
-			.withKA(0.53)
-			.withKP(20)
-			.withKD(0);
+		.withGravityType(GravityTypeValue.Elevator_Static)
+		.withKS(0)
+		//.withKG(0.1)
+		.withKV(6.81655937847)
+		.withKA(0.53)
+		.withKP(20)
+		.withKD(0);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
@@ -348,40 +312,32 @@ public class Constants {
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
+	}
 
-		public static final PIDValues targetRotationController = new PIDValues(0.3, 0, 0, 0);
-
-		public static final FlywheelConfiguration flywheels = FlywheelConfiguration.greenBane;
-
-		// todo: fill angles
-
-		// a little above intake height to avoid hitting floor but to be ready
-		public static final Angle readyIntake = Units.Rotations.of(-0.1085);
-		// min angle before hitting floor
-		public static final Angle intakeGround = Units.Rotations.of(-0.1085);
-
-		public static final Angle readyDrive = Units.Degrees.zero();
-		public static final Angle readyShootFront = Units.Rotations.of(0.122);
-		public static final Angle readyShootRear = Units.Degrees.of(125);
-		// public static final Angle readyShootRearSub = Units.Degrees.of(105);
-		public static final Angle shootAmp = Units.Degrees.of(110);
-
-		public static final double ampBarServoAExtend = 1.0;
-		public static final double ampBarServoBExtend = 0.0;
-		public static final double ampBarServoARetract = 0.0;
-		public static final double ampBarServoBRetract = 1.0;
-
-		public static final Angle startingConfiguration = Units.Degrees.of(90);
-
-		public static final Angle shootSub = Units.Degrees.of(115);
-		public static final Angle shootFerry = Units.Degrees.of(130);
-
+	public static class Intake {
+		// The minium value for the intake
+		public static final Angle pivotMin = Units.Rotations.of(-0.1085);
 		// max angle before exiting allowed extension range
 		public static final Angle max = Units.Rotations.of(0.39);
 
-		public static final double fireTimeout = 0.3;
-	}
+		public static final Slot0Configs pivotConfig = new Slot0Configs()
+			.withGravityType(GravityTypeValue.Arm_Cosine)
+			.withKP(0.05)
+			.withKI(0.0)
+			.withKD(0.0)
+			.withKS(0)
+			.withKV(0.015)
+			.withKA(0);
 
+			public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
+			.withKP(0.05)
+			.withKI(0.0)
+			.withKD(0.0)
+			.withKS(0)
+			.withKV(0.015)
+			.withKA(0);
+}
+	
 	public static class Banana {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 

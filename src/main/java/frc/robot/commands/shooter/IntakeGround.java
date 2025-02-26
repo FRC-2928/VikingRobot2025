@@ -65,11 +65,12 @@ public class IntakeGround extends Command {
 		// this.haptics.update();
 		
 	}
-	public double calculateSpeedX(){
-		Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
-		return( 
-				(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
-		);
+	public double calculateSpeedX() {
+		// Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
+		// return( 
+		// 		(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
+		// );
+		return 0d;
 	}
 	
 	@Override

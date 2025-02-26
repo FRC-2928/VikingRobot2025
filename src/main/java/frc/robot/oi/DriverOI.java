@@ -1,10 +1,10 @@
 package frc.robot.oi;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -28,6 +28,7 @@ public class DriverOI extends BaseOI {
 	public final Trigger lockWheels;
 
 	public final Trigger resetFOD;
+	public final Trigger resetAngle;
 
 	public final Trigger resetPoseLimelight;
 
@@ -65,6 +66,7 @@ public class DriverOI extends BaseOI {
 							.and(this.holdingCoral.negate());
 
 		this.resetFOD = this.controller.y();
+		this.resetAngle = this.controller.back();
 
 		this.resetPoseLimelight = this.controller.b();
 
@@ -82,6 +84,7 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
 		// this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
 		/*this.moveElevatorUp
 		.whileTrue(new RunCommand(() -> {
