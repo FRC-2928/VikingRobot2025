@@ -54,6 +54,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		cont.drivetrain.limelight.setIMUMode(1);
+		cont.elevator.setDefaultCommand();
 	}
 
 	@Override

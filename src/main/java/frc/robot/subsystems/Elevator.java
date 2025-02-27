@@ -233,6 +233,9 @@ public class Elevator extends SubsystemBase {
 		}
 	}
 
+	public void setHome(HomePosition home) {
+		this.homePos = home;
+	}
 
 	public void updateInputs(final ElevatorInputs inputs) {
 		BaseStatusSignal
@@ -274,6 +277,10 @@ public class Elevator extends SubsystemBase {
 
 		Logger.recordOutput("Elevator/Sim/LiftVoltage", liftMotorASimState.getMotorVoltage());
 		// Logger.recordOutput("Elevator/Sim/Height", elevatorSim.getPositionMeters());
+	}
+
+	public void setDefaultCommand() {
+		this.setDefaultCommand(this.toDefaultPosition());
 	}
 
 
@@ -323,5 +330,12 @@ public class Elevator extends SubsystemBase {
 
 	public Command toHome() {
 		return setTargetCommand(Units.Feet.of(0), Units.Degrees.of(0));
+	}
+
+	public Command toDefaultPosition() {
+		return new RunCommand(() -> {
+			controlPivot(this.homePos.getPivot());
+			controlPosition(this.homePos.getHeight());
+		}, this);
 	}
 }
