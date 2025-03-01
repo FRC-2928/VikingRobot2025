@@ -81,6 +81,37 @@ public class Constants {
 		}
 	}
 
+	public static enum GamePieceType {
+		NONE,  // Game Piece Type for None
+		ALGAE, // Game Piece Type for Algae
+		CORAL  // Game Piece Type for Coral
+		// other pieces here...
+	}
+
+	public static enum CoralPositions {
+		NONE, // Coral Position for None
+		L1,   // Coral Position for L1
+		L2,   // Coral Position for L2
+		L3,   // Coral Position for L3
+		L4    // Coral Position for L4
+		// other positions here...
+	}
+
+	public static enum AlgaePositions {
+		NONE, // Coral Position for None
+		L2,   // Coral Position for L2
+		L3    // Coral Position for L3
+		// other positions here...
+	}
+
+	public static enum SubsystemKeys {
+		NONE, 	    // Subsystem for None
+		ELEVATOR,   // Subsystem for Elevator
+		BANANA,     // Subsystem for Banana
+		DRIVETRAIN  // Subsystem for Drivetrain
+		// other subsystems here...
+	}
+
 	public static final double mod(final double lhs, final double rhs) { return (lhs % rhs + rhs) % rhs; }
 
 	public static final double angleNorm(final double angle) { return Constants.mod(angle + 180, 360) - 180; }

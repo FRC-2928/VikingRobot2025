@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.commands.drivetrain.LockWheels;
@@ -64,6 +65,11 @@ public class DriverOI extends BaseOI {
 							.and(this.holdingCoral.negate());
 		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate());
+							/*.and(this.nearProcessor());*/
+
+		this.alignReefCenter = (this.controller.leftBumper().or(this.controller.rightBumper()))
+							.and(this.holdingCoral.negate());
+							/*.and(this.nearReef())*/
 
 		this.resetFOD = this.controller.y();
 		this.resetAngle = this.controller.back();
@@ -85,23 +91,18 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
-		// this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
-		/*this.moveElevatorUp
-		.whileTrue(new RunCommand(() -> {
-			Robot.cont.elevator.moveToPosition(Units.Feet.of(5));
-		}, Robot.cont.elevator))
-		.whileFalse(new RunCommand(() -> {
-			Robot.cont.elevator.moveToPosition(Units.Feet.of(1));
-		}, Robot.cont.elevator));*/
-		this.alignReefLeft.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
-		this.alignReefRight.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
+		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
+		this.alignReefLeft.whileTrue(
+			Commands.sequence(
+				CenterLimelight.CenterLimelightLeft(),
+				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL));
+		this.alignReefRight.whileTrue(
+			Commands.sequence(
+				CenterLimelight.CenterLimelightRight()
+				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL));
 		this.alignProcessor.whileTrue(Robot.cont.elevator.processorAlgae());
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
-		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
-			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);
-		}));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(() -> {
-			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel+1, 1, 4);
-		}));
+		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
+		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
 	}
 }
