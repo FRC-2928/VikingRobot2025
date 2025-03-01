@@ -17,11 +17,11 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.Units;
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -138,6 +138,8 @@ public class Constants {
 			public static final int bananaPivot = 12;
 			public static final int elevatorMotorA = 1;
 			public static final int elevatorMotorB = 4;
+			public static final int pivotLimitSwitch = 8;
+			public static final int elevatorLimitSwitch = 9;
 
 			public static final int bananaWheels = 20;
 			public static final int intakeWheels = 99; //TODO: get right number

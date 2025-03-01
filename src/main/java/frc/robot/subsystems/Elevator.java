@@ -15,7 +15,10 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
+import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
@@ -130,35 +133,30 @@ public class Elevator extends SubsystemBase {
 
 		final TalonFXConfiguration elevatorConfig = new TalonFXConfiguration();
 
-		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
-
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANcoder;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.elevatorLimitSwitch;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
+		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Gearing, clockwise moves elevator up
+		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+		
 		// Peak output amps
 		elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
 		elevatorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 		elevatorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
 		elevatorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-
-		bananaConfig.CurrentLimits.StatorCurrentLimit = 80.0;
-		bananaConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		bananaConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-		bananaConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-
-		// Supply current limits
+		
+		// Supply current limites
 		elevatorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 		elevatorConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
 		elevatorConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
 		elevatorConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
 
-		bananaConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-		bananaConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
-		bananaConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
-		bananaConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
-
 		// PID values
 		elevatorConfig.Slot0 = Slot0Configs.from(Constants.Elevator.elevatorConfig);
 		elevatorConfig.Feedback.SensorToMechanismRatio = Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-
-		bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
 
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
@@ -167,10 +165,35 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.55;
 
 		this.liftMotorA.getConfigurator().apply(elevatorConfig);
-		this.liftMotorA.setNeutralMode(NeutralModeValue.Brake);
+
+
+		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
+
+		bananaConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANcoder;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.pivotLimitSwitch;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
+		elevatorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+		// Peak output amps
+		bananaConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+		bananaConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+		bananaConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+		bananaConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+
+		// Supply current limits
+		bananaConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+		bananaConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+		bananaConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+		bananaConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+
+		// PID values
+		bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
 
 		this.pivot.getConfigurator().apply(bananaConfig);
-		this.pivot.setNeutralMode(NeutralModeValue.Brake);
 
 		StatusSignal.setUpdateFrequencyForAll(50, elevatorMotorPosition, elevatorMotorVelocity, pivotMotorPosition, pivotMotorVelocity);
 

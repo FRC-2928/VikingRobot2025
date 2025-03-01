@@ -17,6 +17,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Constants.ReefPosition;
 import frc.robot.Robot;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
@@ -136,20 +137,13 @@ public class CenterLimelight extends Command {
     // return new CenterLimelight(Units.Feet.of(0).plus(Constants.Drivetrain.halfRobotWidthBumpersOn),Units.Inches.of(6.5).plus(Constants.Drivetrain.halfRobotWidthBumpersOn), Units.Degrees.of(45), reefTags);
     return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(6.5), Units.Degrees.of(180), reefTags);
   }
+  
   public static CenterLimelight centerLimelightCenter(){
     return new CenterLimelight(Units.Feet.of(0),Units.Inches.of(0), reefTags);
   }
 
-  public static CenterLimelight centerLimelightC(){
-    return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(-6.5), List.of(8, 17));
-  }
-
-  public static CenterLimelight centerLimelightD(){
-    return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(6.5), List.of(8, 17));
-  }
-
-  public static CenterLimelight centerLimelightF(){
-    return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(6.5), List.of(9, 22));
+  public static CenterLimelight centerLimeLightPosition(ReefPosition reefPos) {
+    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(6.5 * reefPos.getDirection()), reefPos.getTagID());
   }
 
   public static CenterLimelight centerLimelightB1Reverse() {
