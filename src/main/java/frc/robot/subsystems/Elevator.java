@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import java.util.Map;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -25,6 +27,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -36,16 +40,20 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.GamePieceType;
+import frc.robot.Constants.AlgaePosition;
+import frc.robot.Constants.CoralPosition;
+import frc.robot.Constants.SubsystemKey;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
 	public static class ElevatorInputs {
 		public Distance height;
-		public boolean homePosPivot;
-		public boolean homePosElevator;
+		public boolean isPivotHomed;
+		public boolean isElevatorHomed;
 		public LinearVelocity speed;
 		public Angle pivotAngle;
-		public AngularVelocity pivoAngularVelocity;
+		public AngularVelocity pivotAngularVelocity;
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
@@ -77,7 +85,7 @@ public class Elevator extends SubsystemBase {
 	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
 	private final StatusSignal<Angle> pivotMotorPosition;
 
-	private Distance elevatorTargetPosition; // Represesnts final pos system is trying to reach
+	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
 	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
 
 	private Distance elevatorCommandedPosition; // The pos that the motor is currently told to go to
@@ -86,17 +94,28 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
+	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
+	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
 
-	private final Map<Integer, Distance> coralReefPositions = Map.of(
-		1, Units.Feet.of(2.5), 
-		2, Units.Feet.of(3.5), 
-		3, Units.Feet.of(4.5), 
-		4, Units.Feet.of(6.4)); 
-	private final Map<Integer, Angle> coralReefPivots = Map.of(
-		1, Units.Degrees.of(0), 
-		2, Units.Degrees.of(0), 
-		3, Units.Degrees.of(0), 
-		4, Units.Degrees.of(45));
+	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
+		CoralPosition.L1.getValue(), Units.Feet.of(2.5),
+		CoralPosition.L2.getValue(), Units.Feet.of(3.5),
+		CoralPosition.L3.getValue(), Units.Feet.of(4.5),
+		CoralPosition.L4.getValue(), Units.Feet.of(6.4));
+
+	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
+		AlgaePosition.L2.getValue(), Units.Feet.of(3.5),
+		AlgaePosition.L3.getValue(), Units.Feet.of(4.5));
+
+	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
+		CoralPosition.L1.getValue(), Units.Degrees.of(0),
+		CoralPosition.L2.getValue(), Units.Degrees.of(0),
+		CoralPosition.L3.getValue(), Units.Degrees.of(0),
+		CoralPosition.L4.getValue(), Units.Degrees.of(45));
+
+	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
+		AlgaePosition.L2.getValue(), Units.Degrees.of(0),
+		AlgaePosition.L3.getValue(), Units.Degrees.of(0));
 	
 	private HomePosition homePos; 
 
@@ -199,15 +218,23 @@ public class Elevator extends SubsystemBase {
 
 		homePos = HomePosition.CORAL;
 
-		this.setDefaultCommand(toHome());
+		this.setDefaultCommand(toDefaultPosition());
 	}
 
 	public void moveToPosition(final Distance position) {
-		this.elevatorTargetPosition = Units.Meters.of(MathUtil.clamp(position.in(Units.Meters), Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters), Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meter)));
+		this.elevatorTargetPosition = Units.Meters.of(
+			MathUtil.clamp(
+				position.in(Units.Meters),
+				Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters),
+				Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meter)));
 	}
 
 	public void pivotBanana(final Angle rotation) {
-		this.pivotTargetAngle = Units.Degrees.of(MathUtil.clamp(rotation.in(Units.Degrees), Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees), Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
+		this.pivotTargetAngle = Units.Degrees.of(
+			MathUtil.clamp(
+				rotation.in(Units.Degrees),
+				Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees),
+				Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
 	}
 	
 	private void controlPosition(final Distance position) {
@@ -223,18 +250,24 @@ public class Elevator extends SubsystemBase {
 
 	public boolean isInTargetPos() {
 		if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
-			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) && pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);
+			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
+				   pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 		}
-		return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) && Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
+		return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
+		       Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 	}
 
 	private void updateMotors() {
+		// are we currently in the elevator danger zone?
+		// is the elevator target within the danger zone?
+		// is the banana in a dangerous orientation?
+		// are we trying to move the banana into a dangerous orientation?
 		if (elevatorCommandedPosition != elevatorTargetPosition) {
 			if (elevatorTargetPosition.gte(elevatorThresholdForPivot)) {
 				controlPosition(elevatorTargetPosition);
 			}
 			else {
-				if (this.inputs.homePosPivot) {
+				if (this.inputs.isPivotHomed) {
 					controlPosition(elevatorTargetPosition);
 				}
 			}
@@ -271,11 +304,11 @@ public class Elevator extends SubsystemBase {
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
-		inputs.homePosElevator = inputs.height.in(Units.Meters) < 1e-7;
+		inputs.isElevatorHomed = inputs.height.in(Units.Meters) < 1e-7;
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
-		inputs.pivoAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.homePosPivot = inputs.pivotAngle.in(Units.Degrees) < 1;
+		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
+		inputs.isPivotHomed = inputs.pivotAngle.in(Units.Degrees) < 1;
 	}
 
 	@Override
@@ -306,59 +339,56 @@ public class Elevator extends SubsystemBase {
 		this.setDefaultCommand(this.toDefaultPosition());
 	}
 
-
-	public Command setTargetCommand(Distance distance, Angle angle) {
-		return new SequentialCommandGroup(
-			new InstantCommand(() -> {
-				moveToPosition(distance);
-				pivotBanana(angle);
-			}, this),
-			new RunCommand(() -> {}, this).until(this::isInTargetPos)
-		); 
+	public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
+		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
 	}
 
-	public Command goToCoralHeight(IntSupplier level) {
-		return goToCoralHeightEndless(level).until(this::isInTargetPos);
+	/**
+	 * Function factory to obtain an executable command to go to a reef height
+	 * based off of a provided game piece type (e.g., Coral, Algae)
+	 *
+	 * @param pieceType a @c GamePieceType indicating the desired game piece
+	 * @return an executable @c Command that moves the elevator to the appropriate position
+	 */
+	public Command goToReefHeight(GamePieceType pieceType) {
+		return goToReefHeightEndless(pieceType).until(this::isInTargetPos);
 	}
 
-	public Command goToCoralHeightEndless(IntSupplier level) {
+	private Command goToReefHeightEndless(GamePieceType pieceType) {
 		return new RunCommand(() -> {
-			moveToPosition(coralReefPositions.getOrDefault(level.getAsInt(), coralReefPositions.get(1)));
-			pivotBanana(coralReefPivots.getOrDefault(level.getAsInt(), coralReefPivots.get(1)));
+			// select the correct set of maps for the given game piece
+			var elevatorPositionsMap =
+				(pieceType == GamePieceType.CORAL) ? this.elevatorPositionsCoral : this.elevatorPositionsAlgae;
+			var bananaAnglesMap = (pieceType == GamePieceType.CORAL) ? this.bananaAnglesCoral : this.bananaAnglesAlgae;
+
+			// figure out which key we're using to determine the elevator position/banana angle
+			int positionKey = (pieceType == GamePieceType.CORAL) ? this.targetCoralLevel : this.targetAlgaeLevel;
+			// fetch the desired setpoints from each map
+			var desiredElevatorSetpoint = elevatorPositionsMap.get(positionKey);
+			var desiredBananaSetpoint   = bananaAnglesMap.get(positionKey);
+
+			// feed the setpoints to the actuators
+			moveToPosition(desiredElevatorSetpoint);
+			pivotBanana(desiredBananaSetpoint);
 		}, this);
 	}
 
-	public Command goToCoralHeight(Supplier<HomePosition> level) {
-		return goToCoralHeightEndless(level).until(this::isInTargetPos);
+	public void toggleReefHeightDown() {
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 1, 4);
 	}
 
-	public Command goToCoralHeightEndless(Supplier<HomePosition> level) {
-		return new RunCommand(() -> {
-			moveToPosition(level.get().getHeight());
-			pivotBanana(level.get().getPivot());
-		}, this);
-	}
-
-	public Command toL2Algae() {
-		return setTargetCommand(Units.Feet.of(4), Units.Degrees.of(0));
-	}
-
-	public Command toL3Algae() {
-		return setTargetCommand(Units.Feet.of(5), Units.Degrees.of(0));
+	public void toggleReefHeightUp() {
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 1, 4);
 	}
 
 	public Command processorAlgae() {
-		return setTargetCommand(Units.Feet.of(1), Units.Degrees.of(0));
+		return new InstantCommand();  // TODO: figure out if this has any value...
 	}
 
-	public Command toHome() {
-		return setTargetCommand(Units.Feet.of(0), Units.Degrees.of(0));
-	}
-
-	public Command toDefaultPosition() {
+	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
-			controlPivot(this.homePos.getPivot());
-			controlPosition(this.homePos.getHeight());
+			pivotBanana(this.homePos.getPivot());
+			moveToPosition(this.homePos.getHeight());
 		}, this);
 	}
 }
