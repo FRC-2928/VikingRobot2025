@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -12,6 +13,7 @@ import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.commands.drivetrain.LockWheels;
+import frc.robot.commands.drivetrain.CenterLimelight;
 
 public class DriverOI extends BaseOI {
 	public final Supplier<Double> driveAxial;
@@ -21,10 +23,11 @@ public class DriverOI extends BaseOI {
 	public final Supplier<Double> driveFORY;
 	public final Trigger manualRotation;
 
-	public final Trigger alignReefLeft;
-	public final Trigger alignReefRight;
-	public final Trigger alignHP;
-	public final Trigger alignProcessor;
+	private final Trigger alignReefLeft;
+	private final Trigger alignReefRight;
+	private final Trigger alignReefCenter;
+	private final Trigger alignHP;
+	private final Trigger alignProcessor;
 
 	public final Trigger lockWheels;
 
@@ -64,7 +67,7 @@ public class DriverOI extends BaseOI {
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate());
 		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
-							.and(this.holdingCoral.negate());
+							.and(this.holdingCoral.negate());  // TODO: figure out the "holding" states...
 							/*.and(this.nearProcessor());*/
 
 		this.alignReefCenter = (this.controller.leftBumper().or(this.controller.rightBumper()))
@@ -90,17 +93,20 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		// TODO: update/change this with LL mode 3
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
-		this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
 		this.alignReefLeft.whileTrue(
 			Commands.sequence(
-				CenterLimelight.CenterLimelightLeft(),
-				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL));
+				CenterLimelight.centerLimelightLeft(),
+				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL)));
 		this.alignReefRight.whileTrue(
 			Commands.sequence(
-				CenterLimelight.CenterLimelightRight()
-				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL));
-		this.alignProcessor.whileTrue(Robot.cont.elevator.processorAlgae());
+				CenterLimelight.centerLimelightRight(),
+				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL)));
+		this.alignProcessor.whileTrue(
+			Commands.sequence(
+				/* CenterLimelight.CenterLimelightProcessor(), */
+				Robot.cont.elevator.processorAlgae())); // what is this supposed to do...? seems worthless... except for depositing...
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
