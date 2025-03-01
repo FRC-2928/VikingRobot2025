@@ -5,10 +5,14 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.Constants.GamePieceType;
+import frc.robot.Constants.ReefPosition;
+import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
 import frc.robot.oi.OperatorOI;
@@ -58,9 +62,40 @@ public class RobotContainer {
 		this.operatorOI.configureControls();
 	}
 
-	public Command scoreCoral(int level, Constants.ReefPosition position) {
+	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
-			// todo: add subcommands
+			new ParallelCommandGroup(
+				// Center Limelight
+				CenterLimelight.centerLimeLightPosition(reefPos),
+				// Set elevator
+				this.elevator.goToReefHeight(GamePieceType.CORAL)
+			),
+			Commands.deadline(
+				// Scores coral
+				this.bananaFlywheels.scoreHeldCoral(),
+				// Holds elevator in place
+				this.elevator.goToReefHeight(GamePieceType.CORAL)
+			)
+		);
+	}
+
+	public Command telePositionForCoralLeft() {
+		return new ParallelCommandGroup(
+			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+			new SequentialCommandGroup(
+				CenterLimelight.centerLimelightLeft(),
+				drivetrain.slowDrive
+			)
+		);
+	}
+
+	public Command telePositionForCoralRight() {
+		return new ParallelCommandGroup(
+			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+			new SequentialCommandGroup(
+				CenterLimelight.centerLimelightRight(),
+				drivetrain.slowDrive
+			)
 		);
 	}
 	public Command passCoral(){

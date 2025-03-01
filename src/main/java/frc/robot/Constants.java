@@ -17,11 +17,11 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.Units;
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -78,6 +78,115 @@ public class Constants {
 
 		public List<Integer> getTagID() {
 			return tags;
+		}
+	}
+
+	public static enum GamePieceType {
+		NONE(0),   // Game Piece Type for None
+		ALGAE(1),  // Game Piece Type for Algae
+		CORAL(2);  // Game Piece Type for Coral
+		// other pieces here...
+
+		private final int value;
+
+		GamePieceType(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public static GamePieceType fromInt(int value) {
+			for (GamePieceType gamePieceType : GamePieceType.values()) {
+				if (gamePieceType.getValue() == value) {
+					return gamePieceType;
+				}
+			}
+			return GamePieceType.NONE;
+		}
+	}
+
+	public static enum CoralPosition {
+		NONE(0),  // Coral Position for None
+		L1(1),    // Coral Position for L1
+		L2(2),    // Coral Position for L2
+		L3(3),    // Coral Position for L3
+		L4(4);    // Coral Position for L4
+		// other positions here...
+
+		private final int value;
+
+		CoralPosition(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public static CoralPosition fromInt(int value) {
+			for (CoralPosition coralPosition : CoralPosition.values()) {
+				if (coralPosition.getValue() == value) {
+					return coralPosition;
+				}
+			}
+			return CoralPosition.NONE;
+		}
+	}
+
+	public static enum AlgaePosition {
+		NONE(0),  // Algae Position for None
+		L1(1),    // Algae Position for L1 (unused)
+		L2(2),    // Algae Position for L2
+		L3(3),    // Algae Position for L3
+		L4(4);    // Algae Position for L4 (unused)
+		// other positions here...
+
+		private final int value;
+
+		AlgaePosition(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public static AlgaePosition fromInt(int value) {
+			for (AlgaePosition algaePosition : AlgaePosition.values()) {
+				if (algaePosition.getValue() == value) {
+					return algaePosition;
+				}
+			}
+			return AlgaePosition.NONE;
+		}
+	}
+
+	public static enum SubsystemKey {
+		NONE(0), 	    // Subsystem for None
+		ELEVATOR(1),    // Subsystem for Elevator
+		BANANA(2),      // Subsystem for Banana
+		DRIVETRAIN(3);  // Subsystem for Drivetrain
+		// other subsystems here...
+
+		private final int value;
+
+		SubsystemKey(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public static SubsystemKey fromInt(int value) {
+			for (SubsystemKey subsystemKey : SubsystemKey.values()) {
+				if (subsystemKey.getValue() == value) {
+					return subsystemKey;
+				}
+			}
+			return SubsystemKey.NONE;
 		}
 	}
 
@@ -138,6 +247,8 @@ public class Constants {
 			public static final int bananaPivot = 12;
 			public static final int elevatorMotorA = 1;
 			public static final int elevatorMotorB = 4;
+			public static final int pivotLimitSwitch = 8;
+			public static final int elevatorLimitSwitch = 9;
 
 			public static final int bananaWheels = 20;
 			public static final int intakeWheels = 99; //TODO: get right number

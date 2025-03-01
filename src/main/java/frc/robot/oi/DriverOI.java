@@ -3,6 +3,7 @@ package frc.robot.oi;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,10 +21,11 @@ public class DriverOI extends BaseOI {
 	public final Supplier<Double> driveFORY;
 	public final Trigger manualRotation;
 
-	public final Trigger alignReefLeft;
-	public final Trigger alignReefRight;
-	public final Trigger alignHP;
-	public final Trigger alignProcessor;
+	private final Trigger alignReefLeft;
+	private final Trigger alignReefRight;
+	private final Trigger alignReefCenter;
+	private final Trigger alignHP;
+	private final Trigger alignProcessor;
 
 	public final Trigger lockWheels;
 
@@ -66,7 +68,12 @@ public class DriverOI extends BaseOI {
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate());
 		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
+							.and(this.holdingCoral.negate());  // TODO: figure out the "holding" states...
+							/*.and(this.nearProcessor());*/
+
+		this.alignReefCenter = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate());
+							/*.and(this.nearReef())*/
 
 		this.resetFOD = this.controller.y();
 		this.resetAngle = this.controller.back();
@@ -82,28 +89,25 @@ public class DriverOI extends BaseOI {
 
 		this.targetScoringLevel = 1;
 		this.intakeButton = this.controller.povLeft();
-		this.passOffCoral = new Trigger(() -> (Robot.cont.intake.holdingGamePeice() 
-		&& Robot.cont.elevator.inputs.homePosElevator 
-		&& Robot.cont.elevator.inputs.homePosPivot
-		&& !Robot.cont.bananaFlywheels.holdingCoral()));
+		this.passOffCoral = new Trigger(() -> (Robot.cont.intake.holdingGamePeice() && Robot.cont.elevator.inputs.isElevatorHomed && Robot.cont.elevator.inputs.isPivotHomed && !Robot.cont.bananaFlywheels.holdingCoral()));
 	}
 
 	public void configureControls() {
 
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		// TODO: update/change this with LL mode 3
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
-		// this.resetPoseLimelight.onTrue(new InstantCommand(Robot.cont.drivetrain::resetLimelightPose));
-		/*this.moveElevatorUp
-		.whileTrue(new RunCommand(() -> {
-			Robot.cont.elevator.moveToPosition(Units.Feet.of(5));
-		}, Robot.cont.elevator))
-		.whileFalse(new RunCommand(() -> {
-			Robot.cont.elevator.moveToPosition(Units.Feet.of(1));
-		}, Robot.cont.elevator));*/
-		this.alignReefLeft.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
-		this.alignReefRight.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
-		this.alignProcessor.whileTrue(Robot.cont.elevator.processorAlgae());
+		this.alignReefLeft.whileTrue(
+			Robot.cont.telePositionForCoralLeft()
+		);
+		this.alignReefRight.whileTrue(
+			Robot.cont.telePositionForCoralRight()
+		);
+		this.alignProcessor.whileTrue(
+			Commands.sequence(
+				/* CenterLimelight.CenterLimelightProcessor(), */
+				Robot.cont.elevator.processorAlgae())); // what is this supposed to do...? seems worthless... except for depositing...
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
 		this.intakeButton.whileTrue(Robot.cont.intake.intakeTrough());
 		this.passOffCoral.onTrue(Robot.cont.passCoral());
@@ -113,5 +117,7 @@ public class DriverOI extends BaseOI {
 		this.toggleReefHeightUp.onTrue(new InstantCommand(() -> {
 			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel+1, 1, 4);
 		}));
+		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
+		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
 	}
 }

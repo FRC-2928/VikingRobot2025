@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Constants.Drivetrain.Auto;
+import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.VoltageRampCommand;
 
@@ -27,15 +28,15 @@ public final class Autonomous {
 
 		choreoChooser.addCmd("[Comp] SimpleFromRight", () -> Commands.sequence(
 			autoFactory.trajectoryCmd("StartToF"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightF()),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimeLightPosition(ReefPosition.F)),
 			autoFactory.trajectoryCmd("FToB2Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightB2Reverse()),
 			autoFactory.trajectoryCmd("B1ReverseToC"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightC()),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimeLightPosition(ReefPosition.C)),
 			autoFactory.trajectoryCmd("CToB1Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightB2Reverse()),
 			autoFactory.trajectoryCmd("B1ReverseToD"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightD())
+			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimeLightPosition(ReefPosition.D))
 		));
 
 		choreoChooser.addCmd("[Comp] SimpleScore", () -> Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
