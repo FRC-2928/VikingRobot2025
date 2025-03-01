@@ -1,10 +1,6 @@
 package frc.robot.subsystems;
 
 import java.util.Map;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -27,8 +23,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -37,13 +31,11 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CoralPosition;
-import frc.robot.Constants.SubsystemKey;
+import frc.robot.Constants.GamePieceType;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -351,6 +343,10 @@ public class Elevator extends SubsystemBase {
 	 * @return an executable @c Command that moves the elevator to the appropriate position
 	 */
 	public Command goToReefHeight(GamePieceType pieceType) {
+		return goToReefHeightEndless(pieceType).until(this::isInTargetPos);
+	}
+
+	public Command goToGamePieceHeight(GamePieceType pieceType) {
 		return goToReefHeightEndless(pieceType).until(this::isInTargetPos);
 	}
 

@@ -2,18 +2,15 @@ package frc.robot.oi;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.commands.drivetrain.LockWheels;
-import frc.robot.commands.drivetrain.CenterLimelight;
 
 public class DriverOI extends BaseOI {
 	public final Supplier<Double> driveAxial;
@@ -96,13 +93,11 @@ public class DriverOI extends BaseOI {
 		// TODO: update/change this with LL mode 3
 		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
-			Commands.sequence(
-				CenterLimelight.centerLimelightLeft(),
-				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL)));
+			Robot.cont.telePositionForCoralLeft()
+		);
 		this.alignReefRight.whileTrue(
-			Commands.sequence(
-				CenterLimelight.centerLimelightRight(),
-				Robot.cont.elevator.goToReefHeight(GamePieceType.CORAL)));
+			Robot.cont.telePositionForCoralRight()
+		);
 		this.alignProcessor.whileTrue(
 			Commands.sequence(
 				/* CenterLimelight.CenterLimelightProcessor(), */

@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.*;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -18,6 +16,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -68,7 +68,8 @@ public class Drivetrain extends SubsystemBase {
 	private final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
 
-	private final JoystickDrive joystickDrive = new JoystickDrive(this);
+	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
+	public final JoystickDrive slowDrive = new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
 	private Rotation2d joystickFOROffset;
 
 	public AutoFactory autoFactory;

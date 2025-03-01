@@ -23,14 +23,16 @@ public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
 	public final DriverOI oi = Robot.cont.driverOI;
 	public double forMagnitude = 0.5;
+	public double speedMultiplier;
 	
 	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
 		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 
-	public JoystickDrive(final Drivetrain drivetrain) {
+	public JoystickDrive(final Drivetrain drivetrain, double speedMultiplier) {
 		this.drivetrain = drivetrain;
 		this.addRequirements(this.drivetrain);
 		this.absoluteController.enableContinuousInput(-0.5, 0.5);
+		this.speedMultiplier = speedMultiplier;
 	}
 
 	public static SendableChooser<String> createDriveModeChooser() {
@@ -52,7 +54,7 @@ public class JoystickDrive extends Command {
 		if(DriverStation.isAutonomous()) return new ChassisSpeeds();
 
 		final Translation2d translation = this.translation();
-		return new ChassisSpeeds(translation.getX(), translation.getY(), this.theta().in(Units.RadiansPerSecond));
+		return new ChassisSpeeds(translation.getX() * speedMultiplier, translation.getY() * speedMultiplier, this.theta().in(Units.RadiansPerSecond) * speedMultiplier);
 	}
 
 	// Returns the translation (X and Y) component from the joystick
