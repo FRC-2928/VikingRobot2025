@@ -144,6 +144,7 @@ public class Constants {
 			public static final int intakeBelt = 98;
 			public static final int intakePivot = 97;
 			public static final int troughWheels = 96;
+			public static final int CANdi = 10;
 
 			public static final int climber = 17;
 		}

@@ -23,22 +23,28 @@ public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
 	public final DriverOI oi = Robot.cont.driverOI;
 	public double forMagnitude = 0.5;
+	private static boolean slowd = false;
+	private double slowedAmount = 2.0;
+		
+		private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
+			.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 	
-	private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
-		.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
-
-	public JoystickDrive(final Drivetrain drivetrain) {
-		this.drivetrain = drivetrain;
-		this.addRequirements(this.drivetrain);
-		this.absoluteController.enableContinuousInput(-0.5, 0.5);
-	}
-
-	public static SendableChooser<String> createDriveModeChooser() {
-		final SendableChooser<String> chooser = new SendableChooser<>();
-		chooser.addOption("Swerve Drive", "Swerve Drive");
-		chooser.addOption("Field Oriented", "Field Oriented");
-		chooser.setDefaultOption("Swerve Drive", "Swerve Drive");
-		return chooser;
+		public JoystickDrive(final Drivetrain drivetrain) {
+			this.drivetrain = drivetrain;
+			this.addRequirements(this.drivetrain);
+			this.absoluteController.enableContinuousInput(-0.5, 0.5);
+		}
+	
+		public static SendableChooser<String> createDriveModeChooser() {
+			final SendableChooser<String> chooser = new SendableChooser<>();
+			chooser.addOption("Swerve Drive", "Swerve Drive");
+			chooser.addOption("Field Oriented", "Field Oriented");
+			chooser.setDefaultOption("Swerve Drive", "Swerve Drive");
+			return chooser;
+		}
+	
+		public static void setSlowMode(boolean mode){
+			slowd = mode;
 	}
 
 	@Override
@@ -58,8 +64,10 @@ public class JoystickDrive extends Command {
 	// Returns the translation (X and Y) component from the joystick
 	private Translation2d translation() {
 		// get inputs, apply deadbands
-		final double axial = -MathUtil.applyDeadband(this.oi.driveAxial.get(), 0.25); // Negate b/c joystick Y is inverted from field X
-		final double lateral = -MathUtil.applyDeadband(this.oi.driveLateral.get(), 0.25); // Negate b/c joystick X is inverted from field Y
+		double axial = slowd? this.oi.driveAxial.get()/slowedAmount : this.oi.driveAxial.get();
+		double lateral = slowd? this.oi.driveLateral.get()/slowedAmount : this.oi.driveLateral.get();
+		axial = -MathUtil.applyDeadband(axial, 0.25); // Negate b/c joystick Y is inverted from field X
+		lateral = -MathUtil.applyDeadband(lateral, 0.25); // Negate b/c joystick X is inverted from field Y
 		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", axial);
 		Logger.recordOutput("Drivetrain/JoystickDrive/Lateral", lateral);
 
@@ -80,7 +88,8 @@ public class JoystickDrive extends Command {
 
 		final String selectedDriveMode = Robot.cont.getDriveMode();
 		if("Swerve Drive".equals(selectedDriveMode)) {
-			theta = MathUtil.applyDeadband(-this.oi.driveFORX.get(), 0.075); // Negate this b/c joystick X is inverted from robot rotation
+			theta = slowd? -this.oi.driveFORX.get()/slowedAmount : -this.oi.driveFORX.get();
+			theta = MathUtil.applyDeadband(theta, 0.075); // Negate this b/c joystick X is inverted from robot rotation
 		} else {
 			// Joystick Right Axis
 			final double rotX = this.oi.driveFORX.get();
@@ -104,6 +113,7 @@ public class JoystickDrive extends Command {
 					this.absoluteController.calculate(measurement, setpoint),
 					0.075
 				);
+				theta = theta / (slowd? slowedAmount : 1);
 			}
 
 			this.forMagnitude = this.forMagnitude * 0.5 + 0.5;

@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -35,7 +36,7 @@ public class RobotContainer {
 	public RobotContainer() {
 		Robot.instance.container = this;
 		Robot.cont = this;
-
+		Tuning.algiePivot.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
 		this.drivetrain = new Drivetrain();
@@ -61,6 +62,12 @@ public class RobotContainer {
 		return new SequentialCommandGroup(
 			// todo: add subcommands
 		);
+	}
+	public Command passCoral(){
+		return new ParallelCommandGroup(
+			this.intake.runTrough(),
+			this.bananaFlywheels.outputForward()
+		).until(() -> !this.intake.holdingGamePeice());
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

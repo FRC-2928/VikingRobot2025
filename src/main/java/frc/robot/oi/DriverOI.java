@@ -39,6 +39,9 @@ public class DriverOI extends BaseOI {
 
 	private final Trigger holdingCoral;
 
+	private final Trigger intakeButton;
+	private final Trigger passOffCoral;
+
 	public int targetScoringLevel;
 
 	public DriverOI(final CommandXboxController controller) {
@@ -78,6 +81,11 @@ public class DriverOI extends BaseOI {
 		this.toggleReefHeightUp = this.controller.povUp();
 
 		this.targetScoringLevel = 1;
+		this.intakeButton = this.controller.povLeft();
+		this.passOffCoral = new Trigger(() -> (Robot.cont.intake.holdingGamePeice() 
+		&& Robot.cont.elevator.inputs.homePosElevator 
+		&& Robot.cont.elevator.inputs.homePosPivot
+		&& !Robot.cont.bananaFlywheels.holdingCoral()));
 	}
 
 	public void configureControls() {
@@ -97,6 +105,8 @@ public class DriverOI extends BaseOI {
 		this.alignReefRight.whileTrue(Robot.cont.elevator.goToCoralHeightEndless(() -> targetScoringLevel));
 		this.alignProcessor.whileTrue(Robot.cont.elevator.processorAlgae());
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
+		this.intakeButton.whileTrue(Robot.cont.intake.intakeTrough());
+		this.passOffCoral.onTrue(Robot.cont.passCoral());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
 			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);
 		}));

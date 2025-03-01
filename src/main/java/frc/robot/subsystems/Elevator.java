@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Tuning;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -49,20 +51,20 @@ public class Elevator extends SubsystemBase {
 	// public final ElevatorInputs inputs = new ElevatorInputs();
 
 	private enum HomePosition {
-		CORAL(Units.Feet.of(0), Units.Degrees.of(0)),
-		ALGAE(Units.Feet.of(0.5), Units.Degrees.of(0)),
-		CLIMB(Units.Feet.of(2), Units.Degrees.of(0));
+		CORAL(Tuning.coralHeight, Tuning.coralPivot),
+		ALGAE(Tuning.algielHeight, Tuning.algiePivot),
+		CLIMB(Tuning.climbHeight, Tuning.climbPivot);
 
-		private Distance height;
-		private Angle pivot;
+		private LoggedNetworkNumber height;
+		private LoggedNetworkNumber pivot;
 
-		private HomePosition(Distance height, Angle pivot) {
-			this.height = height;
-			this.pivot = pivot;
+		private HomePosition(LoggedNetworkNumber elevatorHeight, LoggedNetworkNumber elevatorPivot) {
+			this.height = elevatorHeight;
+			this.pivot = elevatorPivot;
 		}
 
-		public Distance getHeight() { return height; }
-		public Angle getPivot() { return pivot; }
+		public Distance getHeight() { return Units.Feet.of(height.get()); }
+		public Angle getPivot() { return Units.Degree.of(pivot.get()); }
 	}
 
 	private final TalonFX liftMotorA;

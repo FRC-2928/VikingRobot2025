@@ -13,4 +13,32 @@ public final class Tuning {
 	public static final LoggedNetworkNumber intakeSpeed = new LoggedNetworkNumber
 		("Tuning/SpeedIntakePercent",
 		.8);
+	public static final LoggedNetworkNumber lFourHeightMeter = new LoggedNetworkNumber(
+		"/Tuning/LFourHeight",
+		1
+	);
+	public static final LoggedNetworkNumber coralHeight = new LoggedNetworkNumber(
+		"/Tuning/CoralHeight",
+		1
+	);
+	public static final LoggedNetworkNumber coralPivot = new LoggedNetworkNumber(
+		"/Tuning/coralPivot",
+		0
+	);
+	public static final LoggedNetworkNumber algielHeight = new LoggedNetworkNumber(
+		"/Tuning/algielHeight",
+		0.5
+	);
+	public static final LoggedNetworkNumber algiePivot = new LoggedNetworkNumber(
+		"/Tuning/algiePivot",
+		0
+	);
+	public static final LoggedNetworkNumber climbHeight = new LoggedNetworkNumber(
+		"/Tuning/climbHeight",
+		2
+	);
+	public static final LoggedNetworkNumber climbPivot = new LoggedNetworkNumber(
+		"/Tuning/climbPivot",
+		0
+	);
 }

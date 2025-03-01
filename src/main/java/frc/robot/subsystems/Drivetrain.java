@@ -2,6 +2,12 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import java.lang.reflect.Field;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -63,9 +69,9 @@ public class Drivetrain extends SubsystemBase {
 	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
 	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
-
+	public final Field2d field = new Field2d();
 	private final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
-	private final SwerveDrivePoseEstimator est;
+	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this);
@@ -243,9 +249,10 @@ public class Drivetrain extends SubsystemBase {
 					mt2.timestampSeconds);
 			}
 		}
-
+		field.setRobotPose(this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
+		Logger.recordOutput("Drivetrain/limelightHasTargets",limelight.hasValidTargets());
 		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
 		if (mt1 != null) {
 			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);

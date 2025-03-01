@@ -1,26 +1,21 @@
 package frc.robot.subsystems;
-
 import org.littletonrobotics.junction.AutoLog;
-import org.littletonrobotics.junction.Logger;
-
-import com.ctre.phoenix6.BaseStatusSignal;
+// import com.ctre.phoenix.motorcontrol.SensorCollection;
+// import com.ctre.phoenix6.BaseStatusSignal;
+// import com.ctre.phoenix6.controls.PositionDutyCycle;
+// import com.ctre.phoenix6.hardware.TalonFX;
+// import com.ctre.phoenix6.signals.NeutralModeValue;
+// import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.HardwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.hardware.TalonFX;
+// import com.ctre.phoenix6.hardware.CANdi;
 import com.ctre.phoenix6.hardware.TalonFXS;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 /* 1.Make a method that stops elevator pivot from going lower a certain angle
@@ -60,120 +55,124 @@ public class Intake extends SubsystemBase {
 
 	public final IntakeInputsAutoLogged inputs = new IntakeInputsAutoLogged();
 
-	private final TalonFX wheels;
-	private final TalonFXS belt;
-	private final TalonFX pivot;
-	private final TalonFXS trough;
+	// private final TalonFX wheels;
+	// private final TalonFXS belt;
+	// private final TalonFX pivot;
+	
 	//private final SensorCollection sensors;
-	private final StatusSignal<AngularVelocity> intakeSpeed;
-	private final StatusSignal<Angle> pivotAngle;
+	// private final StatusSignal<AngularVelocity> intakeSpeed;
+	// private final StatusSignal<Angle> pivotAngle;
+	// private TalonFXConfiguration intakeWheelsConfig = new TalonFXConfiguration();
+	// private TalonFXConfiguration pivotWheelConfig = new TalonFXConfiguration();
 	private final StatusSignal<AngularVelocity> troughSpeed;
-	private TalonFXConfiguration intakeWheelsConfig = new TalonFXConfiguration();
-	private TalonFXConfiguration pivotWheelConfig = new TalonFXConfiguration();
-	private TalonFXSConfiguration beltConfig = new TalonFXSConfiguration();
+	private final TalonFXS trough;
+	private TalonFXSConfiguration troughConfig = new TalonFXSConfiguration();
+	private final HardwareLimitSwitchConfigs sensorConfigs = new HardwareLimitSwitchConfigs();
+	// private final CANdi caNdi;
 	public Intake(){
-		this.wheels = new TalonFX(Constants.CAN.CTRE.intakeWheels, Constants.CAN.CTRE.bus);
-		this.belt = new TalonFXS(Constants.CAN.CTRE.intakeBelt, Constants.CAN.CTRE.bus);
-		this.pivot = new TalonFX(Constants.CAN.CTRE.intakePivot, Constants.CAN.CTRE.bus);
+		// this.wheels = new TalonFX(Constants.CAN.CTRE.intakeWheels, Constants.CAN.CTRE.bus);
+		// this.belt = new TalonFXS(Constants.CAN.CTRE.intakeBelt, Constants.CAN.CTRE.bus);
+		// this.pivot = new TalonFX(Constants.CAN.CTRE.intakePivot, Constants.CAN.CTRE.bus);
 		this.trough = new TalonFXS(Constants.CAN.CTRE.troughWheels, Constants.CAN.CTRE.bus);
-		this.intakeSpeed = this.wheels.getRotorVelocity();
-		this.pivotAngle = this.pivot.getRotorPosition();
+		// caNdi = new CANdi(Constants.CAN.CTRE.CANdi, Constants.CAN.CTRE.bus);
+		sensorConfigs.withForwardLimitEnable(true);
+		
+		// this.intakeSpeed = this.wheels.getRotorVelocity();
+		// this.pivotAngle = this.pivot.getRotorPosition();
 		this.troughSpeed = this.trough.getVelocity();
 		//this.sensors = trough.;
 		
 
 		// Peak output amps
-		beltConfig.CurrentLimits.StatorCurrentLimit = 
-		intakeWheelsConfig.CurrentLimits.StatorCurrentLimit = 80.0;
-		intakeWheelsConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		intakeWheelsConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-		intakeWheelsConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+		troughConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+		troughConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+		troughConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 		// Supply current limits
-		intakeWheelsConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-		intakeWheelsConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
-		intakeWheelsConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
-		intakeWheelsConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
-		intakeWheelsConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
-		intakeWheelsConfig.Audio = Constants.talonFXAudio;
-		pivotWheelConfig = intakeWheelsConfig;
-		pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-		pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Intake.max.in(Units.Rotations);
-		pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-		pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Intake.pivotMin.in(Units.Rotations);
-		// PID values
-		pivotWheelConfig.Slot0 =  Constants.Intake.pivotConfig;
-		intakeWheelsConfig.Slot0 = Constants.Intake.flywheelGainsSlot0;
+		troughConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+		troughConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+		troughConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+		troughConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+		troughConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+		// intakeWheelsConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+		// intakeWheelsConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+		// intakeWheelsConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+		// intakeWheelsConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+		// // Supply current limits
+		// intakeWheelsConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+		// intakeWheelsConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+		// intakeWheelsConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+		// intakeWheelsConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+		// intakeWheelsConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+		// intakeWheelsConfig.Audio = Constants.talonFXAudio;
+		// pivotWheelConfig = intakeWheelsConfig;
+		
+		// pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+		// pivotWheelConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = Constants.Intake.max.in(Units.Rotations);
+		// pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+		// pivotWheelConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = Constants.Intake.pivotMin.in(Units.Rotations);
+		// // PID values
+		// pivotWheelConfig.Slot0 =  Constants.Intake.pivotConfig;
+		// intakeWheelsConfig.Slot0 = Constants.Intake.flywheelGainsSlot0;
 
-		this.wheels.getConfigurator().apply(intakeWheelsConfig);
-		this.wheels.setNeutralMode(NeutralModeValue.Brake);
-		this.pivot.getConfigurator().apply(pivotWheelConfig);
-		this.pivot.setNeutralMode(NeutralModeValue.Brake);
+		// this.wheels.getConfigurator().apply(intakeWheelsConfig);
+		// this.wheels.setNeutralMode(NeutralModeValue.Brake);
+		// this.pivot.getConfigurator().apply(pivotWheelConfig);
+		// this.pivot.setNeutralMode(NeutralModeValue.Brake);
+		this.trough.getConfigurator().apply(troughConfig);
 	}
 	
 	public void runIntake(final Feeder demand){
-		this.wheels.setControl(new VelocityDutyCycle(demand.demand*0.1));
+		// this.wheels.setControl(new VelocityDutyCycle(demand.demand*0.1));
 
 	}
-	private boolean holdingGamePeice() {
+	public boolean holdingGamePeice() {
 		return false;
 	}
 	private void runTrough(Feeder demand){
 		this.trough.setControl(new VelocityDutyCycle(demand.demand));
 	}
-	private void runBelt(Feeder demand){
-		this.belt.setControl(new VelocityDutyCycle(demand.demand));
-	}
-	private void rotatePivot(final Angle target) {
-		final Angle rot = Units.Radians
-			.of(
-				MathUtil
-					.clamp(
-						target.in(Units.Radians),
-						0,
-						1
-					)
-			);
-		Logger.recordOutput("intake/PivotControl", rot);
-		this.pivot.setControl(new PositionDutyCycle(rot.in(Units.Rotations)));
-	}
+	// private void runBelt(Feeder demand){
+	// 	// this.belt.setControl(new VelocityDutyCycle(demand.demand));
+	// }
+	// private void rotatePivot(final Angle target) {
+	// 	final Angle rot = Units.Radians
+	// 		.of(
+	// 			MathUtil
+	// 				.clamp(
+	// 					target.in(Units.Radians),
+	// 					0,
+	// 					1
+	// 				)
+	// 		);
+	// 	Logger.recordOutput("intake/PivotControl", rot);
+	// 	// this.pivot.setControl(new PositionDutyCycle(rot.in(Units.Rotations)));
+	// }
 	public void updateInputs(final IntakeInputs inputs) {
-		BaseStatusSignal.refreshAll(this.intakeSpeed, this.pivotAngle, this.troughSpeed);
-		inputs.intakeSpeed = this.intakeSpeed.getValue();
-		inputs.pivotAngle = this.pivotAngle.getValue();
+		// BaseStatusSignal.refreshAll(this.intakeSpeed, this.pivotAngle, this.troughSpeed);
+		// inputs.intakeSpeed = this.intakeSpeed.getValue();
+		// inputs.pivotAngle = this.pivotAngle.getValue();
 		inputs.troughSpeed = this.troughSpeed.getValue();
 	 	inputs.troughHasCoral = false;//!this.sensors.isFwdLimitSwitchClosed();
 	}
-
-	public Command IntakeUp() {
+	// public Command intakeTrough(){
+	// 	return new RunCommand(() -> {
+	// 		runTrough(Feeder.Forward);
+	// 		, this)
+		
+	// }
+	public Command runTrough(){
 		return new RunCommand(() -> {
-			rotatePivot(Constants.Intake.max);
+			runTrough(Feeder.Reverse);
 		}, this);
 	}
-
-	public Command IntakeGround(){
-		return new SequentialCommandGroup(
-			new RunCommand(() -> {
-				rotatePivot(Units.Radians.of(0));
-			}, this),
-			Commands.deadline(
-				new RunCommand(() -> {
-					runIntake(Feeder.Forward);
-				},this).until(this::holdingGamePeice),
-				new RunCommand(() -> {
-					runBelt(Feeder.Forward);
-				},this),
-				new RunCommand(() -> {
-					runTrough(Feeder.Reverse);
-				},this)
-			),
-			new RunCommand(() -> {
-				rotatePivot(Units.Radians.of(1));
-			}, this)
-		);
-	}
-
 	@Override
 	public void periodic() {
 		updateInputs(this.inputs);
+	}
+	public Command intakeTrough(){
+		return new RunCommand(() -> {
+			runTrough(Feeder.Reverse);
+		}, this).until(() -> !this.holdingGamePeice());
+		
 	}
 }
