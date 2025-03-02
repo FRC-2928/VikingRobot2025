@@ -84,7 +84,8 @@ public class Constants {
 	public static enum GamePieceType {
 		NONE(0),   // Game Piece Type for None
 		ALGAE(1),  // Game Piece Type for Algae
-		CORAL(2);  // Game Piece Type for Coral
+		CORAL(2),  // Game Piece Type for Coral
+		CAGE(3);   // Game Piece Type for Cage
 		// other pieces here...
 
 		private final int value;
@@ -160,6 +161,32 @@ public class Constants {
 				}
 			}
 			return AlgaePosition.NONE;
+		}
+	}
+
+	public static enum CagePosition {
+		NONE(0),       // Cage Position for None
+		DEEP(1),       // Cage Position for Deep
+		SHALLOW(2);    // Cage Position for Shallow
+		// other positions here...
+
+		private final int value;
+
+		CagePosition(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public static CagePosition fromInt(int value) {
+			for (CagePosition cagePosition : CagePosition.values()) {
+				if (cagePosition.getValue() == value) {
+					return cagePosition;
+				}
+			}
+			return CagePosition.NONE;
 		}
 	}
 

@@ -32,12 +32,16 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Tuning;
 import frc.robot.Constants.AlgaePosition;
+import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.Constants.SubsystemKey;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -51,12 +55,14 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
-	// public final ElevatorInputs inputs = new ElevatorInputs();
 
+	// --------------------- Internal Higher-Order States ---------------------
+	// Home Positions
 	private enum HomePosition {
+		NONE(Units.Feet.of(0), Units.Degrees.of(0)),
 		CORAL(Tuning.coralHeight, Tuning.coralPivot),
 		ALGAE(Tuning.algielHeight, Tuning.algiePivot),
-		CLIMB(Tuning.climbHeight, Tuning.climbPivot);
+		CAGE(Tuning.climbHeight, Tuning.climbPivot);
 
 		private LoggedNetworkNumber height;
 		private LoggedNetworkNumber pivot;
@@ -70,6 +76,63 @@ public class Elevator extends SubsystemBase {
 		public Angle getPivot() { return Units.Degree.of(pivot.get()); }
 	}
 
+	// Map between game piece types and home positions
+	private final Map<Integer, HomePosition> homePositionsMap = Map.of(
+		GamePieceType.NONE.getValue(),  HomePosition.NONE,
+		GamePieceType.CORAL.getValue(), HomePosition.CORAL,
+		GamePieceType.ALGAE.getValue(), HomePosition.ALGAE,
+		GamePieceType.CAGE.getValue(),  HomePosition.CAGE);
+
+	// Target state variables
+	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
+	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
+	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
+	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
+	private GamePieceType previousGamePieceType = GamePieceType.NONE;  // NONE by default
+
+	// ------------------- Elevator Position Maps -------------------
+	// Map of Elevator Positions for Coral
+	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
+		CoralPosition.NONE.getValue(), Units.Feet.of(0),
+		CoralPosition.L1.getValue(),   Units.Feet.of(2.5),
+		CoralPosition.L2.getValue(),   Units.Feet.of(3.5),
+		CoralPosition.L3.getValue(),   Units.Feet.of(4.5),
+		CoralPosition.L4.getValue(),   Units.Feet.of(6.4));
+
+	// Map of Elevator Positions for Algae
+	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
+		AlgaePosition.NONE.getValue(), Units.Feet.of(0),
+		AlgaePosition.L2.getValue(),   Units.Feet.of(3.5),
+		AlgaePosition.L3.getValue(),   Units.Feet.of(4.5));
+
+	// Map of Elevator Positions for Cage
+	private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
+		CagePosition.NONE.getValue(),    Units.Feet.of(0),
+		CagePosition.DEEP.getValue(),    Units.Feet.of(3.5),
+		CagePosition.SHALLOW.getValue(), Units.Feet.of(4.5));
+
+	// ------------------- Banana Angle Maps -------------------
+	// Map of Banana Angles for Coral
+	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
+		CoralPosition.NONE.getValue(), Units.Degrees.of(0),
+		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
+		CoralPosition.L2.getValue(),   Units.Degrees.of(0),
+		CoralPosition.L3.getValue(),   Units.Degrees.of(0),
+		CoralPosition.L4.getValue(),   Units.Degrees.of(45));
+
+	// Map of Banana Angles for Algae
+	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
+		AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
+		AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
+		AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
+
+	// Map of Banana Angles for Cage
+	private final Map<Integer, Angle> bananaAnglesCage = Map.of(
+		CagePosition.NONE.getValue(),    Units.Degrees.of(0),
+		CagePosition.DEEP.getValue(),    Units.Degrees.of(0),
+		CagePosition.SHALLOW.getValue(), Units.Degrees.of(0));
+
+	// --------------------- Hardware Interfaces ---------------------
 	private final TalonFX liftMotorA;
 	private final TalonFX liftMotorB;
 	private final TalonFX pivot;
@@ -88,30 +151,6 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
-	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
-	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
-
-	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.L1.getValue(), Units.Feet.of(2.5),
-		CoralPosition.L2.getValue(), Units.Feet.of(3.5),
-		CoralPosition.L3.getValue(), Units.Feet.of(4.5),
-		CoralPosition.L4.getValue(), Units.Feet.of(6.4));
-
-	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
-		AlgaePosition.L2.getValue(), Units.Feet.of(3.5),
-		AlgaePosition.L3.getValue(), Units.Feet.of(4.5));
-
-	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
-		CoralPosition.L1.getValue(), Units.Degrees.of(0),
-		CoralPosition.L2.getValue(), Units.Degrees.of(0),
-		CoralPosition.L3.getValue(), Units.Degrees.of(0),
-		CoralPosition.L4.getValue(), Units.Degrees.of(45));
-
-	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
-		AlgaePosition.L2.getValue(), Units.Degrees.of(0),
-		AlgaePosition.L3.getValue(), Units.Degrees.of(0));
-	
-	private HomePosition homePos; 
 
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
@@ -125,6 +164,9 @@ public class Elevator extends SubsystemBase {
 		false, 
 		0);
 
+	/**
+	 * Default Constructor
+	 */
 	public Elevator() {
 		this.elevatorTargetPosition = Units.Feet.of(0);
 		this.elevatorCommandedPosition = Units.Feet.of(0);
@@ -210,12 +252,11 @@ public class Elevator extends SubsystemBase {
 
 		StatusSignal.setUpdateFrequencyForAll(50, elevatorMotorPosition, elevatorMotorVelocity, pivotMotorPosition, pivotMotorVelocity);
 
-		homePos = HomePosition.CORAL;
-
 		this.setDefaultCommand(toDefaultPosition());
+		this.targetCageLevel = CagePosition.SHALLOW;  // TODO: change this to accept values from SmartDashboard
 	}
 
-	public void moveToPosition(final Distance position) {
+	private void moveToPosition(final Distance position) {
 		this.elevatorTargetPosition = Units.Meters.of(
 			MathUtil.clamp(
 				position.in(Units.Meters),
@@ -223,7 +264,7 @@ public class Elevator extends SubsystemBase {
 				Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meter)));
 	}
 
-	public void pivotBanana(final Angle rotation) {
+	private void pivotBanana(final Angle rotation) {
 		this.pivotTargetAngle = Units.Degrees.of(
 			MathUtil.clamp(
 				rotation.in(Units.Degrees),
@@ -242,7 +283,7 @@ public class Elevator extends SubsystemBase {
 		pivotCommmandedAngle = rotation;
 	}
 
-	public boolean isInTargetPos() {
+	private boolean isInTargetPos() {
 		if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
 			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
 				   pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);
@@ -283,11 +324,7 @@ public class Elevator extends SubsystemBase {
 		}
 	}
 
-	public void setHome(HomePosition home) {
-		this.homePos = home;
-	}
-
-	public void updateInputs(final ElevatorInputs inputs) {
+	private void updateInputs(final ElevatorInputs inputs) {
 		BaseStatusSignal
 			.refreshAll(
 				this.elevatorMotorPosition,
@@ -337,38 +374,12 @@ public class Elevator extends SubsystemBase {
 		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
 	}
 
-	/**
-	 * Function factory to obtain an executable command to go to a reef height
-	 * based off of a provided game piece type (e.g., Coral, Algae)
-	 *
-	 * @param pieceType a @c GamePieceType indicating the desired game piece
-	 * @return an executable @c Command that moves the elevator to the appropriate position
-	 */
-	public Command goToReefHeight(GamePieceType pieceType) {
-		return goToReefHeightEndless(pieceType).until(this::isInTargetPos);
+	public void setTargetCoralLevel(CoralPosition targetCoralLevel) {
+		this.targetCoralLevel = targetCoralLevel.getValue();
 	}
 
-	public Command goToGamePieceHeight(GamePieceType pieceType) {
-		return goToReefHeightEndless(pieceType).until(this::isInTargetPos);
-	}
-
-	private Command goToReefHeightEndless(GamePieceType pieceType) {
-		return new RunCommand(() -> {
-			// select the correct set of maps for the given game piece
-			var elevatorPositionsMap =
-				(pieceType == GamePieceType.CORAL) ? this.elevatorPositionsCoral : this.elevatorPositionsAlgae;
-			var bananaAnglesMap = (pieceType == GamePieceType.CORAL) ? this.bananaAnglesCoral : this.bananaAnglesAlgae;
-
-			// figure out which key we're using to determine the elevator position/banana angle
-			int positionKey = (pieceType == GamePieceType.CORAL) ? this.targetCoralLevel : this.targetAlgaeLevel;
-			// fetch the desired setpoints from each map
-			var desiredElevatorSetpoint = elevatorPositionsMap.get(positionKey);
-			var desiredBananaSetpoint   = bananaAnglesMap.get(positionKey);
-
-			// feed the setpoints to the actuators
-			moveToPosition(desiredElevatorSetpoint);
-			pivotBanana(desiredBananaSetpoint);
-		}, this);
+	public void setTargetCageLevel(CagePosition targetCageLevel) {
+		this.targetCageLevel = targetCageLevel.getValue();
 	}
 
 	public void toggleReefHeightDown() {
@@ -379,14 +390,111 @@ public class Elevator extends SubsystemBase {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 1, 4);
 	}
 
-	public Command processorAlgae() {
-		return new InstantCommand();  // TODO: figure out if this has any value...
+	public void onEjectAlgae() {
+		// any algae specific logic here
+		onEjectGamePieceGeneric();
+	}
+
+	public void onEjectCoral() {
+		// any coral specific logic here
+		onEjectGamePieceGeneric();
+	}
+
+	private void onEjectGamePieceGeneric() {
+		// reset the home to whatever it was before...
+		this.currentGamePieceType = this.previousGamePieceType;
+	}
+
+	/**
+	 * Function factory to obtain an executable command to go to a reef height
+	 * based off of a provided game piece type (e.g., Coral, Algae). The returned
+	 * @c Command will terminate once the elevator reaches the desired target position.
+	 *
+	 * @param pieceType a @c GamePieceType indicating the desired game piece
+	 * @return an executable @c Command that moves the elevator to the appropriate position
+	 */
+	public Command goToReefHeight(GamePieceType pieceType) {
+		return goToGamePieceHeightEndless(pieceType).until(this::isInTargetPos);
+	}
+
+	/**
+	 * Function factory to obtain an executable command to go to a height
+	 * based off of a provided game piece type (e.g., Coral, Algae)
+	 *
+	 * @param pieceType a @c GamePieceType indicating the desired game piece
+	 * @return an executable @c Command that moves the elevator to the appropriate position
+	 */
+	public Command goToGamePieceHeight(GamePieceType pieceType) {
+		return goToGamePieceHeightEndless(pieceType);
+	}
+
+	private Command goToGamePieceHeightEndless(GamePieceType pieceType) {
+		return new FunctionalCommand(
+			/* initialize() */
+			() -> {
+				// we're after a new piece if and only if "new" is different from "current"; otherwise there's no delta
+				if (pieceType.getValue() != this.currentGamePieceType.getValue()) {
+					// we've got a new target -- save off the old piece
+					this.previousGamePieceType = this.currentGamePieceType;
+				}
+			},
+			/* execute() */
+			() -> {
+				// update the current target game piece so that the home position is also updated accordingly
+				this.currentGamePieceType = pieceType;
+				// select the correct set of maps for the given game piece and figure out which key
+				// we're using to determine the elevator position/banana angle
+				Map<Integer, Distance> elevatorPositionsMap;
+				Map<Integer, Angle> bananaAnglesMap;
+				int positionKey;
+
+				// TODO: put these into a map and fetch from there instead of these switch-case blocks
+				switch (pieceType) {
+					case NONE:  // fall-through
+					case CORAL: // fall-through
+					default: {
+						elevatorPositionsMap = this.elevatorPositionsCoral;
+						bananaAnglesMap = this.bananaAnglesCoral;
+						positionKey = this.targetCoralLevel;
+						break;
+					}
+					case ALGAE: {
+						elevatorPositionsMap = this.elevatorPositionsAlgae;
+						bananaAnglesMap = this.bananaAnglesAlgae;
+						positionKey = this.targetAlgaeLevel;
+						break;
+					}
+					case CAGE: {
+						elevatorPositionsMap = this.elevatorPositionsCage;
+						bananaAnglesMap = this.bananaAnglesCage;
+						positionKey = this.targetCageLevel;
+						break;
+					}
+				}
+
+				// fetch the desired setpoints from each map
+				var defaultElevatorHeight = homePositionsMap.get(GamePieceType.NONE.getValue()).getHeight();
+				var defaultBananaAngle = homePositionsMap.get(GamePieceType.NONE.getValue()).getPivot();
+				var desiredElevatorSetpoint = elevatorPositionsMap.getOrDefault(positionKey, defaultElevatorHeight);
+				var desiredBananaSetpoint   = bananaAnglesMap.getOrDefault(positionKey, defaultBananaAngle);
+
+				// feed the setpoints to the actuators
+				moveToPosition(desiredElevatorSetpoint);
+				pivotBanana(desiredBananaSetpoint);
+			},
+			/* end() */
+			interrupted -> {},
+			/* isFinished() */
+			() -> false,
+			// require "this" subsystem
+			this);
 	}
 
 	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
-			pivotBanana(this.homePos.getPivot());
-			moveToPosition(this.homePos.getHeight());
+			HomePosition homePosition = homePositionsMap.get(this.currentGamePieceType);
+			pivotBanana(homePosition.getPivot());
+			moveToPosition(homePosition.getHeight());
 		}, this);
 	}
 }
