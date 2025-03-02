@@ -211,6 +211,17 @@ public class Constants {
 
 	public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
+	public static final Translation2d blueReefCenter = new Translation2d(Units.Inches.of(176.75).in(Units.Meters), FIELD_LAYOUT.getFieldWidth()/2);
+	public static final Translation2d redReefCenter = new Translation2d(FIELD_LAYOUT.getFieldLength() - Units.Inches.of(176.75).in(Units.Meters), FIELD_LAYOUT.getFieldWidth()/2);
+
+	public static final Translation2d hpBlueLeft = FIELD_LAYOUT.getTagPose(13).get().toPose2d().getTranslation();
+	public static final Translation2d hpBlueRight = FIELD_LAYOUT.getTagPose(12).get().toPose2d().getTranslation();
+	public static final Translation2d hpRedLeft = FIELD_LAYOUT.getTagPose(1).get().toPose2d().getTranslation();
+	public static final Translation2d hpRedRight = FIELD_LAYOUT.getTagPose(2).get().toPose2d().getTranslation();
+
+	public static final Translation2d processorBlue = FIELD_LAYOUT.getTagPose(16).get().toPose2d().getTranslation();
+	public static final Translation2d processorRed = FIELD_LAYOUT.getTagPose(3).get().toPose2d().getTranslation();
+
 	public static final class LimelightFX {
 		private LimelightFX() { throw new IllegalCallerException("Cannot instantiate `Constants.LimelightFX`"); }
 

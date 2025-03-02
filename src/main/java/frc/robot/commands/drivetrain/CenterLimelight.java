@@ -153,4 +153,12 @@ public class CenterLimelight extends Command {
   public static CenterLimelight centerLimelightB2Reverse() {
     return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(-8), Units.Radians.of(Math.PI), List.of(2, 12));
   }
+
+  public static CenterLimelight centerLimelightClosestHP() {
+    return new CenterLimelight(Units.Inches.of(0), Units.Inches.of(-8), Units.Radians.of(Math.PI), List.of(1, 2, 12, 13));
+  }
+
+  public static CenterLimelight centerLimelightProcessor() {
+    return new CenterLimelight(Units.Inches.of(0), Units.Inches.of(-15), Units.Radians.of(0), List.of(3, 16));
+  }
 }

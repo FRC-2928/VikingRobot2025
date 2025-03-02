@@ -1,8 +1,5 @@
 package frc.robot;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -12,9 +9,6 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import choreo.Choreo;
-import choreo.trajectory.SwerveSample;
-import choreo.trajectory.Trajectory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -25,7 +19,6 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.commands.climber.Initialize;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
@@ -77,6 +70,9 @@ public class Robot extends LoggedRobot {
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
 		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
 		Logger.recordOutput("ControllerInputs/ReefHeight", cont.driverOI.targetScoringLevel);
+		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef);
+		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP);
+		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor);
 	}
 
 	// DISABLED //

@@ -112,10 +112,6 @@ public class Drivetrain extends SubsystemBase {
 		headingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
-	public boolean inRadius() {
-		return false;
-	}
-
 	public void control(ChassisSpeeds speeds) {
 		// NOTE: The speeds provided must be robot-relative, else the robot will go the wrong way
 		Logger.recordOutput("Drivetrain/DemandedChassisSpeedsROD", speeds);

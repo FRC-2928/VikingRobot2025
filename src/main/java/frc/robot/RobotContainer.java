@@ -98,6 +98,17 @@ public class RobotContainer {
 			)
 		);
 	}
+
+	public Command telePositionForAlgae() {
+		return new ParallelCommandGroup(
+			this.elevator.goToReefHeight(GamePieceType.ALGAE),
+			new SequentialCommandGroup(
+				CenterLimelight.centerLimelightCenter(),
+				drivetrain.slowDrive
+			)
+		);
+	}
+
 	public Command passCoral(){
 		return new ParallelCommandGroup(
 			this.intake.runTrough(),
