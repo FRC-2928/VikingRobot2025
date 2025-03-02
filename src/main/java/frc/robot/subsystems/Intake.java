@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 import org.littletonrobotics.junction.AutoLog;
+
+import com.ctre.phoenix6.BaseStatusSignal;
 // import com.ctre.phoenix.motorcontrol.SensorCollection;
 // import com.ctre.phoenix6.BaseStatusSignal;
 // import com.ctre.phoenix6.controls.PositionDutyCycle;
@@ -12,6 +14,10 @@ import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 // import com.ctre.phoenix6.hardware.CANdi;
 import com.ctre.phoenix6.hardware.TalonFXS;
+import com.ctre.phoenix6.signals.ForwardLimitValue;
+import com.ctre.phoenix6.signals.MotorArrangementValue;
+
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -65,9 +71,11 @@ public class Intake extends SubsystemBase {
 	// private TalonFXConfiguration intakeWheelsConfig = new TalonFXConfiguration();
 	// private TalonFXConfiguration pivotWheelConfig = new TalonFXConfiguration();
 	private final StatusSignal<AngularVelocity> troughSpeed;
+	private final StatusSignal<ForwardLimitValue> troughSensor;
 	private final TalonFXS trough;
 	private TalonFXSConfiguration troughConfig = new TalonFXSConfiguration();
 	private final HardwareLimitSwitchConfigs sensorConfigs = new HardwareLimitSwitchConfigs();
+
 	// private final CANdi caNdi;
 	public Intake(){
 		// this.wheels = new TalonFX(Constants.CAN.CTRE.intakeWheels, Constants.CAN.CTRE.bus);
@@ -80,8 +88,10 @@ public class Intake extends SubsystemBase {
 		// this.intakeSpeed = this.wheels.getRotorVelocity();
 		// this.pivotAngle = this.pivot.getRotorPosition();
 		this.troughSpeed = this.trough.getVelocity();
+		this.troughSensor = this.trough.getForwardLimit();
 		//this.sensors = trough.;
-		
+
+		troughConfig.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
 
 		// Peak output amps
 		troughConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -119,6 +129,11 @@ public class Intake extends SubsystemBase {
 		// this.pivot.getConfigurator().apply(pivotWheelConfig);
 		// this.pivot.setNeutralMode(NeutralModeValue.Brake);
 		this.trough.getConfigurator().apply(troughConfig);
+
+		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(50), 
+			troughSpeed,
+			troughSensor
+		);
 	}
 	
 	public void runIntake(final Feeder demand){
@@ -148,11 +163,11 @@ public class Intake extends SubsystemBase {
 	// 	// this.pivot.setControl(new PositionDutyCycle(rot.in(Units.Rotations)));
 	// }
 	public void updateInputs(final IntakeInputs inputs) {
-		// BaseStatusSignal.refreshAll(this.intakeSpeed, this.pivotAngle, this.troughSpeed);
+		BaseStatusSignal.refreshAll(this.troughSensor, this.troughSpeed);
 		// inputs.intakeSpeed = this.intakeSpeed.getValue();
 		// inputs.pivotAngle = this.pivotAngle.getValue();
 		inputs.troughSpeed = this.troughSpeed.getValue();
-	 	inputs.troughHasCoral = false;//!this.sensors.isFwdLimitSwitchClosed();
+	 	inputs.troughHasCoral = this.troughSensor.getValue().value != 0;
 	}
 	// public Command intakeTrough(){
 	// 	return new RunCommand(() -> {
