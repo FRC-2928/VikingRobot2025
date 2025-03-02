@@ -13,6 +13,15 @@ public final class Tuning {
 	public static final LoggedNetworkNumber intakeSpeed = new LoggedNetworkNumber
 		("Tuning/SpeedIntakePercent",
 		.8);
+	public static final LoggedNetworkNumber alignRadiusReef = new LoggedNetworkNumber
+		("Tuning/AlignReefRadius",
+		1.25);
+	public static final LoggedNetworkNumber alignRadiusHP = new LoggedNetworkNumber
+		("Tuning/AlignHPRadius",
+		1.25);
+	public static final LoggedNetworkNumber alignRadiusProcessor = new LoggedNetworkNumber
+		("Tuning/AlignProcessorRadius",
+		1.25);
 	public static final LoggedNetworkNumber lFourHeightMeter = new LoggedNetworkNumber(
 		"/Tuning/LFourHeight",
 		1

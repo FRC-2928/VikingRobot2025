@@ -44,6 +44,10 @@ public class DriverOI extends BaseOI {
 	private final Trigger intakeButton;
 	private final Trigger passOffCoral;
 
+	private final Trigger closeToHP;
+	private final Trigger closeToProcessor;
+	private final Trigger closeToReef;
+
 	public int targetScoringLevel;
 
 	public DriverOI(final CommandXboxController controller) {
@@ -90,6 +94,10 @@ public class DriverOI extends BaseOI {
 		this.targetScoringLevel = 1;
 		this.intakeButton = this.controller.povLeft();
 		this.passOffCoral = new Trigger(() -> (Robot.cont.intake.holdingGamePeice() && Robot.cont.elevator.inputs.isElevatorHomed && Robot.cont.elevator.inputs.isPivotHomed && !Robot.cont.bananaFlywheels.holdingCoral()));
+
+		this.closeToHP = new Trigger(() -> {return Robot.cont.drivetrain.inRadius();});
+		this.closeToProcessor = new Trigger(() -> {return Robot.cont.drivetrain.inRadius();});
+		this.closeToReef = new Trigger(() -> {return Robot.cont.drivetrain.inRadius();});
 	}
 
 	public void configureControls() {

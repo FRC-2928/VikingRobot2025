@@ -1,13 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.*;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import java.lang.reflect.Field;
 import java.util.Arrays;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -26,6 +18,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -117,6 +110,10 @@ public class Drivetrain extends SubsystemBase {
         );
 
 		headingController.enableContinuousInput(-Math.PI, Math.PI);
+	}
+
+	public boolean inRadius() {
+		return false;
 	}
 
 	public void control(ChassisSpeeds speeds) {
