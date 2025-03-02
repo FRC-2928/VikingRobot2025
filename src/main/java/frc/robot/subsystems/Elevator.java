@@ -29,18 +29,13 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Tuning;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.Constants.SubsystemKey;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -255,7 +250,7 @@ public class Elevator extends SubsystemBase {
 		pivotCommmandedAngle = rotation;
 	}
 
-	private boolean isInTargetPos() {
+	public boolean isInTargetPos() {
 		if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
 			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
 				   pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);

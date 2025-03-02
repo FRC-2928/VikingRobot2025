@@ -121,7 +121,9 @@ public class BananaFlywheels extends SubsystemBase {
 	public Command outputForward(){
 		return new RunCommand(() -> {
 			runFlywheels(Feeder.Forward);
-		}, this);
+		}, this).finallyDo(() -> {
+			runFlywheels(Feeder.Halt);
+		});
 	}
 
 	public Command acceptAlgae(){
