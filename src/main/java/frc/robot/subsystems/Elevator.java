@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -57,32 +56,6 @@ public class Elevator extends SubsystemBase {
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 
 	// --------------------- Internal Higher-Order States ---------------------
-	// Home Positions
-	private enum HomePosition {
-		NONE(Tuning.noneHeightHome,   Tuning.nonePivotHome),
-		CORAL(Tuning.coralHeightHome, Tuning.coralPivotHome),
-		ALGAE(Tuning.algaeHeightHome, Tuning.algaePivotHome),
-		CAGE(Tuning.cageHeightHome,   Tuning.cagePivotHome);
-
-		private LoggedNetworkNumber height;
-		private LoggedNetworkNumber pivot;
-
-		private HomePosition(LoggedNetworkNumber elevatorHeight, LoggedNetworkNumber elevatorPivot) {
-			this.height = elevatorHeight;
-			this.pivot = elevatorPivot;
-		}
-
-		public Distance getHeight() { return Units.Feet.of(height.get()); }
-		public Angle getPivot() { return Units.Degrees.of(pivot.get()); }
-	}
-
-	// Map between game piece types and home positions
-	private final Map<Integer, HomePosition> homePositionsMap = Map.of(
-		GamePieceType.NONE.getValue(),  HomePosition.NONE,
-		GamePieceType.CORAL.getValue(), HomePosition.CORAL,
-		GamePieceType.ALGAE.getValue(), HomePosition.ALGAE,
-		GamePieceType.CAGE.getValue(),  HomePosition.CAGE);
-
 	// Target state variables
 	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
 	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
@@ -473,8 +446,8 @@ public class Elevator extends SubsystemBase {
 				}
 
 				// fetch the desired setpoints from each map
-				var defaultElevatorHeight = homePositionsMap.get(GamePieceType.NONE.getValue()).getHeight();
-				var defaultBananaAngle = homePositionsMap.get(GamePieceType.NONE.getValue()).getPivot();
+				var defaultElevatorHeight = GamePieceType.NONE.getHeight();
+				var defaultBananaAngle = GamePieceType.NONE.getPivot();
 				var desiredElevatorSetpoint = elevatorPositionsMap.getOrDefault(positionKey, defaultElevatorHeight);
 				var desiredBananaSetpoint   = bananaAnglesMap.getOrDefault(positionKey, defaultBananaAngle);
 
@@ -492,9 +465,8 @@ public class Elevator extends SubsystemBase {
 
 	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
-			HomePosition homePosition = homePositionsMap.get(this.currentGamePieceType);
-			pivotBanana(homePosition.getPivot());
-			moveToPosition(homePosition.getHeight());
+			pivotBanana(currentGamePieceType.getPivot());
+			moveToPosition(currentGamePieceType.getHeight());
 		}, this);
 	}
 }

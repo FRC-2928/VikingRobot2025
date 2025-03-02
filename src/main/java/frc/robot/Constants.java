@@ -3,6 +3,7 @@ package frc.robot;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -22,6 +23,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+
 public class Constants {
 	private static Mode currentMode() {
 		if(Robot.isReal()) return Mode.REAL;
@@ -82,20 +84,32 @@ public class Constants {
 	}
 
 	public static enum GamePieceType {
-		NONE(0),   // Game Piece Type for None
-		ALGAE(1),  // Game Piece Type for Algae
-		CORAL(2),  // Game Piece Type for Coral
-		CAGE(3);   // Game Piece Type for Cage
+		NONE(0,  Tuning.noneHeightHome,  Tuning.nonePivotHome),   // Game Piece Type for None
+		ALGAE(1, Tuning.coralHeightHome, Tuning.coralPivotHome),  // Game Piece Type for Algae
+		CORAL(2, Tuning.algaeHeightHome, Tuning.algaePivotHome),  // Game Piece Type for Coral
+		CAGE(3,  Tuning.cageHeightHome,  Tuning.cagePivotHome);   // Game Piece Type for Cage
 		// other pieces here...
 
 		private final int value;
+		private LoggedNetworkNumber height;
+		private LoggedNetworkNumber pivot;
 
-		GamePieceType(int value) {
+		GamePieceType(int value, LoggedNetworkNumber height, LoggedNetworkNumber pivot) {
 			this.value = value;
+			this.height = height;
+			this.pivot = pivot;
 		}
 
 		public int getValue() {
 			return this.value;
+		}
+
+		public Distance getHeight() {
+			return Units.Feet.of(height.get());
+		}
+
+		public Angle getPivot() {
+			return Units.Degrees.of(pivot.get());
 		}
 
 		public static GamePieceType fromInt(int value) {
