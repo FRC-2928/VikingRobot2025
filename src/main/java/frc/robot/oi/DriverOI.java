@@ -151,7 +151,7 @@ public class DriverOI extends BaseOI {
 		this.alignProcessor.whileTrue(
 			Commands.sequence(
 				CenterLimelight.centerLimelightProcessor(),
-				Robot.cont.elevator.processorAlgae())); // what is this supposed to do...? seems worthless... except for depositing...
+				new InstantCommand(Robot.cont.elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
 		this.intakeButton.whileTrue(Robot.cont.intake.intakeTrough());
 		this.passOffCoral.onTrue(Robot.cont.passCoral());

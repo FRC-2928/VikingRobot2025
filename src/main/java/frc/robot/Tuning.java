@@ -26,28 +26,36 @@ public final class Tuning {
 		"/Tuning/LFourHeight",
 		1
 	);
-	public static final LoggedNetworkNumber coralHeight = new LoggedNetworkNumber(
-		"/Tuning/CoralHeight",
-		1
-	);
-	public static final LoggedNetworkNumber coralPivot = new LoggedNetworkNumber(
-		"/Tuning/coralPivot",
+	public static final LoggedNetworkNumber noneHeightHome = new LoggedNetworkNumber(
+		"/Tuning/NoneHeightHome",
 		0
 	);
-	public static final LoggedNetworkNumber algielHeight = new LoggedNetworkNumber(
-		"/Tuning/algielHeight",
+	public static final LoggedNetworkNumber nonePivotHome = new LoggedNetworkNumber(
+		"/Tuning/NonePivotHome",
+		0
+	);
+	public static final LoggedNetworkNumber coralHeightHome = new LoggedNetworkNumber(
+		"/Tuning/CoralHeightHome",
+		0
+	);
+	public static final LoggedNetworkNumber coralPivotHome = new LoggedNetworkNumber(
+		"/Tuning/CoralPivotHome",
+		0
+	);
+	public static final LoggedNetworkNumber algaeHeightHome = new LoggedNetworkNumber(
+		"/Tuning/AlgaeHeightHome",
 		0.5
 	);
-	public static final LoggedNetworkNumber algiePivot = new LoggedNetworkNumber(
-		"/Tuning/algiePivot",
+	public static final LoggedNetworkNumber algaePivotHome = new LoggedNetworkNumber(
+		"/Tuning/AlgaePivotHome",
 		0
 	);
-	public static final LoggedNetworkNumber climbHeight = new LoggedNetworkNumber(
-		"/Tuning/climbHeight",
-		2
+	public static final LoggedNetworkNumber cageHeightHome = new LoggedNetworkNumber(
+		"/Tuning/CageHeightHome",
+		0
 	);
-	public static final LoggedNetworkNumber climbPivot = new LoggedNetworkNumber(
-		"/Tuning/climbPivot",
+	public static final LoggedNetworkNumber cagePivotHome = new LoggedNetworkNumber(
+		"/Tuning/CagePivotHome",
 		0
 	);
 }
