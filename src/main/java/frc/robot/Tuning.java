@@ -15,13 +15,13 @@ public final class Tuning {
 		.8);
 	public static final LoggedNetworkNumber alignRadiusReef = new LoggedNetworkNumber
 		("Tuning/AlignReefRadius",
-		1.25);
+		2);
 	public static final LoggedNetworkNumber alignRadiusHP = new LoggedNetworkNumber
 		("Tuning/AlignHPRadius",
-		1.25);
+		1.5);
 	public static final LoggedNetworkNumber alignRadiusProcessor = new LoggedNetworkNumber
 		("Tuning/AlignProcessorRadius",
-		1.25);
+		1.5);
 	public static final LoggedNetworkNumber lFourHeightMeter = new LoggedNetworkNumber(
 		"/Tuning/LFourHeight",
 		1

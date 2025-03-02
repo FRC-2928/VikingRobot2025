@@ -139,13 +139,13 @@ public class DriverOI extends BaseOI {
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightCenter(),
-				Robot.cont.drivetrain.slowDrive
+				Robot.cont.drivetrain.slowMode()
 			)
 		);
 		this.alignHP.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightClosestHP(),
-				Robot.cont.drivetrain.slowDrive
+				Robot.cont.drivetrain.slowMode()
 			)
 		);
 		this.alignProcessor.whileTrue(

@@ -84,7 +84,7 @@ public class RobotContainer {
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightLeft(),
-				drivetrain.slowDrive
+				drivetrain.slowMode()
 			)
 		);
 	}
@@ -94,7 +94,7 @@ public class RobotContainer {
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightRight(),
-				drivetrain.slowDrive
+				drivetrain.slowMode()
 			)
 		);
 	}
@@ -104,7 +104,7 @@ public class RobotContainer {
 			this.elevator.goToReefHeight(GamePieceType.ALGAE),
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightCenter(),
-				drivetrain.slowDrive
+				drivetrain.slowMode()
 			)
 		);
 	}
