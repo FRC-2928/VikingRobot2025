@@ -59,10 +59,10 @@ public class Elevator extends SubsystemBase {
 	// --------------------- Internal Higher-Order States ---------------------
 	// Home Positions
 	private enum HomePosition {
-		NONE(Units.Feet.of(0), Units.Degrees.of(0)),
-		CORAL(Tuning.coralHeight, Tuning.coralPivot),
-		ALGAE(Tuning.algielHeight, Tuning.algiePivot),
-		CAGE(Tuning.climbHeight, Tuning.climbPivot);
+		NONE(Tuning.noneHeightHome,   Tuning.nonePivotHome),
+		CORAL(Tuning.coralHeightHome, Tuning.coralPivotHome),
+		ALGAE(Tuning.algaeHeightHome, Tuning.algaePivotHome),
+		CAGE(Tuning.cageHeightHome,   Tuning.cagePivotHome);
 
 		private LoggedNetworkNumber height;
 		private LoggedNetworkNumber pivot;
@@ -73,7 +73,7 @@ public class Elevator extends SubsystemBase {
 		}
 
 		public Distance getHeight() { return Units.Feet.of(height.get()); }
-		public Angle getPivot() { return Units.Degree.of(pivot.get()); }
+		public Angle getPivot() { return Units.Degrees.of(pivot.get()); }
 	}
 
 	// Map between game piece types and home positions
@@ -253,7 +253,7 @@ public class Elevator extends SubsystemBase {
 		StatusSignal.setUpdateFrequencyForAll(50, elevatorMotorPosition, elevatorMotorVelocity, pivotMotorPosition, pivotMotorVelocity);
 
 		this.setDefaultCommand(toDefaultPosition());
-		this.targetCageLevel = CagePosition.SHALLOW;  // TODO: change this to accept values from SmartDashboard
+		this.targetCageLevel = CagePosition.SHALLOW.getValue();  // TODO: change this to accept values from SmartDashboard
 	}
 
 	private void moveToPosition(final Distance position) {

@@ -40,7 +40,7 @@ public class RobotContainer {
 	public RobotContainer() {
 		Robot.instance.container = this;
 		Robot.cont = this;
-		Tuning.algiePivot.get();
+		Tuning.algaePivotHome.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
 		this.drivetrain = new Drivetrain();
