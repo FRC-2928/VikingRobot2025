@@ -61,7 +61,6 @@ public class Elevator extends SubsystemBase {
 	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
 	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
 	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
-	private GamePieceType previousGamePieceType = GamePieceType.NONE;  // NONE by default
 
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
@@ -375,7 +374,7 @@ public class Elevator extends SubsystemBase {
 
 	private void onEjectGamePieceGeneric() {
 		// reset the home to whatever it was before...
-		this.currentGamePieceType = this.previousGamePieceType;
+		this.currentGamePieceType = GamePieceType.NONE;
 	}
 
 	/**
@@ -402,16 +401,7 @@ public class Elevator extends SubsystemBase {
 	}
 
 	private Command goToGamePieceHeightEndless(GamePieceType pieceType) {
-		return new FunctionalCommand(
-			/* initialize() */
-			() -> {
-				// we're after a new piece if and only if "new" is different from "current"; otherwise there's no delta
-				if (pieceType.getValue() != this.currentGamePieceType.getValue()) {
-					// we've got a new target -- save off the old piece
-					this.previousGamePieceType = this.currentGamePieceType;
-				}
-			},
-			/* execute() */
+		return new RunCommand(
 			() -> {
 				// update the current target game piece so that the home position is also updated accordingly
 				this.currentGamePieceType = pieceType;
@@ -455,10 +445,6 @@ public class Elevator extends SubsystemBase {
 				moveToPosition(desiredElevatorSetpoint);
 				pivotBanana(desiredBananaSetpoint);
 			},
-			/* end() */
-			interrupted -> {},
-			/* isFinished() */
-			() -> false,
 			// require "this" subsystem
 			this);
 	}
