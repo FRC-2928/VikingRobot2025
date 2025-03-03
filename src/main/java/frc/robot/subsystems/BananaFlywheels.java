@@ -101,6 +101,11 @@ public class BananaFlywheels extends SubsystemBase {
 	//	inputs.holdingCoral = !this.sensors.isFwdLimitSwitchClosed();
 	}
 
+	/**
+	 * Creates a command that will output the coral, then stop when it's out of the banana.
+	 * This factory should be used for autonomous or for fully automating coral scoring.
+	 * @return a command to score the coral
+	 */
 	public Command scoreHeldCoral() {
 		return new RunCommand(() -> {
 			runFlywheels(Feeder.Forward);
@@ -129,10 +134,6 @@ public class BananaFlywheels extends SubsystemBase {
 	public Command acceptAlgae(){
 		return new RunCommand(() -> {
 			runFlywheels(Feeder.Reverse);
-		}, this).finallyDo(
-			() -> {
-				holdPosition();
-			}
-		);		
+		}, this).finallyDo(this::holdPosition);		
 	}
 }

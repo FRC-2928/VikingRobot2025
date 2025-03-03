@@ -133,6 +133,8 @@ public class DriverOI extends BaseOI {
 		);
 		this.alignReefCenter.whileTrue(
 			Robot.cont.telePositionForAlgae()
+		).onFalse(
+			Robot.cont.pullAlgaeOffReef()
 		);
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(

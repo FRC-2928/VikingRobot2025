@@ -115,7 +115,7 @@ public class Intake extends SubsystemBase {
 	}
 
 	public boolean holdingGamePeice() {
-		return false;
+		return inputs.troughHasCoral;
 	}
 
 	private void runTrough(Feeder demand){

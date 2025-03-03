@@ -22,6 +22,11 @@ public final class Tuning {
 	public static final LoggedNetworkNumber alignRadiusProcessor = new LoggedNetworkNumber
 		("Tuning/AlignProcessorRadius",
 		1.5);
+
+	// How far away does the robot have to be from reef center before the elevator can go down with algae?
+	public static final LoggedNetworkNumber reefBackupWithAlgaeRadius = new LoggedNetworkNumber
+		("Tuning/ReefBackupWithAlgaeRadius",
+		2);
 	public static final LoggedNetworkNumber lFourHeightMeter = new LoggedNetworkNumber(
 		"/Tuning/LFourHeight",
 		1

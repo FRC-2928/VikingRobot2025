@@ -103,12 +103,25 @@ public class RobotContainer {
 	}
 
 	public Command telePositionForAlgae() {
-		return new ParallelCommandGroup(
-			this.elevator.goToReefHeight(GamePieceType.ALGAE),
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightCenter(),
+		return new SequentialCommandGroup(
+			CenterLimelight.centerLimelightCenter(),
+			new ParallelCommandGroup(
+				new SequentialCommandGroup(
+					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+					this.bananaFlywheels.acceptAlgae()
+				),
 				drivetrain.slowMode()
 			)
+		);
+	}
+
+	public Command pullAlgaeOffReef() {
+		return new ParallelCommandGroup(
+			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+			drivetrain.slowMode()
+		).until(() -> 
+			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
+			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
 		);
 	}
 
