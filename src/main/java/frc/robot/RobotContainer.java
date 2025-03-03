@@ -2,6 +2,14 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.ctre.phoenix6.configs.CANdiConfiguration;
+import com.ctre.phoenix6.configs.DigitalInputsConfigs;
+import com.ctre.phoenix6.hardware.CANdi;
+import com.ctre.phoenix6.signals.S1CloseStateValue;
+import com.ctre.phoenix6.signals.S1FloatStateValue;
+import com.ctre.phoenix6.signals.S2CloseStateValue;
+import com.ctre.phoenix6.signals.S2FloatStateValue;
+
 import choreo.auto.AutoChooser;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -20,7 +28,6 @@ import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
 import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.BananaFlywheels;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
@@ -33,7 +40,6 @@ public class RobotContainer {
 
 	public final Diagnostics diag;
 	public final Drivetrain drivetrain;
-	public final Climber climber;
 	public final Elevator elevator;
 	public final Intake intake;
 	public final BananaFlywheels bananaFlywheels;
@@ -41,13 +47,10 @@ public class RobotContainer {
 	public final AutoChooser autoChooser;
 
 	public RobotContainer() {
-		Robot.instance.container = this;
-		Robot.cont = this;
 		Tuning.algaePivotHome.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
 		this.drivetrain = new Drivetrain();
-		this.climber = new Climber();
 		this.elevator = new Elevator();
 		this.intake = new Intake();
 		this.bananaFlywheels = new BananaFlywheels();

@@ -6,9 +6,16 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.configs.CANdiConfiguration;
+import com.ctre.phoenix6.configs.DigitalInputsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
+import com.ctre.phoenix6.hardware.CANdi;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.S1CloseStateValue;
+import com.ctre.phoenix6.signals.S1FloatStateValue;
+import com.ctre.phoenix6.signals.S2CloseStateValue;
+import com.ctre.phoenix6.signals.S2FloatStateValue;
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -296,22 +303,52 @@ public class Constants {
 			public static final int swerveBackRightAzimuth = 15;
 			public static final int swerveBackRightDrive = 16;
 
-			public static final int bananaPivot = 12;
-			public static final int elevatorMotorA = 1;
-			public static final int elevatorMotorB = 4;
-			public static final int pivotLimitSwitch = 8;
-
-			public static final int bananaWheels = 20;
 			public static final int intakeWheels = 99; //TODO: get right number
 			public static final int intakeBelt = 98;
 			public static final int intakePivot = 97;
 			public static final int troughWheels = 96;
-			public static final int CANdi = 10;
 
 			public static final int elevatorLimitSwitch = troughWheels;
 			public static final int troughLimitSwitch = troughWheels;
 
-			public static final int climber = 17;
+			public static final int elevatorMotorA = 95;
+			public static final int elevatorMotorB = 94;
+			public static final int elevatorLimitSwitch = 93;
+		}
+
+		public static final class RIO {
+			/// Name of the CAN bus
+			public static final String bus = "rio";
+			/// CAN ID of the Kraken x44 controlling the Banana pivot
+			public static final int bananaPivot = 99;  // TODO: assign
+			/// CAN ID of the Kraken x44 controlling the Banana flywheels
+			public static final int bananaWheels = 98;  // TODO: assign
+			public static final class BANANA_CANDI {
+				/// CAN ID of the CANdi bridging the banana limit switch + beam break sensor to the CAN bus
+				public static final int canId = 97;  // TODO: assign
+				public static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
+					// S1In --> Banana Pivot limit switch
+					.withS1CloseState(S1CloseStateValue.CloseWhenLow)  // Banana Pivot limit switch -- closed when low
+					.withS1FloatState(S1FloatStateValue.PullHigh)      // Banana Pivot limit switch -- high when open
+					// S2In --> Banana beam break Sensor
+					.withS2CloseState(S2CloseStateValue.CloseWhenLow)  // Banana Beam break Sensor -- closed when low (beam broken)
+					.withS2FloatState(S2FloatStateValue.PullHigh);     // Banana Beam break Sensor -- high when open (beam intact)
+			}
+			private static CANdi bananaCANdiInstance = null;
+			/**
+			 * Singleton creator for the CANdi
+			 * @return the singleton @c CANdi instance
+			 */
+			public static CANdi getCANdiInstance() {
+				if (bananaCANdiInstance != null) {
+					return bananaCANdiInstance;
+				}
+
+				bananaCANdiInstance = new CANdi(BANANA_CANDI.canId, bus);
+				CANdiConfiguration candiConfig = new CANdiConfiguration().withDigitalInputs(BANANA_CANDI.dioConfigs);
+				bananaCANdiInstance.getConfigurator().apply(candiConfig);
+				return bananaCANdiInstance;
+			}
 		}
 	}
 
@@ -506,6 +543,31 @@ public class Constants {
 	
 	public static class Banana {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
+
+		public static enum FeederDemand {
+			REVERSE(-1),
+			HALT(0),
+			FORWARD(1);
+
+			private int demand;
+
+			FeederDemand(int demand) {
+				this.demand = demand;
+			}
+
+			public int getValue() {
+				return this.demand;
+			}
+
+			public static FeederDemand fromInt(int value) {
+				for (FeederDemand demand : FeederDemand.values()) {
+					if (demand.getValue() == value) {
+						return demand;
+					}
+				}
+				return FeederDemand.HALT;
+			}
+		}
 
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKS(0)

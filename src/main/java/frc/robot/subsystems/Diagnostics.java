@@ -23,7 +23,7 @@ import frc.robot.utils.Alert;
 
 public class Diagnostics extends SubsystemBase {
 	public final class Release extends Command {
-		public Release() { this.addRequirements(Robot.cont.drivetrain, Robot.cont.climber); }
+		public Release() { this.addRequirements(Robot.cont.drivetrain); }
 
 		@Override
 		public void initialize() {
@@ -32,10 +32,6 @@ public class Diagnostics extends SubsystemBase {
 				io.azimuth.setNeutralMode(NeutralModeValue.Coast);
 				io.drive.setNeutralMode(NeutralModeValue.Coast);
 			}
-
-			final ClimberIOReal climber = ((ClimberIOReal) Robot.cont.climber.io);
-			climber.actuator.setNeutralMode(NeutralModeValue.Coast);
-			//climber.lock.set(0);
 
 			Diagnostics.this.chirp(1000, 100);
 			Diagnostics.this.chirp(800, 500);
@@ -48,10 +44,6 @@ public class Diagnostics extends SubsystemBase {
 				io.azimuth.setNeutralMode(NeutralModeValue.Brake);
 				io.drive.setNeutralMode(NeutralModeValue.Brake);
 			}
-
-			final ClimberIOReal climber = ((ClimberIOReal) Robot.cont.climber.io);
-			climber.actuator.setNeutralMode(NeutralModeValue.Brake);
-			//climber.lock.set(0);
 
 			Diagnostics.this.chirp(800, 100);
 			Diagnostics.this.chirp(1000, 500);
@@ -177,7 +169,6 @@ public class Diagnostics extends SubsystemBase {
 
 			alertInvalidAutoRoutine.text = "Autonomous routine '" + name + "' not ready for competition!";
 			alertInvalidAutoRoutine.active = invalidAutoRoutine;
-			alertClimberHome.active = Robot.cont.climber.inputs.home;
 			alertBadVoltage.text = "Battery Voltage is "
 				+ RobotController.getBatteryVoltage()
 				+ "V, recommended to be at least 12V";

@@ -17,6 +17,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
 import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
+import com.ctre.phoenix6.signals.ReverseLimitValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
@@ -108,6 +109,7 @@ public class Elevator extends SubsystemBase {
 	private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
 	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
 	private final StatusSignal<Angle> pivotMotorPosition;
+	private final StatusSignal<ReverseLimitValue> pivotHomedSignal;
 
 	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
 	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
@@ -140,16 +142,12 @@ public class Elevator extends SubsystemBase {
 		this.pivotTargetAngle = Units.Degrees.of(0);
 		this.pivotCommmandedAngle = Units.Degrees.of(0);
 
-		liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA);
-		liftMotorB = new TalonFX(Constants.CAN.CTRE.elevatorMotorB);
+		// lift motors are on the CANivore
+		liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA, Constants.CAN.CTRE.bus);
+		liftMotorB = new TalonFX(Constants.CAN.CTRE.elevatorMotorB, Constants.CAN.CTRE.bus);
 
-		pivot = new TalonFX(Constants.CAN.CTRE.bananaPivot);
-
-		this.elevatorMotorPosition = this.liftMotorA.getPosition();
-		this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
-
-		this.pivotMotorPosition = this.pivot.getRotorPosition();
-		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
+		// pivot motor is on the RIO CAN bus
+		pivot = new TalonFX(Constants.CAN.RIO.bananaPivot, Constants.CAN.RIO.bus);
 
 		liftMotorB.setControl(new Follower(liftMotorA.getDeviceID(), false));
 
@@ -191,14 +189,16 @@ public class Elevator extends SubsystemBase {
 
 		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
 
+		// Configure the reverse limit to read from CANdi S1
 		bananaConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
 		bananaConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANcoder;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.pivotLimitSwitch;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANdiS1;
+		bananaConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.RIO.BANANA_CANDI.canId;
 		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
 		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
-		elevatorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+		
+		bananaConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+		bananaConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 		// Peak output amps
 		bananaConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -217,7 +217,20 @@ public class Elevator extends SubsystemBase {
 
 		this.pivot.getConfigurator().apply(bananaConfig);
 
-		StatusSignal.setUpdateFrequencyForAll(50, elevatorMotorPosition, elevatorMotorVelocity, pivotMotorPosition, pivotMotorVelocity);
+		this.elevatorMotorPosition = this.liftMotorA.getPosition();
+		this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
+
+		this.pivotMotorPosition = this.pivot.getRotorPosition();
+		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
+		this.pivotHomedSignal = this.pivot.getReverseLimit();
+
+
+		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
+			elevatorMotorPosition,
+			elevatorMotorVelocity,
+			pivotMotorPosition,
+			pivotMotorVelocity,
+			pivotHomedSignal);
 
 		this.setDefaultCommand(toDefaultPosition());
 		this.targetCageLevel = CagePosition.SHALLOW.getValue();  // TODO: change this to accept values from SmartDashboard
@@ -297,7 +310,8 @@ public class Elevator extends SubsystemBase {
 				this.elevatorMotorPosition,
 				this.elevatorMotorVelocity,
 				this.pivotMotorPosition,
-				this.pivotMotorVelocity
+				this.pivotMotorVelocity,
+				this.pivotHomedSignal
 			);
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
@@ -306,7 +320,7 @@ public class Elevator extends SubsystemBase {
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = inputs.pivotAngle.in(Units.Degrees) < 1;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 1*/;
 	}
 
 	@Override
