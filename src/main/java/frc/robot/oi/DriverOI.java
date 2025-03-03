@@ -152,7 +152,8 @@ public class DriverOI extends BaseOI {
 			Commands.sequence(
 				CenterLimelight.centerLimelightProcessor(),
 				new InstantCommand(Robot.cont.elevator::onEjectAlgae)));
-		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
+		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward())
+							.onFalse(new InstantCommand(() -> Robot.cont.elevator.onEjectCoral(), Robot.cont.elevator));
 		this.passOffCoral.whileTrue(Robot.cont.passCoral());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
 			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);

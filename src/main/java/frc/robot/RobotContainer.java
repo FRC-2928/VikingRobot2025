@@ -77,8 +77,9 @@ public class RobotContainer {
 				// Scores coral
 				this.bananaFlywheels.scoreHeldCoral(),
 				// Holds elevator in place
-				this.elevator.goToReefHeight(GamePieceType.CORAL)
-			)
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
+			),
+			new InstantCommand(() -> this.elevator.onEjectCoral(), this.elevator)
 		);
 	}
 
