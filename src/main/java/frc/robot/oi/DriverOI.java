@@ -45,7 +45,6 @@ public class DriverOI extends BaseOI {
 
 	private final Trigger holdingCoral;
 
-	private final Trigger intakeButton;
 	private final Trigger passOffCoral;
 
 	public final Trigger closeToHP;
@@ -117,7 +116,6 @@ public class DriverOI extends BaseOI {
 		this.toggleReefHeightUp = this.controller.povUp();
 
 		this.targetScoringLevel = 1;
-		this.intakeButton = this.controller.povLeft();
 		this.passOffCoral = this.controller.a();
 	}
 
@@ -153,7 +151,6 @@ public class DriverOI extends BaseOI {
 				CenterLimelight.centerLimelightProcessor(),
 				new InstantCommand(Robot.cont.elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
-		this.intakeButton.whileTrue(Robot.cont.intake.intakeTrough());
 		this.passOffCoral.whileTrue(Robot.cont.passCoral());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
 			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);

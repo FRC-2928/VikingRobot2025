@@ -300,7 +300,6 @@ public class Constants {
 			public static final int elevatorMotorA = 1;
 			public static final int elevatorMotorB = 4;
 			public static final int pivotLimitSwitch = 8;
-			public static final int elevatorLimitSwitch = 9;
 
 			public static final int bananaWheels = 20;
 			public static final int intakeWheels = 99; //TODO: get right number
@@ -308,6 +307,9 @@ public class Constants {
 			public static final int intakePivot = 97;
 			public static final int troughWheels = 96;
 			public static final int CANdi = 10;
+
+			public static final int elevatorLimitSwitch = troughWheels;
+			public static final int troughLimitSwitch = troughWheels;
 
 			public static final int climber = 17;
 		}

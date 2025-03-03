@@ -157,7 +157,7 @@ public class Elevator extends SubsystemBase {
 
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANcoder;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteTalonFX;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.elevatorLimitSwitch;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
