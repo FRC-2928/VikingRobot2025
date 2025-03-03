@@ -313,7 +313,6 @@ public class Constants {
 
 			public static final int elevatorMotorA = 95;
 			public static final int elevatorMotorB = 94;
-			public static final int elevatorLimitSwitch = 93;
 		}
 
 		public static final class RIO {
