@@ -1,20 +1,30 @@
 package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.AutoLog;
-
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.units.measure.*;
+import com.ctre.phoenix6.signals.S2StateValue;
+
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.Banana;
+import frc.robot.Constants.Banana.FeederDemand;
+import frc.robot.Constants.GamePieceType;
+
 /* 1.Make a method that stops elevator pivot from going lower a certain angle
  * 2. Run fly wheels forward and backward TalonFX
  * 3. Detect coral in banana - Kraken x44, limit switch
@@ -29,34 +39,41 @@ import frc.robot.Constants;
  * 
 */
 public class BananaFlywheels extends SubsystemBase {
-	public static enum Feeder {
-		Reverse(-1), Halt(0), Forward(1);
-
-		public double demand;
-
-		private Feeder(final double input) {
-			this.demand = input;
-		}
-
-	}
 	@AutoLog
 	public static class BananaFlywheelsInputs {
-		public boolean holdingCoral;
-		public AngularVelocity flywheelSpeed;
-
+		public GamePieceType heldGamePieceType = GamePieceType.NONE;
+		public GamePieceType targetedGamePieceType = GamePieceType.NONE;
+		public Angle flywheelPosition = Units.Rotations.zero();
+		public AngularVelocity flywheelSpeed = Units.RotationsPerSecond.zero();
+		public Current flywheelStatorCurrent = Units.Amps.zero();
+		public Current flywheelSupplyCurrent = Units.Amps.zero();
 	}
+
+	private final BananaFlywheelsInputsAutoLogged inputs = new BananaFlywheelsInputsAutoLogged();
+	/// State tracking which @c GamePieceType is currently held by the Banana
+	private GamePieceType heldGamePieceType;
+	/// State tracking which @c GamePieceType is currently targeted by the Banana
+	private GamePieceType targetedGamePieceType;
 
 	private final TalonFX wheels;
 	private final StatusSignal<Angle> angle;
 	private final StatusSignal<AngularVelocity> velocity;
-	private TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
-	
+	private final StatusSignal<Current> motorStatorCurrent;
+	private final StatusSignal<Current> motorSupplyCurrent;
+	private final StatusSignal<S2StateValue> beamBreakStateSignal;
 
-	public BananaFlywheels(){
-		this.wheels = new TalonFX(Constants.CAN.CTRE.bananaWheels, Constants.CAN.CTRE.bus);
-		this.angle = this.wheels.getRotorPosition();
-		this.velocity = this.wheels.getRotorVelocity();
-		
+	/**
+	 * Default Constructor
+	 */
+	public BananaFlywheels() {
+		this.heldGamePieceType = GamePieceType.NONE;
+		this.targetedGamePieceType = GamePieceType.NONE;
+		this.beamBreakStateSignal = Constants.CAN.RIO.BANANA_CANDI.getInstance().getS2State();
+		this.wheels = new TalonFX(Constants.CAN.RIO.bananaWheels, Constants.CAN.RIO.bus);
+		TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
+
+		flyWheelConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Gearing, clockwise moves elevator up
+		flyWheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 		// Peak output amps
 		flyWheelConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -74,48 +91,104 @@ public class BananaFlywheels extends SubsystemBase {
 
 		// PID values
 		flyWheelConfig.Slot0 = Constants.Banana.flywheelGainsSlot0;
-
 		flyWheelConfig.Audio = Constants.talonFXAudio;
 
 		this.wheels.getConfigurator().apply(flyWheelConfig);
-		this.wheels.setNeutralMode(NeutralModeValue.Brake);
 
-		StatusSignal.setUpdateFrequencyForAll(50, this.angle, this.velocity);
+		this.angle = this.wheels.getRotorPosition();
+		this.velocity = this.wheels.getRotorVelocity();
+		this.motorStatorCurrent = this.wheels.getStatorCurrent();
+		this.motorSupplyCurrent = this.wheels.getSupplyCurrent();
+
+		BaseStatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
+			/* CANdi excluded because the singleton controls the update frequency */
+			this.angle,
+			this.velocity,
+			this.motorStatorCurrent,
+			this.motorSupplyCurrent);
+
+		this.wheels.optimizeBusUtilization();
+	}
+
+	@Override
+	public void periodic() {
+		updateInputs(inputs);
+		Logger.processInputs("BananaFlywheels", inputs);
+		updateMotors();
+	}
+
+	// Control the motors based on the internal state machine
+	private void updateMotors() {
+		// TODO: implement
 	}
 	
-	public void runFlywheels(final Feeder demand){
-		this.wheels.setControl(new VelocityDutyCycle(demand.demand * 0.05));
+	public void runFlywheels(FeederDemand demand) {
+		this.wheels.setControl(new VoltageOut(demand.getValue()*6.0));
 	}
-	
-//Gets angle of flywheel and holds it at that position
-//Will add the holding coral input once we know which sensor detects the coral
-	public void holdPosition(){
-		final Angle wheelAngle = this.angle.getValue();
+
+	//Gets angle of flywheel and holds it at that position
+	//Will add the holding coral input once we know which sensor detects the coral
+	public void holdPosition() {
+		Angle wheelAngle = this.angle.getValue();
 		this.wheels.setControl(new PositionVoltage(wheelAngle));
 	}
-//Potentially add more functionallity e.g. move past sensor, when not detetcted move back until detected
-	private boolean holdingCoral() {
-		return false;
-	}
-	
-	public void updateInputs(final BananaFlywheelsInputs inputs) {
-		BaseStatusSignal.refreshAll(this.angle, this.velocity);
 
-		inputs.flywheelSpeed = this.velocity.getValue();
-	//	inputs.holdingCoral = !this.sensors.isFwdLimitSwitchClosed();
+	public boolean holdingCoral() {
+		return (heldGamePieceType == GamePieceType.CORAL);
 	}
 
+	public GamePieceType getHeldGamePieceType() {
+		return heldGamePieceType;
+	}
+
+	public void setTargetGamePiece(GamePieceType targetPieceType) {
+		this.targetedGamePieceType = targetPieceType;
+	}
+
+	private void updateInputs(final BananaFlywheelsInputs inputs) {
+		BaseStatusSignal.refreshAll(
+			this.angle, this.velocity, this.motorStatorCurrent, this.motorSupplyCurrent, this.beamBreakStateSignal);
+
+		inputs.flywheelSpeed = velocity.getValue();
+		inputs.flywheelSupplyCurrent = motorStatorCurrent.getValue();
+		inputs.flywheelStatorCurrent = motorSupplyCurrent.getValue();
+		inputs.targetedGamePieceType = this.targetedGamePieceType;
+
+		// The held piece type can be expressed as a bitset of the various indicator flags
+		boolean[] heldGamePieceTypeFlags = new boolean[2];  // create the array of boolean flags (bitflags)
+		// In a proper bitmask the order of these fields wouldn't matter; however since our bitset is implicitly
+		// tied to known values of the GamePieceType enum the order IS IMPORTANT
+		// In binary: 00 = NONE, 01 = CORAL, 10 = ALGAE, 11 = CAGE
+		heldGamePieceTypeFlags[0] = (beamBreakStateSignal.getValue() == S2StateValue.Low);  // Coral is bit 0
+		heldGamePieceTypeFlags[1] = motorStatorCurrent.getValue().gt(Banana.HOLDING_ALGAE_CURRENT_THRESHOLD); // Algae is bit 1
+		int heldGamePieceTypeBitset = 0;
+		for (int i = 0; i < heldGamePieceTypeFlags.length; i++) {
+			if (heldGamePieceTypeFlags[i]) {
+				heldGamePieceTypeBitset |= (1 << i);  // shift the bits into position
+			}
+		}
+
+		// extract the piece type enum from the integer (bitfield)
+		this.heldGamePieceType = GamePieceType.fromInt(heldGamePieceTypeBitset);
+		inputs.heldGamePieceType = this.heldGamePieceType;
+	}
+
+	/**
+	 * Creates a command that will output the coral, then stop when it's out of the banana.
+	 * This factory should be used for autonomous or for fully automating coral scoring.
+	 * @return a command to score the coral
+	 */
 	public Command scoreHeldCoral() {
 		return new RunCommand(() -> {
-			runFlywheels(Feeder.Forward);
-		}, this).until(this::holdingCoral)
+			runFlywheels(FeederDemand.FORWARD);
+		}, this).until(() -> !this.holdingCoral())
 		.andThen(
 			new RunCommand(() -> {
-				runFlywheels(Feeder.Forward);
+				runFlywheels(FeederDemand.FORWARD);
 			}, this).withTimeout(0.2)
 		).andThen(
 			new RunCommand(() -> {
-				runFlywheels(Feeder.Halt);
+				runFlywheels(FeederDemand.HALT);
 			},this)
 		);
 		// 1. Run the wheels forward until the sensor returns false
@@ -123,19 +196,17 @@ public class BananaFlywheels extends SubsystemBase {
 		// 3. Stop the wheels
 	}
 
-	public Command rejectCoral(){
+	public Command outputForward(){
 		return new RunCommand(() -> {
-			runFlywheels(Feeder.Forward);
-		}, this);
+			runFlywheels(FeederDemand.FORWARD);
+		}, this).finallyDo(() -> {
+			runFlywheels(FeederDemand.HALT);
+		});
 	}
 
 	public Command acceptAlgae(){
 		return new RunCommand(() -> {
-			runFlywheels(Feeder.Reverse);
-		}, this).finallyDo(
-			() -> {
-				holdPosition();
-			}
-		);		
+			runFlywheels(FeederDemand.REVERSE);
+		}, this).finallyDo(this::holdPosition);
 	}
 }

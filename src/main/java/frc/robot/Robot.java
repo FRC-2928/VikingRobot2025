@@ -9,26 +9,25 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import com.pathplanner.lib.commands.PathfindingCommand;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
 	public static RobotContainer cont;
-	public static Command commandToRun;
-	public static boolean needToLookOtherWay;
-
 	public RobotContainer container;
 
-	private Command autonomousCommand;
 
 	public Robot() {
 		super();
-
 		ConduitApi.getInstance().configurePowerDistribution(Constants.CAN.Misc.pdh, ModuleType.kRev.value);
 
 		switch(Constants.mode) {
@@ -59,22 +58,49 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void robotInit() {
-		PathfindingCommand.warmupCommand().schedule();
+		cont.drivetrain.limelight.setIMUMode(1);
+		cont.elevator.setDefaultCommand();
+		initializeSmartDashboard();
+		
 	}
 
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
-		
+		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
+		Logger.recordOutput("ControllerInputs/ReefHeight", cont.driverOI.targetScoringLevel);
+		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef);
+		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP);
+		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor);
 	}
 
 	// DISABLED //
 	@Override
-	public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
+	public void disabledInit() {
+		CommandScheduler.getInstance().cancelAll();
+		cont.drivetrain.limelight.setIMUMode(1);
+	}
 
 	@Override
-	public void disabledPeriodic() {}
+	public void disabledPeriodic() {
+		cont.drivetrain.disabledPeriodic();
+		//get current selected routine
+		//get pose from map (and default)
+		//find differene from est and map pose
+		if(isInArray(Autonomous.AutoRoutines, Autonomous.getChoreoAutoChooser().selectedCommand().getName()) && Robot.cont.drivetrain.getEstimatedPosition() != null){
+			Pose2d difference = Robot.cont.drivetrain.est.getEstimatedPosition()
+			.relativeTo(
+				Autonomous.autoMap.get(
+				Autonomous.getChoreoAutoChooser().selectedCommand().getName()));
+			if(difference != null){
+				Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", Math.hypot(difference.getX(), difference.getY()));
+			}
+		}
+		else{
+			Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", 999);
+		}
+	}
 
 	@Override
 	public void disabledExit() {}
@@ -83,19 +109,11 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousInit() {
-		CommandScheduler.getInstance().cancelAll();
-
-		// Get selected routine from the dashboard
-		this.autonomousCommand = this.container.getAutonomousCommand();
-
-		// schedule the autonomous command (example)
-		if(this.autonomousCommand != null) {
-			this.autonomousCommand.schedule();
-		}
 	}
 
 	@Override
 	public void autonomousPeriodic() {
+		cont.drivetrain.limelight.setIMUMode(2);
 	}
 
 	@Override
@@ -106,8 +124,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-
-		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+		this.container.drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -121,8 +138,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-
-		this.container.drivetrain.setDefaultCommand(this.container.drivetrain.joystickDrive);
+		this.container.drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -130,4 +146,47 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void testExit() {}
+
+	public void initializeSmartDashboard(){
+		final SwerveModuleState[] states = Robot.cont.drivetrain.currentModuleStates();
+		SmartDashboard.putData("Swerve Drive", new Sendable() {
+		@Override
+			public void initSendable(SendableBuilder builder) {
+				builder.setSmartDashboardType("SwerveDrive");
+
+				builder.addDoubleProperty("Front Left Angle", () -> states[0].angle.getRadians(), null);
+				builder.addDoubleProperty("Front Left Velocity", () -> states[0].speedMetersPerSecond, null);
+
+				builder.addDoubleProperty("Front Right Angle", () -> states[1].angle.getRadians(), null);
+				builder.addDoubleProperty("Front Right Velocity", () -> states[0].speedMetersPerSecond, null);
+
+				builder.addDoubleProperty("Back Left Angle", () -> states[2].angle.getRadians(), null);
+				builder.addDoubleProperty("Back Left Velocity", () -> states[0].speedMetersPerSecond, null);
+
+				builder.addDoubleProperty("Back Right Angle", () -> states[3].angle.getRadians(), null);
+				builder.addDoubleProperty("Back Right Velocity", () -> states[0].speedMetersPerSecond, null);
+
+				builder.addDoubleProperty("Robot Angle", () -> Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRadians(), null);
+			}
+		});
+		if(isInArray(Autonomous.AutoRoutines, Autonomous.getChoreoAutoChooser().selectedCommand().getName())){
+			Field2d autoStart = new Field2d();
+			autoStart.setRobotPose(Autonomous.autoMap.get(Autonomous.getChoreoAutoChooser().selectedCommand().getName()));
+			SmartDashboard.putData("Auto Start",autoStart);
+		}
+		else{
+			Field2d autoStart = new Field2d();
+			autoStart.setRobotPose(new Pose2d(0.0,0.0,new Rotation2d(0)));
+			SmartDashboard.putData("Auto Start",autoStart);
+		}
+		SmartDashboard.putData("Field", Robot.cont.drivetrain.field);
+	}
+	private boolean isInArray(String[] array,String check){
+		for(int i=0; i<array.length;i++){
+			if(array[i] == check){
+				return true;
+			}
+		}
+		return false;
+	}
 }
