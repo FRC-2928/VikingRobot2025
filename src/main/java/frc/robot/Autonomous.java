@@ -6,8 +6,12 @@ import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.CoralPosition;
+import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.VoltageRampCommand;
@@ -30,14 +34,30 @@ public final class Autonomous {
 			new InstantCommand(() -> {Robot.cont.elevator.setTargetCoralLevel(CoralPosition.L4);}, Robot.cont.elevator),
 			autoFactory.trajectoryCmd("StartRightToE"),
 			Robot.cont.autoScoreCoral(ReefPosition.E),
-			autoFactory.trajectoryCmd("EToB2Reverse"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightB2Reverse()),
+			autoFactory.trajectoryCmd("EToB1Reverse"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.B1)),
 			Robot.cont.passCoral(),
-			autoFactory.trajectoryCmd("B2ReverseToD"),
+			autoFactory.trajectoryCmd("B1ReverseToD"),
 			Robot.cont.autoScoreCoral(ReefPosition.D)
 		));
 
-		choreoChooser.addCmd("[Comp] SimpleScore", () -> Commands.sequence(autoFactory.trajectoryCmd("SimpleScore")));
+		choreoChooser.addCmd("[Comp] Score2CoralFromLeft", () -> Commands.sequence(
+			new InstantCommand(() -> {Robot.cont.elevator.setTargetCoralLevel(CoralPosition.L4);}, Robot.cont.elevator),
+			autoFactory.trajectoryCmd("StartLeftToJ"),
+			Robot.cont.autoScoreCoral(ReefPosition.L),
+			autoFactory.trajectoryCmd("JToA2Reverse"),
+			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.A2),
+			Robot.cont.passCoral(),
+			autoFactory.trajectoryCmd("A2ReverseToK"),
+			Robot.cont.autoScoreCoral(ReefPosition.K))
+		));
+
+		choreoChooser.addCmd("[Comp] Score1CoralFromCenter", () -> Commands.sequence(
+			new InstantCommand(() -> {Robot.cont.elevator.setTargetCoralLevel(CoralPosition.L4);}, Robot.cont.elevator),
+			autoFactory.trajectoryCmd("SimpleScore"),
+			Robot.cont.autoScoreCoral(ReefPosition.H),
+			autoFactory.trajectoryCmd("HToBackOff")
+		));
 
 		choreoChooser.addCmd(
 				"[Test] Forward Back",

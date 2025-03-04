@@ -17,6 +17,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.Robot;
 
@@ -146,12 +147,8 @@ public class CenterLimelight extends Command {
     return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(6.5 * reefPos.getDirection()), reefPos.getTagID());
   }
 
-  public static CenterLimelight centerLimelightB1Reverse() {
-    return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(-15), Units.Radians.of(Math.PI), List.of(2, 12));
-  }
-
-  public static CenterLimelight centerLimelightB2Reverse() {
-    return new CenterLimelight(Units.Inches.of(10),Units.Inches.of(-8), Units.Radians.of(Math.PI), List.of(2, 12));
+  public static CenterLimelight centerLimelightHPReverse(HumanPlayerPosition hpPose) {
+    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(-15), hpPose.getTagID());
   }
 
   public static CenterLimelight centerLimelightClosestHP() {
