@@ -15,17 +15,15 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.LimelightFX.Module.Rotation;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
 	public static final RobotContainer cont = RobotContainer.getInstance();
-	public RobotContainer container;
-
 
 	public Robot() {
 		super();
@@ -69,7 +67,6 @@ public class Robot extends LoggedRobot {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
 		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
-		Logger.recordOutput("ControllerInputs/ReefHeight", cont.driverOI.targetScoringLevel);
 		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef);
 		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP);
 		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor);
@@ -89,17 +86,21 @@ public class Robot extends LoggedRobot {
 		//get pose from map (and default)
 		//find differene from est and map pose
 		String selected = SmartDashboard.getString("Autonomous Routine/selected", "none");
+		Pose2d autoStartPose = Autonomous.getAutoStartingPose(selected, DriverStation.getAlliance().orElse(Alliance.Blue));
 		if(selected != "none" && RobotContainer.getInstance().drivetrain.getEstimatedPosition() != null){
 			Pose2d difference = RobotContainer.getInstance().drivetrain.est.getEstimatedPosition()
-			.relativeTo(Autonomous.autoMap.getOrDefault(selected, new Pose2d(-10, -10, Rotation2d.kZero)));
+			.relativeTo(autoStartPose);
 			if(difference != null){
 				Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", Math.hypot(difference.getX(), difference.getY()));
 			}
 		}
 		else{
-			Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", 999);
+			Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", 999d);
 		}
-		Logger.recordMetadata("Drivetrain/Auto/selectedRoutine", selected);
+		Logger.recordOutput("Drivetrain/Auto/selectedRoutine", selected);
+		Logger.recordOutput("Drivetrain/Auto/startPose", autoStartPose);
+		FieldObject2d startPose = RobotContainer.getInstance().drivetrain.field.getObject("StartPose");
+		startPose.setPose(autoStartPose);
 	}
 
 	@Override
@@ -124,7 +125,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		this.container.drivetrain.setDefaultCommand();
+		RobotContainer.getInstance().drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -138,7 +139,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-		this.container.drivetrain.setDefaultCommand();
+		RobotContainer.getInstance().drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -158,26 +159,24 @@ public class Robot extends LoggedRobot {
 				builder.addDoubleProperty("Front Left Velocity", () -> states[0].speedMetersPerSecond, null);
 
 				builder.addDoubleProperty("Front Right Angle", () -> states[1].angle.getRadians(), null);
-				builder.addDoubleProperty("Front Right Velocity", () -> states[0].speedMetersPerSecond, null);
+				builder.addDoubleProperty("Front Right Velocity", () -> states[1].speedMetersPerSecond, null);
 
 				builder.addDoubleProperty("Back Left Angle", () -> states[2].angle.getRadians(), null);
-				builder.addDoubleProperty("Back Left Velocity", () -> states[0].speedMetersPerSecond, null);
+				builder.addDoubleProperty("Back Left Velocity", () -> states[2].speedMetersPerSecond, null);
 
 				builder.addDoubleProperty("Back Right Angle", () -> states[3].angle.getRadians(), null);
-				builder.addDoubleProperty("Back Right Velocity", () -> states[0].speedMetersPerSecond, null);
+				builder.addDoubleProperty("Back Right Velocity", () -> states[3].speedMetersPerSecond, null);
 
 				builder.addDoubleProperty("Robot Angle", () -> RobotContainer.getInstance().drivetrain.est.getEstimatedPosition().getRotation().getRadians(), null);
 			}
 		});
-		if(isInArray(Autonomous.AutoRoutines, Autonomous.getChoreoAutoChooser().selectedCommand().getName())){
-			Field2d autoStart = new Field2d();
-			autoStart.setRobotPose(Autonomous.autoMap.get(Autonomous.getChoreoAutoChooser().selectedCommand().getName()));
-			SmartDashboard.putData("Auto Start",autoStart);
+		final String selectedRoutine = SmartDashboard.getString("Autonomous Routine/selected", "none");
+		FieldObject2d startPose = RobotContainer.getInstance().drivetrain.field.getObject("StartPose");
+		if(Autonomous.autoMapBlue.containsKey(selectedRoutine)){
+			startPose.setPose(Autonomous.getAutoStartingPose(selectedRoutine, DriverStation.getAlliance().orElse(Alliance.Blue)));
 		}
 		else{
-			Field2d autoStart = new Field2d();
-			autoStart.setRobotPose(new Pose2d(0.0,0.0,new Rotation2d(0)));
-			SmartDashboard.putData("Auto Start",autoStart);
+			startPose.setPose(new Pose2d(0.0,0.0,new Rotation2d(0)));
 		}
 		SmartDashboard.putData("Field", RobotContainer.getInstance().drivetrain.field);
 	}
