@@ -45,7 +45,6 @@ public class DriverOI extends BaseOI {
 
 	private final Trigger holdingCoral;
 
-	private final Trigger intakeButton;
 	private final Trigger passOffCoral;
 
 	public final Trigger closeToHP;
@@ -109,7 +108,7 @@ public class DriverOI extends BaseOI {
 
 		this.resetPoseLimelight = this.controller.b();
 
-		this.outputGamePiece = this.controller.a();
+		this.outputGamePiece = this.controller.rightTrigger();
 
 		this.lockWheels = this.controller.x();
 
@@ -117,8 +116,7 @@ public class DriverOI extends BaseOI {
 		this.toggleReefHeightUp = this.controller.povUp();
 
 		this.targetScoringLevel = 1;
-		this.intakeButton = this.controller.povLeft();
-		this.passOffCoral = new Trigger(() -> (Robot.cont.intake.holdingGamePeice() && Robot.cont.elevator.inputs.isElevatorHomed && Robot.cont.elevator.inputs.isPivotHomed && !Robot.cont.bananaFlywheels.holdingCoral()));
+		this.passOffCoral = this.controller.a();
 	}
 
 	public void configureControls() {
@@ -135,26 +133,28 @@ public class DriverOI extends BaseOI {
 		);
 		this.alignReefCenter.whileTrue(
 			Robot.cont.telePositionForAlgae()
+		).onFalse(
+			Robot.cont.pullAlgaeOffReef()
 		);
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightCenter(),
-				Robot.cont.drivetrain.slowDrive
+				Robot.cont.drivetrain.slowMode()
 			)
 		);
 		this.alignHP.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightClosestHP(),
-				Robot.cont.drivetrain.slowDrive
+				Robot.cont.drivetrain.slowMode()
 			)
 		);
 		this.alignProcessor.whileTrue(
 			Commands.sequence(
 				CenterLimelight.centerLimelightProcessor(),
 				new InstantCommand(Robot.cont.elevator::onEjectAlgae)));
-		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward());
-		this.intakeButton.whileTrue(Robot.cont.intake.intakeTrough());
-		this.passOffCoral.onTrue(Robot.cont.passCoral());
+		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward())
+							.onFalse(new InstantCommand(() -> Robot.cont.elevator.onEjectCoral(), Robot.cont.elevator));
+		this.passOffCoral.whileTrue(Robot.cont.passCoral());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
 			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);
 		}));

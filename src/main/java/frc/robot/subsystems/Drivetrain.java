@@ -73,7 +73,6 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight[] Limelights = {limelight,limelightLeftUpForward,limelightUpBack};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
-	public final JoystickDrive slowDrive = new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
 	private Rotation2d joystickFOROffset;
 
 	public AutoFactory autoFactory;
@@ -293,5 +292,9 @@ public class Drivetrain extends SubsystemBase {
 		}
 		final ChassisSpeeds simulatedTwist = this.kinematics.toChassisSpeeds(this.currentModuleStates());
 		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
+	}
+
+	public JoystickDrive slowMode() {
+		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
 	}
 }

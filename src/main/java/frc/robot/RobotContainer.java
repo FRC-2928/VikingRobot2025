@@ -2,11 +2,22 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.ctre.phoenix6.configs.CANdiConfiguration;
+import com.ctre.phoenix6.configs.DigitalInputsConfigs;
+import com.ctre.phoenix6.hardware.CANdi;
+import com.ctre.phoenix6.signals.S1CloseStateValue;
+import com.ctre.phoenix6.signals.S1FloatStateValue;
+import com.ctre.phoenix6.signals.S2CloseStateValue;
+import com.ctre.phoenix6.signals.S2FloatStateValue;
+
 import choreo.auto.AutoChooser;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -17,7 +28,6 @@ import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
 import frc.robot.oi.OperatorOI;
 import frc.robot.subsystems.BananaFlywheels;
-import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
@@ -30,7 +40,6 @@ public class RobotContainer {
 
 	public final Diagnostics diag;
 	public final Drivetrain drivetrain;
-	public final Climber climber;
 	public final Elevator elevator;
 	public final Intake intake;
 	public final BananaFlywheels bananaFlywheels;
@@ -38,13 +47,10 @@ public class RobotContainer {
 	public final AutoChooser autoChooser;
 
 	public RobotContainer() {
-		Robot.instance.container = this;
-		Robot.cont = this;
 		Tuning.algaePivotHome.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
 		this.drivetrain = new Drivetrain();
-		this.climber = new Climber();
 		this.elevator = new Elevator();
 		this.intake = new Intake();
 		this.bananaFlywheels = new BananaFlywheels();
@@ -74,8 +80,9 @@ public class RobotContainer {
 				// Scores coral
 				this.bananaFlywheels.scoreHeldCoral(),
 				// Holds elevator in place
-				this.elevator.goToReefHeight(GamePieceType.CORAL)
-			)
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
+			),
+			new InstantCommand(() -> this.elevator.onEjectCoral(), this.elevator)
 		);
 	}
 
@@ -84,7 +91,7 @@ public class RobotContainer {
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightLeft(),
-				drivetrain.slowDrive
+				drivetrain.slowMode()
 			)
 		);
 	}
@@ -94,26 +101,49 @@ public class RobotContainer {
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightRight(),
-				drivetrain.slowDrive
+				drivetrain.slowMode()
 			)
 		);
 	}
 
 	public Command telePositionForAlgae() {
-		return new ParallelCommandGroup(
-			this.elevator.goToReefHeight(GamePieceType.ALGAE),
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightCenter(),
-				drivetrain.slowDrive
+		return new SequentialCommandGroup(
+			CenterLimelight.centerLimelightCenter(),
+			new ParallelCommandGroup(
+				new SequentialCommandGroup(
+					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+					this.bananaFlywheels.acceptAlgae()
+				),
+				drivetrain.slowMode()
 			)
 		);
 	}
 
-	public Command passCoral(){
+	public Command pullAlgaeOffReef() {
 		return new ParallelCommandGroup(
-			this.intake.runTrough(),
-			this.bananaFlywheels.outputForward()
-		).until(() -> !this.intake.holdingGamePeice());
+			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+			drivetrain.slowMode()
+		).until(() -> 
+			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
+			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
+		);
+	}
+
+	public Command passCoral(){
+		return new SequentialCommandGroup(
+			Commands.deadline(
+				new SequentialCommandGroup(
+					this.bananaFlywheels.outputForward().withTimeout(Units.Seconds.of(0.5)),
+					new InstantCommand(() -> {elevator.onEjectCoral();}),
+					new RunCommand(() -> {}).until(elevator::isInTargetPos)
+				),
+				this.intake.runTrough().until(intake::holdingGamePeice)
+			),
+			new ParallelCommandGroup(
+				this.intake.runTrough(),
+				this.bananaFlywheels.outputForward()
+			).until(() -> !this.intake.holdingGamePeice())
+		);
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

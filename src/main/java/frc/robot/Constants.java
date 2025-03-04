@@ -5,10 +5,18 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.configs.CANdiConfiguration;
+import com.ctre.phoenix6.configs.DigitalInputsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SlotConfigs;
+import com.ctre.phoenix6.hardware.CANdi;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.S1CloseStateValue;
+import com.ctre.phoenix6.signals.S1FloatStateValue;
+import com.ctre.phoenix6.signals.S2CloseStateValue;
+import com.ctre.phoenix6.signals.S2FloatStateValue;
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -21,6 +29,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 
@@ -296,20 +305,64 @@ public class Constants {
 			public static final int swerveBackRightAzimuth = 15;
 			public static final int swerveBackRightDrive = 16;
 
-			public static final int bananaPivot = 12;
-			public static final int elevatorMotorA = 1;
-			public static final int elevatorMotorB = 4;
-			public static final int pivotLimitSwitch = 8;
-			public static final int elevatorLimitSwitch = 9;
-
-			public static final int bananaWheels = 20;
 			public static final int intakeWheels = 99; //TODO: get right number
 			public static final int intakeBelt = 98;
 			public static final int intakePivot = 97;
 			public static final int troughWheels = 96;
-			public static final int CANdi = 10;
 
-			public static final int climber = 17;
+			public static final int elevatorLimitSwitch = troughWheels;
+			public static final int troughLimitSwitch = troughWheels;
+
+			public static final int elevatorMotorA = 95;
+			public static final int elevatorMotorB = 94;
+		}
+
+		public static final class RIO {
+			/// Name of the CAN bus
+			public static final String bus = "rio";
+			/// CAN ID of the Kraken x44 controlling the Banana pivot
+			public static final int bananaPivot = 99;  // TODO: assign
+			/// CAN ID of the Kraken x44 controlling the Banana flywheels
+			public static final int bananaWheels = 98;  // TODO: assign
+			/**
+			 * Inner class representing the CANdi for the Banana
+			 */
+			public static final class BANANA_CANDI {
+				/// Singleton instance of the CANdi for the Banana
+				private static CANdi sInstance = null;
+				/// CAN ID of the CANdi bridging the banana limit switch + beam break sensor to the CAN bus
+				private static final int canId = 97;  // TODO: assign
+				/// Digital Inputs Configs for the CANdi
+				private static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
+					// S1In --> Banana Pivot limit switch
+					.withS1CloseState(S1CloseStateValue.CloseWhenLow)  // Banana Pivot limit switch -- closed when low
+					.withS1FloatState(S1FloatStateValue.PullHigh)      // Banana Pivot limit switch -- high when open
+					// S2In --> Banana beam break Sensor
+					.withS2CloseState(S2CloseStateValue.CloseWhenLow)  // Banana Beam break Sensor -- closed when low (beam broken)
+					.withS2FloatState(S2FloatStateValue.PullHigh);     // Banana Beam break Sensor -- high when open (beam intact)
+
+				/**
+				 * Singleton creator for the CANdi
+				 * @return the singleton @c CANdi instance
+				 */
+				public static synchronized CANdi getInstance() {
+					if (sInstance != null) {
+						return sInstance;
+					}
+
+					// create the CANdi instance
+					sInstance = new CANdi(BANANA_CANDI.canId, bus);
+					// set up the configuration with the internal config we defined above
+					CANdiConfiguration candiConfig = new CANdiConfiguration().withDigitalInputs(BANANA_CANDI.dioConfigs);
+					sInstance.getConfigurator().apply(candiConfig);
+
+					// Set the update frequency for the status frames for the CANdi signals
+					BaseStatusSignal.setUpdateFrequencyForAll(
+						Units.Hertz.of(100),
+						sInstance.getS1State(), sInstance.getS2State());
+					return sInstance;
+				}
+			}
 		}
 	}
 
@@ -505,10 +558,38 @@ public class Constants {
 	public static class Banana {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 
+		public static enum FeederDemand {
+			REVERSE(-1),
+			HALT(0),
+			FORWARD(1);
+
+			private int demand;
+
+			FeederDemand(int demand) {
+				this.demand = demand;
+			}
+
+			public int getValue() {
+				return this.demand;
+			}
+
+			public static FeederDemand fromInt(int value) {
+				for (FeederDemand demand : FeederDemand.values()) {
+					if (demand.getValue() == value) {
+						return demand;
+					}
+				}
+				return FeederDemand.HALT;
+			}
+		}
+
 		public static final Slot0Configs flywheelGainsSlot0 = new Slot0Configs()
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
+		
+		/// Current thershold that indicates the Banana is holding a piece of Alage
+		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(10);  // TODO: update based off of logged current values for algae
 	}
 
 	public static class Climber {
