@@ -22,9 +22,9 @@ public final class Autonomous {
 	public static final Pose2d autoPosRight = new Pose2d(0.0,0.0,new Rotation2d());
 	public static final String[] AutoRoutines = {"[Comp] SimpleFromRight"};
 	public static final Map<String,Pose2d> autoMap = Map.of(
-		"initial", autoPosLeft, 
-		"2", autoPosCenter,
-		AutoRoutines[0], autoPosRight
+		"[Comp] Score2CoralFromLeft", autoPosLeft, 
+		"[Comp] Score1CoralFromCenter", autoPosCenter,
+		"[Comp] Score2CoralFromRight", autoPosRight
 	);
 	public static AutoChooser getChoreoAutoChooser() {
 		final AutoChooser choreoChooser = new AutoChooser();

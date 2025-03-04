@@ -36,8 +36,8 @@ import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
 	public LoggedDashboardChooser<String> driveModeChooser;
-	public DriverOI driverOI = new DriverOI(new CommandXboxController(0));
-	public OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
+	public DriverOI driverOI;
+	public OperatorOI operatorOI;
 
 	public Diagnostics diag;
 	public Drivetrain drivetrain;
@@ -70,6 +70,9 @@ public class RobotContainer {
 		this.elevator = new Elevator();
 		this.intake = new Intake();
 		this.bananaFlywheels = new BananaFlywheels();
+
+		this.driverOI = new DriverOI(new CommandXboxController(0));
+		this.operatorOI = new OperatorOI(new CommandXboxController(1));
 
 		autoChooser = Autonomous.getChoreoAutoChooser();
 		SmartDashboard.putData("Autonomous Routine", autoChooser);

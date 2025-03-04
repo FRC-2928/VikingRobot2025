@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.LimelightFX.Module.Rotation;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
@@ -90,9 +91,7 @@ public class Robot extends LoggedRobot {
 		String selected = SmartDashboard.getString("Autonomous Routine/selected", "none");
 		if(selected != "none" && RobotContainer.getInstance().drivetrain.getEstimatedPosition() != null){
 			Pose2d difference = RobotContainer.getInstance().drivetrain.est.getEstimatedPosition()
-			.relativeTo(
-				Autonomous.autoMap.get(
-					SmartDashboard.getString("Autonomous Routine/selected", "none")));
+			.relativeTo(Autonomous.autoMap.getOrDefault(selected, new Pose2d(-10, -10, Rotation2d.kZero)));
 			if(difference != null){
 				Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", Math.hypot(difference.getX(), difference.getY()));
 			}

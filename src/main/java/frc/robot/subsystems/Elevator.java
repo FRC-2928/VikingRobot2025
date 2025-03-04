@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import java.util.Map;
+import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -133,7 +134,6 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
-	private final OperatorOI opOi = RobotContainer.getInstance().operatorOI;
 	private boolean isClimbEngaged = false;
 
 	// Simulation objects
@@ -327,9 +327,16 @@ public class Elevator extends SubsystemBase {
 			controlPivot(Units.Degrees.of(0));
 		}
 	}
-	private void updateMotorsClimb(){
-		controlPositionVelocity(Units.MetersPerSecond.of(MathUtil.applyDeadband(opOi.climbMotion.get(),0.1)*Tuning.elevatorSpeed.get()));
+	private void updateMotorsClimb(final double velocity) {
+		controlPositionVelocity(Units.MetersPerSecond.of(velocity));
 	}
+
+	public Command moveElevatorDuringClimb(final DoubleSupplier input) {
+		return new RunCommand(() -> {
+			input.getAsDouble() * Tuning.elevatorSpeed.get()
+		}, this);
+	}
+
 	public void setElevatorMode(GamePieceType type){
 		currentGamePieceType = type;
 	}
@@ -405,7 +412,7 @@ public class Elevator extends SubsystemBase {
 	public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
 		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
 	}
-	
+
 	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
 		return new InstantCommand(() -> {
 			this.targetAlgaeLevel = targetAlgaeLevel.getValue();

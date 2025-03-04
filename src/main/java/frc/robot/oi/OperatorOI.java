@@ -35,7 +35,7 @@ public class OperatorOI extends BaseOI {
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.rightTrigger();
 		this.allignElevatorCoral = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
-		this.allignElevatorAlgieL2 = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.allignElevatorAlgieL2 = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral.negate());
 		this.allignElevatorAlgieL3 = new Trigger(() -> (this.controller.povLeft().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		// this.fixedShoot = this.controller.leftTrigger();
 		// this.overrideShoot = this.controller.rightTrigger();
