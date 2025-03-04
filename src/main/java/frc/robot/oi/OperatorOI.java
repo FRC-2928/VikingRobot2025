@@ -26,19 +26,17 @@ public class OperatorOI extends BaseOI {
 		
 		this.intakeIn = this.controller.a();
 		this.intakeOut = this.controller.b();
-		this.slowdTrigger = this.controller.x();
-		this.hault = this.controller.y();
+		this.slowedTrigger = this.controller.x();
+		this.halt = this.controller.y();
 		this.foc = this.controller.rightBumper();
 		this.resetAngle = this.controller.back();
 		this.toggleClimb = this.controller.leftBumper();
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.rightTrigger();
-		this.allignElevatorCoral = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
-		this.allignElevatorAlgieL2 = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral.negate());
-		this.allignElevatorAlgieL3 = new Trigger(() -> (this.controller.povLeft().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
-		// this.fixedShoot = this.controller.leftTrigger();
-		// this.overrideShoot = this.controller.rightTrigger();
+		this.alignElevatorCoral = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.povLeft().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 	}
 
 	public final Trigger climberDown;
@@ -50,35 +48,33 @@ public class OperatorOI extends BaseOI {
 	public final Trigger initializeClimber;
 	public final Trigger toggleClimb;
 	// public final Trigger raiseElevator;
-	// public final Trigger lowerElivator;
+	// public final Trigger lowerElevator;
 	public final Trigger intakeOut;
 	public final Trigger intakeIn;
 	public final Supplier<Double> climbMotion;
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
 	public final Trigger passOffCoral;
-	public final Trigger allignElevatorCoral;
-	public final Trigger allignElevatorAlgieL2;
-	public final Trigger allignElevatorAlgieL3;
-	// public final Trigger fixedShoot;
+	public final Trigger alignElevatorCoral;
+	public final Trigger alignElevatorAlgaeL2;
+	public final Trigger alignElevatorAlgaeL3;
+	public final Trigger halt;
+	public final Trigger slowedTrigger;
 
-	// public final Trigger overrideShoot;
-	public final Trigger hault;
-	public final Trigger slowdTrigger;
 	public void configureControls() {
-		this.slowdTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
-		this.hault.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
+		this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
+		this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
 		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
 		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
-		this.allignElevatorCoral.whileTrue(
+		this.alignElevatorCoral.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralOveride()
 		);
-		this.allignElevatorAlgieL2.whileTrue(
+		this.alignElevatorAlgaeL2.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
 		);
-		this.allignElevatorAlgieL3.whileTrue(
+		this.alignElevatorAlgaeL3.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
 		);
 	}
