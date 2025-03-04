@@ -34,19 +34,34 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
-	public final LoggedDashboardChooser<String> driveModeChooser;
-	public final DriverOI driverOI = new DriverOI(new CommandXboxController(0));
-	public final OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
+	public LoggedDashboardChooser<String> driveModeChooser;
+	public DriverOI driverOI = new DriverOI(new CommandXboxController(0));
+	public OperatorOI operatorOI = new OperatorOI(new CommandXboxController(1));
 
-	public final Diagnostics diag;
-	public final Drivetrain drivetrain;
-	public final Elevator elevator;
-	public final Intake intake;
-	public final BananaFlywheels bananaFlywheels;
+	public Diagnostics diag;
+	public Drivetrain drivetrain;
+	public Elevator elevator;
+	public Intake intake;
+	public BananaFlywheels bananaFlywheels;
 	
-	public final AutoChooser autoChooser;
+	public AutoChooser autoChooser;
+	private static RobotContainer sInstance = null;
 
-	public RobotContainer() {
+	public static synchronized RobotContainer getInstance() {
+		if (sInstance != null) {
+			return sInstance;
+		}
+
+		sInstance = new RobotContainer();
+		sInstance.init();
+		return sInstance;
+	}
+
+	private RobotContainer() {
+		// Empty
+	}
+
+	private void init() {
 		Tuning.algaePivotHome.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
