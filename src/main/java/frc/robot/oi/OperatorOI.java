@@ -77,13 +77,9 @@ public class OperatorOI extends BaseOI {
 		);
 		this.allignElevatorAlgieL2.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
-		).onFalse(
-			RobotContainer.getInstance().pullAlgaeOffReefOveride()
 		);
 		this.allignElevatorAlgieL3.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
-		).onFalse(
-			RobotContainer.getInstance().pullAlgaeOffReefOveride()
 		);
 	}
 }

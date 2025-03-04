@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
+import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -217,7 +218,7 @@ public class Drivetrain extends SubsystemBase {
 	public AlgaePosition getAlgaeHeight(){
 		double smallst = Double.MAX_VALUE;
       	int tagPose = 17;
-		for(int tag=1; tag<=22;tag++) {
+		for(int tag:CenterLimelight.reefTags) {
 			Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(RobotContainer.getInstance().drivetrain.getEstimatedPosition());
 			if(Math.hypot(distance.getX(), distance.getY()) < smallst){
 				tagPose = tag;

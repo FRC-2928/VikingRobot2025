@@ -43,7 +43,7 @@ public class CenterLimelight extends Command {
   private Pose3d tagPose;
   private List<Integer> tagsToCheck;
   private static final Distance offsetReef = Units.Inches.of(Tuning.offsetCenterReef.get());
-    private final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
+    public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
         this(offsetX, offsetY, Units.Radians.of(0), tagsToCheck);
       }

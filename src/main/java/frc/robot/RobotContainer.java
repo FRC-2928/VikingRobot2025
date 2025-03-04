@@ -130,8 +130,8 @@ public class RobotContainer {
 
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
+			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			CenterLimelight.centerLimelightCenter(),
-			RobotContainer.getInstance().elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
@@ -143,8 +143,7 @@ public class RobotContainer {
 	}
 	public Command telePositionForAlgaeOverideL2() {
 		return new SequentialCommandGroup(
-			RobotContainer.getInstance().elevator.setTargetAlgaeLevelCommand(AlgaePosition.L2),
-			RobotContainer.getInstance().elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
+			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L2),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
@@ -156,7 +155,7 @@ public class RobotContainer {
 	}
 	public Command telePositionForAlgaeOverideL3() {
 		return new SequentialCommandGroup(
-			RobotContainer.getInstance().elevator.setTargetAlgaeLevelCommand(AlgaePosition.L3),
+			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L3),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
@@ -171,15 +170,6 @@ public class RobotContainer {
 	public Command pullAlgaeOffReef() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-			drivetrain.slowMode()
-		).until(() -> 
-			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
-			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
-		);
-	}
-
-	public Command pullAlgaeOffReefOveride() {
-		return new ParallelCommandGroup(
 			drivetrain.slowMode()
 		).until(() -> 
 			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
