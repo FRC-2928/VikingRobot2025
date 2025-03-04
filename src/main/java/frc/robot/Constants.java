@@ -5,6 +5,7 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.configs.CANdiConfiguration;
 import com.ctre.phoenix6.configs.DigitalInputsConfigs;
@@ -28,6 +29,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 
@@ -322,31 +324,44 @@ public class Constants {
 			public static final int bananaPivot = 99;  // TODO: assign
 			/// CAN ID of the Kraken x44 controlling the Banana flywheels
 			public static final int bananaWheels = 98;  // TODO: assign
+			/**
+			 * Inner class representing the CANdi for the Banana
+			 */
 			public static final class BANANA_CANDI {
+				/// Singleton instance of the CANdi for the Banana
+				private static CANdi sInstance = null;
 				/// CAN ID of the CANdi bridging the banana limit switch + beam break sensor to the CAN bus
-				public static final int canId = 97;  // TODO: assign
-				public static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
+				private static final int canId = 97;  // TODO: assign
+				/// Digital Inputs Configs for the CANdi
+				private static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
 					// S1In --> Banana Pivot limit switch
 					.withS1CloseState(S1CloseStateValue.CloseWhenLow)  // Banana Pivot limit switch -- closed when low
 					.withS1FloatState(S1FloatStateValue.PullHigh)      // Banana Pivot limit switch -- high when open
 					// S2In --> Banana beam break Sensor
 					.withS2CloseState(S2CloseStateValue.CloseWhenLow)  // Banana Beam break Sensor -- closed when low (beam broken)
 					.withS2FloatState(S2FloatStateValue.PullHigh);     // Banana Beam break Sensor -- high when open (beam intact)
-			}
-			private static CANdi bananaCANdiInstance = null;
-			/**
-			 * Singleton creator for the CANdi
-			 * @return the singleton @c CANdi instance
-			 */
-			public static CANdi getCANdiInstance() {
-				if (bananaCANdiInstance != null) {
-					return bananaCANdiInstance;
-				}
 
-				bananaCANdiInstance = new CANdi(BANANA_CANDI.canId, bus);
-				CANdiConfiguration candiConfig = new CANdiConfiguration().withDigitalInputs(BANANA_CANDI.dioConfigs);
-				bananaCANdiInstance.getConfigurator().apply(candiConfig);
-				return bananaCANdiInstance;
+				/**
+				 * Singleton creator for the CANdi
+				 * @return the singleton @c CANdi instance
+				 */
+				public static synchronized CANdi getInstance() {
+					if (sInstance != null) {
+						return sInstance;
+					}
+
+					// create the CANdi instance
+					sInstance = new CANdi(BANANA_CANDI.canId, bus);
+					// set up the configuration with the internal config we defined above
+					CANdiConfiguration candiConfig = new CANdiConfiguration().withDigitalInputs(BANANA_CANDI.dioConfigs);
+					sInstance.getConfigurator().apply(candiConfig);
+
+					// Set the update frequency for the status frames for the CANdi signals
+					BaseStatusSignal.setUpdateFrequencyForAll(
+						Units.Hertz.of(100),
+						sInstance.getS1State(), sInstance.getS2State());
+					return sInstance;
+				}
 			}
 		}
 	}
@@ -572,6 +587,9 @@ public class Constants {
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
+		
+		/// Current thershold that indicates the Banana is holding a piece of Alage
+		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(10);  // TODO: update based off of logged current values for algae
 	}
 
 	public static class Climber {

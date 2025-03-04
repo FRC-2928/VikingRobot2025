@@ -190,13 +190,13 @@ public class Elevator extends SubsystemBase {
 		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
 
 		// Configure the reverse limit to read from CANdi S1
-		bananaConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteCANdiS1;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.RIO.BANANA_CANDI.canId;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
-		bananaConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
-		
+		bananaConfig.HardwareLimitSwitch
+			.withReverseLimitRemoteCANdiS1(Constants.CAN.RIO.BANANA_CANDI.getInstance())
+			.withReverseLimitEnable(true)
+			.withReverseLimitAutosetPositionEnable(true)
+			.withReverseLimitAutosetPositionValue(Units.Degrees.of(0))
+			.withReverseLimitType(ReverseLimitTypeValue.NormallyOpen);
+
 		bananaConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 		bananaConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 

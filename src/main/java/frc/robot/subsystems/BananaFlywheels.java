@@ -9,7 +9,9 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.S2StateValue;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -19,7 +21,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.Banana;
 import frc.robot.Constants.Banana.FeederDemand;
+import frc.robot.Constants.GamePieceType;
 
 /* 1.Make a method that stops elevator pivot from going lower a certain angle
  * 2. Run fly wheels forward and backward TalonFX
@@ -37,7 +41,8 @@ import frc.robot.Constants.Banana.FeederDemand;
 public class BananaFlywheels extends SubsystemBase {
 	@AutoLog
 	public static class BananaFlywheelsInputs {
-		public boolean holdingCoral = false;
+		public GamePieceType heldGamePieceType = GamePieceType.NONE;
+		public GamePieceType targetedGamePieceType = GamePieceType.NONE;
 		public Angle flywheelPosition = Units.Rotations.zero();
 		public AngularVelocity flywheelSpeed = Units.RotationsPerSecond.zero();
 		public Current flywheelStatorCurrent = Units.Amps.zero();
@@ -45,30 +50,30 @@ public class BananaFlywheels extends SubsystemBase {
 	}
 
 	private final BananaFlywheelsInputsAutoLogged inputs = new BananaFlywheelsInputsAutoLogged();
+	/// State tracking which @c GamePieceType is currently held by the Banana
+	private GamePieceType heldGamePieceType;
+	/// State tracking which @c GamePieceType is currently targeted by the Banana
+	private GamePieceType targetedGamePieceType;
+
 	private final TalonFX wheels;
 	private final StatusSignal<Angle> angle;
 	private final StatusSignal<AngularVelocity> velocity;
 	private final StatusSignal<Current> motorStatorCurrent;
 	private final StatusSignal<Current> motorSupplyCurrent;
-	// TODO: incorporate CANdi read of limit switch
-	private TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
+	private final StatusSignal<S2StateValue> beamBreakStateSignal;
 
 	/**
 	 * Default Constructor
 	 */
 	public BananaFlywheels() {
+		this.heldGamePieceType = GamePieceType.NONE;
+		this.targetedGamePieceType = GamePieceType.NONE;
+		this.beamBreakStateSignal = Constants.CAN.RIO.BANANA_CANDI.getInstance().getS2State();
 		this.wheels = new TalonFX(Constants.CAN.RIO.bananaWheels, Constants.CAN.RIO.bus);
-		this.angle = this.wheels.getRotorPosition();
-		this.velocity = this.wheels.getRotorVelocity();
-		this.motorStatorCurrent = this.wheels.getStatorCurrent();
-		this.motorSupplyCurrent = this.wheels.getSupplyCurrent();
+		TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
 
-		BaseStatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
-			this.angle,
-			this.velocity,
-			this.motorStatorCurrent,
-			this.motorSupplyCurrent);
-		this.wheels.optimizeBusUtilization();
+		flyWheelConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Gearing, clockwise moves elevator up
+		flyWheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 		// Peak output amps
 		flyWheelConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -89,13 +94,32 @@ public class BananaFlywheels extends SubsystemBase {
 		flyWheelConfig.Audio = Constants.talonFXAudio;
 
 		this.wheels.getConfigurator().apply(flyWheelConfig);
-		this.wheels.setNeutralMode(NeutralModeValue.Brake);
+
+		this.angle = this.wheels.getRotorPosition();
+		this.velocity = this.wheels.getRotorVelocity();
+		this.motorStatorCurrent = this.wheels.getStatorCurrent();
+		this.motorSupplyCurrent = this.wheels.getSupplyCurrent();
+
+		BaseStatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
+			/* CANdi excluded because the singleton controls the update frequency */
+			this.angle,
+			this.velocity,
+			this.motorStatorCurrent,
+			this.motorSupplyCurrent);
+
+		this.wheels.optimizeBusUtilization();
 	}
 
 	@Override
 	public void periodic() {
-		this.updateInputs(this.inputs);
-		Logger.processInputs("BananaFlywheels", this.inputs);
+		updateInputs(inputs);
+		Logger.processInputs("BananaFlywheels", inputs);
+		updateMotors();
+	}
+
+	// Control the motors based on the internal state machine
+	private void updateMotors() {
+		// TODO: implement
 	}
 	
 	public void runFlywheels(FeederDemand demand) {
@@ -110,17 +134,43 @@ public class BananaFlywheels extends SubsystemBase {
 	}
 
 	public boolean holdingCoral() {
-		return true;
+		return (heldGamePieceType == GamePieceType.CORAL);
+	}
+
+	public GamePieceType getHeldGamePieceType() {
+		return heldGamePieceType;
+	}
+
+	public void setTargetGamePiece(GamePieceType targetPieceType) {
+		this.targetedGamePieceType = targetPieceType;
 	}
 
 	private void updateInputs(final BananaFlywheelsInputs inputs) {
 		BaseStatusSignal.refreshAll(
-			this.angle, this.velocity, this.motorStatorCurrent, this.motorSupplyCurrent);
+			this.angle, this.velocity, this.motorStatorCurrent, this.motorSupplyCurrent, this.beamBreakStateSignal);
 
-		inputs.flywheelSpeed = this.velocity.getValue();
-		inputs.flywheelSupplyCurrent = this.motorStatorCurrent.getValue();
-		inputs.flywheelStatorCurrent = this.motorSupplyCurrent.getValue();
-		// inputs.holdingCoral = !this.sensors.isFwdLimitSwitchClosed();
+		inputs.flywheelSpeed = velocity.getValue();
+		inputs.flywheelSupplyCurrent = motorStatorCurrent.getValue();
+		inputs.flywheelStatorCurrent = motorSupplyCurrent.getValue();
+		inputs.targetedGamePieceType = this.targetedGamePieceType;
+
+		// The held piece type can be expressed as a bitset of the various indicator flags
+		boolean[] heldGamePieceTypeFlags = new boolean[2];  // create the array of boolean flags (bitflags)
+		// In a proper bitmask the order of these fields wouldn't matter; however since our bitset is implicitly
+		// tied to known values of the GamePieceType enum the order IS IMPORTANT
+		// In binary: 00 = NONE, 01 = CORAL, 10 = ALGAE, 11 = CAGE
+		heldGamePieceTypeFlags[0] = (beamBreakStateSignal.getValue() == S2StateValue.Low);  // Coral is bit 0
+		heldGamePieceTypeFlags[1] = motorStatorCurrent.getValue().gt(Banana.HOLDING_ALGAE_CURRENT_THRESHOLD); // Algae is bit 1
+		int heldGamePieceTypeBitset = 0;
+		for (int i = 0; i < heldGamePieceTypeFlags.length; i++) {
+			if (heldGamePieceTypeFlags[i]) {
+				heldGamePieceTypeBitset |= (1 << i);  // shift the bits into position
+			}
+		}
+
+		// extract the piece type enum from the integer (bitfield)
+		this.heldGamePieceType = GamePieceType.fromInt(heldGamePieceTypeBitset);
+		inputs.heldGamePieceType = this.heldGamePieceType;
 	}
 
 	/**
