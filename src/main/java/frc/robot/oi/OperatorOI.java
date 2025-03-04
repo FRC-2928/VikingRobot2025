@@ -1,22 +1,20 @@
 package frc.robot.oi;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.Elevator;
+import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.JoystickDrive;
 
 public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {
 		super(controller);
 
-		this.climberDown = this.controller.x();
-		this.climberUp = this.controller.y();
 		this.climbMotion = this.controller::getLeftY;
 
 		this.climberOverrideLower = this.controller.povDown();
@@ -31,6 +29,7 @@ public class OperatorOI extends BaseOI {
 		this.foc = this.controller.rightBumper();
 		this.resetAngle = this.controller.back();
 		this.toggleClimb = this.controller.leftBumper();
+		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.rightTrigger();
@@ -39,8 +38,7 @@ public class OperatorOI extends BaseOI {
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.povLeft().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 	}
 
-	public final Trigger climberDown;
-	public final Trigger climberUp;
+	public final Trigger climbModeOn;
 	public final Trigger foc;
 	public final Trigger climberOverrideLower;
 	public final Trigger climberOverrideRaise;
@@ -51,7 +49,7 @@ public class OperatorOI extends BaseOI {
 	// public final Trigger lowerElevator;
 	public final Trigger intakeOut;
 	public final Trigger intakeIn;
-	public final Supplier<Double> climbMotion;
+	public final DoubleSupplier climbMotion;
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
 	public final Trigger passOffCoral;
@@ -65,6 +63,7 @@ public class OperatorOI extends BaseOI {
 		this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
 		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
+		this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
 		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());

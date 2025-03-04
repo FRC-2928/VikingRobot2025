@@ -10,7 +10,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -32,7 +31,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -44,10 +42,7 @@ import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.Robot;
-import frc.robot.RobotContainer;
 import frc.robot.Tuning;
-import frc.robot.oi.OperatorOI;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -58,6 +53,9 @@ public class Elevator extends SubsystemBase {
 		public LinearVelocity speed = Units.MetersPerSecond.zero();
 		public Angle pivotAngle = Units.Degrees.zero();
 		public AngularVelocity pivotAngularVelocity = Units.RadiansPerSecond.zero();
+		public int targetCoralLevel = CoralPosition.L1.getValue();
+		public int targetAlgaeLevel = AlgaePosition.NONE.getValue();
+		public int targetCageLevel = CoralPosition.NONE.getValue();
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
@@ -134,7 +132,6 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
-	private boolean isClimbEngaged = false;
 
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
@@ -287,6 +284,10 @@ public class Elevator extends SubsystemBase {
 		pivotCommmandedAngle = rotation;
 	}
 
+	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
+		return this.currentGamePieceType == pieceType;
+	}
+
 	public boolean isInTargetPos() {
 		if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
 			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
@@ -296,7 +297,7 @@ public class Elevator extends SubsystemBase {
 		       Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 	}
 
-	private void updateMotorsGamePeice() {
+	private void updateMotorsGamePiece() {
 		// are we currently in the elevator danger zone?
 		// is the elevator target within the danger zone?
 		// is the banana in a dangerous orientation?
@@ -331,12 +332,6 @@ public class Elevator extends SubsystemBase {
 		controlPositionVelocity(Units.MetersPerSecond.of(velocity));
 	}
 
-	public Command moveElevatorDuringClimb(final DoubleSupplier input) {
-		return new RunCommand(() -> {
-			input.getAsDouble() * Tuning.elevatorSpeed.get()
-		}, this);
-	}
-
 	public void setElevatorMode(GamePieceType type){
 		currentGamePieceType = type;
 	}
@@ -359,50 +354,16 @@ public class Elevator extends SubsystemBase {
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
 		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 1*/;
+
+		inputs.targetCoralLevel = this.targetCoralLevel;
+		inputs.targetAlgaeLevel = this.targetAlgaeLevel;
+		inputs.targetCageLevel = this.targetCageLevel;
 	}
 
 	@Override
 	public void periodic() {
 		this.updateInputs(this.inputs);
-		if(currentGamePieceType == GamePieceType.CAGE && isInTargetPos()){
-			isClimbEngaged = true;
-		}
-		if(!isClimbEngaged){
-			this.updateMotorsClimb();	
-		}
-		else{
-			this.updateMotorsGamePeice();
-		}
 		Logger.processInputs("Elevator", this.inputs);
-	}
-	public Command toggleClimbMode(){
-		isClimbEngaged = false;
-		if(currentGamePieceType == GamePieceType.CAGE){
-			return new InstantCommand(
-			() -> {
-					setElevatorMode(GamePieceType.NONE);
-				}
-			);
-		} 
-		return new InstantCommand(() -> {
-			setElevatorMode(GamePieceType.CAGE);
-		});
-	}
-	@Override
-	public void simulationPeriodic() {
-		TalonFXSimState liftMotorASimState = liftMotorA.getSimState();
-		TalonFXSimState liftMotorBSimState = liftMotorB.getSimState();
-
-		elevatorSim.setInputVoltage(liftMotorASimState.getMotorVoltage());
-		elevatorSim.update(0.02);
-
-		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
-		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
-		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
-		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
-
-		Logger.recordOutput("Elevator/Sim/LiftVoltage", liftMotorASimState.getMotorVoltage());
-		// Logger.recordOutput("Elevator/Sim/Height", elevatorSim.getPositionMeters());
 	}
 
 	public void setDefaultCommand() {
@@ -411,12 +372,6 @@ public class Elevator extends SubsystemBase {
 
 	public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
 		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
-	}
-
-	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
-		return new InstantCommand(() -> {
-			this.targetAlgaeLevel = targetAlgaeLevel.getValue();
-		});
 	}
 
 	public void setTargetCoralLevel(CoralPosition targetCoralLevel) {
@@ -448,6 +403,33 @@ public class Elevator extends SubsystemBase {
 	private void onEjectGamePieceGeneric() {
 		// reset the home to whatever it was before...
 		this.currentGamePieceType = GamePieceType.NONE;
+	}
+
+	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
+		return new InstantCommand(() -> {
+			this.targetAlgaeLevel = targetAlgaeLevel.getValue();
+		});
+	}
+
+	public Command toggleClimbMode(){
+		if(currentGamePieceType == GamePieceType.CAGE){
+			return new InstantCommand(() -> {
+				setElevatorMode(GamePieceType.NONE);
+			});
+		}
+		return new InstantCommand(() -> {
+			setElevatorMode(GamePieceType.CAGE);
+			setTargetCageLevel(CagePosition.SHALLOW); // Hard code the climb to SHALLOW because our climb is shallow
+		});
+	}
+
+	public Command doClimb(DoubleSupplier climbMovement) {
+		return new SequentialCommandGroup(
+			goToReefHeight(GamePieceType.CAGE),
+			new RunCommand(() -> {
+				this.updateMotorsClimb(climbMovement.getAsDouble());
+			}, this)
+		);
 	}
 
 	/**
@@ -517,15 +499,48 @@ public class Elevator extends SubsystemBase {
 				// feed the setpoints to the actuators
 				moveToPosition(desiredElevatorSetpoint);
 				pivotBanana(desiredBananaSetpoint);
+				this.updateMotorsGamePiece();
 			},
 			// require "this" subsystem
 			this);
+	}
+
+	/**
+	 * Returns a command that moves the elevator based on input between -1.0 and 1.0.
+	 * 
+	 * @param input a value between -1 and 1 which describes how fast to move the elevator. It is a supplier since the value can change over time, such as a joystick input.
+	 * @return a command that uses the input supplier to control the elevator motion until interrupted.
+	 */
+	public Command moveElevatorDuringClimb(final DoubleSupplier input) {
+		return new RunCommand(() -> { 
+			this.updateMotorsClimb(input.getAsDouble() * Tuning.elevatorSpeed.get());
+		}, this).finallyDo(() -> {
+			this.updateMotorsClimb(0);
+		});
 	}
 
 	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
 			pivotBanana(currentGamePieceType.getPivot());
 			moveToPosition(currentGamePieceType.getHeight());
+			this.updateMotorsGamePiece();
 		}, this);
+	}
+
+	@Override
+	public void simulationPeriodic() {
+		TalonFXSimState liftMotorASimState = liftMotorA.getSimState();
+		TalonFXSimState liftMotorBSimState = liftMotorB.getSimState();
+
+		elevatorSim.setInputVoltage(liftMotorASimState.getMotorVoltage());
+		elevatorSim.update(0.02);
+
+		liftMotorASimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorASimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorBSimState.setRawRotorPosition(elevatorSim.getPositionMeters() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+		liftMotorBSimState.setRotorVelocity(elevatorSim.getVelocityMetersPerSecond() * Constants.Elevator.DISTANCE_CONVERSION_RATIO * Constants.Elevator.NUMBER_OF_STAGES);
+
+		Logger.recordOutput("Elevator/Sim/LiftVoltage", liftMotorASimState.getMotorVoltage());
+		// Logger.recordOutput("Elevator/Sim/Height", elevatorSim.getPositionMeters());
 	}
 }

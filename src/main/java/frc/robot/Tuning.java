@@ -2,8 +2,6 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
-import edu.wpi.first.epilogue.Logged;
-
 /*
  * This class instantiates LoggedNetworkNumbers for any tuning parameters we want to tune/change during runtime.
  * The values can be used in a class by calling number.get() in a subsystem periodic() or command execute()
@@ -71,6 +69,6 @@ public final class Tuning {
 	);
 	public static final LoggedNetworkNumber elevatorSpeed = new LoggedNetworkNumber(
 		"/Tuning/elevatorSpeed",
-		0.5
+		0.3
 	);
 }
