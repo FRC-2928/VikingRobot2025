@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.SwerveModule.Place;
 
 public class ModuleIOReal implements ModuleIO {
@@ -188,7 +189,7 @@ public class ModuleIOReal implements ModuleIO {
 	@Override
 	public void setDriveVoltage(final double volts) {
 		this.drive.setControl(new VoltageOut(volts).withEnableFOC(
-			Robot.cont.operatorOI.foc.getAsBoolean() || DriverStation.isAutonomous()));
+			RobotContainer.getInstance().operatorOI.foc.getAsBoolean() || DriverStation.isAutonomous()));
 	}
 
 	@Override

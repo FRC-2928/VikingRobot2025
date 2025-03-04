@@ -1,5 +1,6 @@
 package frc.robot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
@@ -209,6 +210,9 @@ public class Constants {
 			return AlgaePosition.NONE;
 		}
 	}
+
+	public static List<Integer> algaeL3 = List.of(18,20,22,7,9,11);
+	public static List<Integer> algaeL2 = List.of(17,19,21,8,6,10);
 
 	public static enum CagePosition {
 		NONE(0),       // Cage Position for None

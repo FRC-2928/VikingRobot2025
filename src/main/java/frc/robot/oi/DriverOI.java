@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Tuning;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.LockWheels;
@@ -43,7 +44,7 @@ public class DriverOI extends BaseOI {
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
 
-	private final Trigger holdingCoral;
+	public final Trigger holdingCoral;
 
 	private final Trigger passOffCoral;
 
@@ -59,7 +60,7 @@ public class DriverOI extends BaseOI {
 		this.driveAxial = this.controller::getLeftY;
 		this.driveLateral = this.controller::getLeftX;
 
-		this.holdingCoral = new Trigger(() -> (Robot.cont.intake.inputs.troughHasCoral || Robot.cont.bananaFlywheels.holdingCoral()));
+		this.holdingCoral = new Trigger(() -> (!RobotContainer.getInstance().intake.inputs.troughHasCoral && RobotContainer.getInstance().bananaFlywheels.holdingCoral()));
 
 		if(Constants.mode == Mode.REAL) {
 			this.driveFORX = this.controller::getRightX;
@@ -71,16 +72,16 @@ public class DriverOI extends BaseOI {
 		this.manualRotation = this.controller.rightStick();
 
 		this.closeToHP = new Trigger(() -> {return
-			Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpBlueLeft) < Tuning.alignRadiusHP.get()
-			|| Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpBlueRight) < Tuning.alignRadiusHP.get()
-			|| Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpRedLeft) < Tuning.alignRadiusHP.get()
-			|| Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpRedRight) < Tuning.alignRadiusHP.get();});
+			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpBlueLeft) < Tuning.alignRadiusHP.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpBlueRight) < Tuning.alignRadiusHP.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpRedLeft) < Tuning.alignRadiusHP.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.hpRedRight) < Tuning.alignRadiusHP.get();});
 		this.closeToProcessor = new Trigger(() -> {return
-			Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorBlue) < Tuning.alignRadiusProcessor.get()
-			|| Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorRed) < Tuning.alignRadiusProcessor.get();});
+			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorBlue) < Tuning.alignRadiusProcessor.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorRed) < Tuning.alignRadiusProcessor.get();});
 		this.closeToReef = new Trigger(() -> {return
-			Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
-			|| Robot.cont.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
+			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
 
 		this.alignReefLeft = this.controller.leftBumper()
 							.and(this.holdingCoral)
@@ -122,40 +123,40 @@ public class DriverOI extends BaseOI {
 	public void configureControls() {
 
 		this.lockWheels.whileTrue(new LockWheels());
-		this.resetFOD.onTrue(new InstantCommand(Robot.cont.drivetrain::resetAngle));
+		this.resetFOD.onTrue(new InstantCommand(RobotContainer.getInstance().drivetrain::resetAngle));
 		// TODO: update/change this with LL mode 3
-		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
+		this.resetAngle.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu)).whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
-			Robot.cont.telePositionForCoralLeft()
+			RobotContainer.getInstance().telePositionForCoralLeft()
 		);
 		this.alignReefRight.whileTrue(
-			Robot.cont.telePositionForCoralRight()
+			RobotContainer.getInstance().telePositionForCoralRight()
 		);
 		this.alignReefCenter.whileTrue(
-			Robot.cont.telePositionForAlgae()
+			RobotContainer.getInstance().telePositionForAlgae()
 		).onFalse(
-			Robot.cont.pullAlgaeOffReef()
+			RobotContainer.getInstance().pullAlgaeOffReef()
 		);
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightCenter(),
-				Robot.cont.drivetrain.slowMode()
+				RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignHP.whileTrue(
 			new SequentialCommandGroup(
 				CenterLimelight.centerLimelightClosestHP(),
-				Robot.cont.drivetrain.slowMode()
+				RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignProcessor.whileTrue(
 			Commands.sequence(
 				CenterLimelight.centerLimelightProcessor(),
-				new InstantCommand(Robot.cont.elevator::onEjectAlgae)));
-		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward())
-							.onFalse(new InstantCommand(() -> Robot.cont.elevator.onEjectCoral(), Robot.cont.elevator));
-		this.passOffCoral.whileTrue(Robot.cont.passCoral());
-		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightUp));
+				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
+		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
+							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
+		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
 	}
 }

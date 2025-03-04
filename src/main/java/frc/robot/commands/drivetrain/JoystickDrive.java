@@ -16,12 +16,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.oi.DriverOI;
 import frc.robot.subsystems.Drivetrain;
 
 public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
-	public final DriverOI oi = Robot.cont.driverOI;
+	public final DriverOI oi = RobotContainer.getInstance().driverOI;
 	public double forMagnitude = 0.5;
 	private double speedMultiplier;
 		
@@ -82,7 +83,7 @@ public class JoystickDrive extends Command {
 	private AngularVelocity theta() {
 		double theta = 0;
 
-		final String selectedDriveMode = Robot.cont.getDriveMode();
+		final String selectedDriveMode = RobotContainer.getInstance().getDriveMode();
 		if("Swerve Drive".equals(selectedDriveMode)) {
 			theta = -this.oi.driveFORX.get();
 			theta = MathUtil.applyDeadband(theta, 0.075); // Negate this b/c joystick X is inverted from robot rotation

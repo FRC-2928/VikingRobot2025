@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.oi.BaseOI;
 import frc.robot.subsystems.Intake;
 import org.littletonrobotics.junction.Logger;
@@ -23,11 +24,11 @@ public class IntakeGround extends Command {
 
 		this.correction = correction;
 
-		this.addRequirements(Robot.cont.intake);
-		if(correction) this.addRequirements(Robot.cont.drivetrain);
+		this.addRequirements(RobotContainer.getInstance().intake);
+		if(correction) this.addRequirements(RobotContainer.getInstance().drivetrain);
 	}
 
-	private final BaseOI.Haptics haptics = new BaseOI.Haptics(Robot.cont.driverOI.hid);
+	private final BaseOI.Haptics haptics = new BaseOI.Haptics(RobotContainer.getInstance().driverOI.hid);
 
 	public final boolean correction;
 
@@ -35,24 +36,24 @@ public class IntakeGround extends Command {
 	public void execute() {
 		// final boolean pivotReady = Math
 		// 	.abs(
-		// 		Robot.cont.intake.inputs.angle.in(Units.Degrees) - Constants.Intake.max.in(Units.Degrees)
+		// 		RobotContainer.getInstance().intake.inputs.angle.in(Units.Degrees) - Constants.Intake.max.in(Units.Degrees)
 		// 	) <= 1.5;
 
-		// Robot.cont.intake.rotate(Constants.Intake.max);
-		// Robot.cont.shooter.io.runFlywheels(-0.25);
-		// Robot.cont.shooter.io.runFeeder(Demand.Reverse);
-		// Robot.cont.shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.Halt);
+		// RobotContainer.getInstance().intake.rotate(Constants.Intake.max);
+		// RobotContainer.getInstance().shooter.io.runFlywheels(-0.25);
+		// RobotContainer.getInstance().shooter.io.runFeeder(Demand.Reverse);
+		// RobotContainer.getInstance().shooter.io.runIntake(pivotReady ? Demand.Forward : Demand.Halt);
 
 		// if(this.correction)
-		// 	Robot.cont.drivetrain
+		// 	RobotContainer.getInstance().drivetrain
 		// 		.control(
-		// 			Robot.cont.drivetrain.joystickSpeeds
+		// 			RobotContainer.getInstance().drivetrain.joystickSpeeds
 		// 				.plus(
-		// 					Robot.cont.drivetrain
+		// 					RobotContainer.getInstance().drivetrain
 		// 						.rod(
 		// 							new ChassisSpeeds(
 		// 								this.calculateSpeedX(),
-		// 								Robot.cont.drivetrain.limelightNote
+		// 								RobotContainer.getInstance().drivetrain.limelightNote
 		// 									.getTargetHorizontalOffset()
 		// 									.in(Units.Rotations)
 		// 									* 10,
@@ -66,29 +67,29 @@ public class IntakeGround extends Command {
 		
 	}
 	public double calculateSpeedX() {
-		// Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
+		// Logger.recordOutput("Drivetrain/auto/SpeedXIntakeGroun",(-10/(Math.abs(RobotContainer.getInstance().drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1)));
 		// return( 
-		// 		(-10/(Math.abs(Robot.cont.drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
+		// 		(-10/(Math.abs(RobotContainer.getInstance().drivetrain.limelightNote.getTargetHorizontalOffset().in(Units.Degrees))+1))
 		// );
 		return 0d;
 	}
 	
 	@Override
 	public void end(final boolean interrupted) {
-		// Robot.cont.shooter.io
+		// RobotContainer.getInstance().shooter.io
 		// 	.rotate(
-		// 		Robot.cont.shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
+		// 		RobotContainer.getInstance().shooter.inputs.holdingNote ? Constants.Shooter.readyDrive : Constants.Shooter.readyIntake
 		// 	);
-		// Robot.cont.shooter.io.runFlywheels(0);
-		// Robot.cont.shooter.io.runFeeder(Demand.Halt);
-		// Robot.cont.shooter.io.runIntake(Demand.Halt);
+		// RobotContainer.getInstance().shooter.io.runFlywheels(0);
+		// RobotContainer.getInstance().shooter.io.runFeeder(Demand.Halt);
+		// RobotContainer.getInstance().shooter.io.runIntake(Demand.Halt);
 
-		// Robot.cont.drivetrain.control(new ChassisSpeeds());
+		// RobotContainer.getInstance().drivetrain.control(new ChassisSpeeds());
 
 		// this.haptics.stop();
 	}
 
 	@Override
-	public boolean isFinished() { return false;/*return Robot.cont.shooter.inputs.holdingNote;*/ }	
+	public boolean isFinished() { return false;/*return RobotContainer.getInstance().shooter.inputs.holdingNote;*/ }	
 }
 

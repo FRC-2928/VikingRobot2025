@@ -88,8 +88,8 @@ public class Robot extends LoggedRobot {
 		//get pose from map (and default)
 		//find differene from est and map pose
 		String selected = SmartDashboard.getString("Autonomous Routine/selected", "none");
-		if(selected != "none" && Robot.cont.drivetrain.getEstimatedPosition() != null){
-			Pose2d difference = Robot.cont.drivetrain.est.getEstimatedPosition()
+		if(selected != "none" && RobotContainer.getInstance().drivetrain.getEstimatedPosition() != null){
+			Pose2d difference = RobotContainer.getInstance().drivetrain.est.getEstimatedPosition()
 			.relativeTo(
 				Autonomous.autoMap.get(
 					SmartDashboard.getString("Autonomous Routine/selected", "none")));
@@ -149,7 +149,7 @@ public class Robot extends LoggedRobot {
 	public void testExit() {}
 
 	public void initializeSmartDashboard(){
-		final SwerveModuleState[] states = Robot.cont.drivetrain.currentModuleStates();
+		final SwerveModuleState[] states = RobotContainer.getInstance().drivetrain.currentModuleStates();
 		SmartDashboard.putData("Swerve Drive", new Sendable() {
 		@Override
 			public void initSendable(SendableBuilder builder) {
@@ -167,7 +167,7 @@ public class Robot extends LoggedRobot {
 				builder.addDoubleProperty("Back Right Angle", () -> states[3].angle.getRadians(), null);
 				builder.addDoubleProperty("Back Right Velocity", () -> states[0].speedMetersPerSecond, null);
 
-				builder.addDoubleProperty("Robot Angle", () -> Robot.cont.drivetrain.est.getEstimatedPosition().getRotation().getRadians(), null);
+				builder.addDoubleProperty("Robot Angle", () -> RobotContainer.getInstance().drivetrain.est.getEstimatedPosition().getRotation().getRadians(), null);
 			}
 		});
 		if(isInArray(Autonomous.AutoRoutines, Autonomous.getChoreoAutoChooser().selectedCommand().getName())){
@@ -180,7 +180,7 @@ public class Robot extends LoggedRobot {
 			autoStart.setRobotPose(new Pose2d(0.0,0.0,new Rotation2d(0)));
 			SmartDashboard.putData("Auto Start",autoStart);
 		}
-		SmartDashboard.putData("Field", Robot.cont.drivetrain.field);
+		SmartDashboard.putData("Field", RobotContainer.getInstance().drivetrain.field);
 	}
 	private boolean isInArray(String[] array,String check){
 		for(int i=0; i<array.length;i++){

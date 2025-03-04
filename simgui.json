@@ -6,6 +6,7 @@
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Choices": "String Chooser",
+      "/SmartDashboard/Auto Start": "Field2d",
       "/SmartDashboard/Autonomous Routine": "String Chooser",
       "/SmartDashboard/Choreo Alerts": "Alerts",
       "/SmartDashboard/Diagnostics/C-Stop": "Command",

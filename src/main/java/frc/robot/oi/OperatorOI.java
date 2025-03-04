@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+import frc.robot.Constants.Elevator;
 import frc.robot.commands.drivetrain.JoystickDrive;
 
 public class OperatorOI extends BaseOI {
@@ -32,6 +34,9 @@ public class OperatorOI extends BaseOI {
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.rightTrigger();
+		this.allignElevatorCoral = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.allignElevatorAlgieL2 = new Trigger(() -> (this.controller.povRight().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.allignElevatorAlgieL3 = new Trigger(() -> (this.controller.povLeft().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		// this.fixedShoot = this.controller.leftTrigger();
 		// this.overrideShoot = this.controller.rightTrigger();
 	}
@@ -52,18 +57,34 @@ public class OperatorOI extends BaseOI {
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
 	public final Trigger passOffCoral;
+	public final Trigger allignElevatorCoral;
+	public final Trigger allignElevatorAlgieL2;
+	public final Trigger allignElevatorAlgieL3;
 	// public final Trigger fixedShoot;
 
 	// public final Trigger overrideShoot;
 	public final Trigger hault;
 	public final Trigger slowdTrigger;
 	public void configureControls() {
-		this.slowdTrigger.whileTrue(new JoystickDrive(Robot.cont.drivetrain, 0.3));
-		this.hault.whileTrue(new RunCommand(() -> Robot.cont.drivetrain.halt()));
-		toggleClimb.onTrue(Robot.cont.elevator.toggleClimbMode());
-		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightUp));
-		this.passOffCoral.whileTrue(Robot.cont.passCoral());
+		this.slowdTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
+		this.hault.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
+		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
+		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
+		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		this.allignElevatorCoral.whileTrue(
+			RobotContainer.getInstance().telePositionForCoralOveride()
+		);
+		this.allignElevatorAlgieL2.whileTrue(
+			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
+		).onFalse(
+			RobotContainer.getInstance().pullAlgaeOffReefOveride()
+		);
+		this.allignElevatorAlgieL3.whileTrue(
+			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
+		).onFalse(
+			RobotContainer.getInstance().pullAlgaeOffReefOveride()
+		);
 	}
 }
 //change elevator height

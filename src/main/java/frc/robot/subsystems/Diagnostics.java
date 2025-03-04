@@ -19,15 +19,16 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.utils.Alert;
 
 public class Diagnostics extends SubsystemBase {
 	public final class Release extends Command {
-		public Release() { this.addRequirements(Robot.cont.drivetrain); }
+		public Release() { this.addRequirements(RobotContainer.getInstance().drivetrain); }
 
 		@Override
 		public void initialize() {
-			for(final SwerveModule module : Robot.cont.drivetrain.modules) {
+			for(final SwerveModule module : RobotContainer.getInstance().drivetrain.modules) {
 				final ModuleIOReal io = (ModuleIOReal) module.io;
 				io.azimuth.setNeutralMode(NeutralModeValue.Coast);
 				io.drive.setNeutralMode(NeutralModeValue.Coast);
@@ -39,7 +40,7 @@ public class Diagnostics extends SubsystemBase {
 
 		@Override
 		public void end(final boolean interrupted) {
-			for(final SwerveModule module : Robot.cont.drivetrain.modules) {
+			for(final SwerveModule module : RobotContainer.getInstance().drivetrain.modules) {
 				final ModuleIOReal io = (ModuleIOReal) module.io;
 				io.azimuth.setNeutralMode(NeutralModeValue.Brake);
 				io.drive.setNeutralMode(NeutralModeValue.Brake);
@@ -63,7 +64,7 @@ public class Diagnostics extends SubsystemBase {
 		public int ms;
 		public long start = 0;
 
-		// public void play() { Robot.cont.fxm.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
+		// public void play() { RobotContainer.getInstance().fxm.fx.sound(LimelightFX.WaveForm.Square, this.freq, this.ms, 0, 1); }
 	}
 
 	private static final byte suffixRadio = 1;
@@ -158,7 +159,7 @@ public class Diagnostics extends SubsystemBase {
 
 			String name;
 			try {
-				name = (String) this.loggedDashboardChooserSelectedValue.get(Robot.cont.autoChooser);
+				name = (String) this.loggedDashboardChooserSelectedValue.get(RobotContainer.getInstance().autoChooser);
 				if(name == null) name = "<none>";
 				invalidAutoRoutine = !name.contains("[comp]");
 			} catch(final Exception e) {

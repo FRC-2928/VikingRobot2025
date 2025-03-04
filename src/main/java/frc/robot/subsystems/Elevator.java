@@ -43,6 +43,7 @@ import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Tuning;
 import frc.robot.oi.OperatorOI;
 
@@ -128,7 +129,7 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
-	private final OperatorOI opOi = Robot.cont.operatorOI;
+	private final OperatorOI opOi = RobotContainer.getInstance().operatorOI;
 	private boolean isClimbEngaged = false;
 
 	// Simulation objects
@@ -392,6 +393,12 @@ public class Elevator extends SubsystemBase {
 
 	public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
 		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
+	}
+	
+	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
+		return new InstantCommand(() -> {
+			this.targetAlgaeLevel = targetAlgaeLevel.getValue();
+		});
 	}
 
 	public void setTargetCoralLevel(CoralPosition targetCoralLevel) {

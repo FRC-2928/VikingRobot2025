@@ -11,6 +11,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -23,6 +24,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.AlgaePosition;
+import frc.robot.RobotContainer;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -210,6 +213,22 @@ public class Drivetrain extends SubsystemBase {
 
 	public Pose2d getEstimatedPosition(){
 		return this.est.getEstimatedPosition();
+	}
+	public AlgaePosition getAlgaeHeight(){
+		double smallst = Double.MAX_VALUE;
+      	int tagPose = 17;
+		for(int tag=1; tag<=22;tag++) {
+			Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(RobotContainer.getInstance().drivetrain.getEstimatedPosition());
+			if(Math.hypot(distance.getX(), distance.getY()) < smallst){
+				tagPose = tag;
+				smallst = Math.hypot(distance.getX(), distance.getY());
+			}
+		}
+		if(Constants.algaeL2.contains(tagPose)){
+			return AlgaePosition.L2;
+		}
+		return AlgaePosition.L3;
+
 	}
 
 	@Override

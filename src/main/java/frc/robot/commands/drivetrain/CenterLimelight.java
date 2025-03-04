@@ -20,6 +20,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Tuning;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
@@ -48,7 +49,7 @@ public class CenterLimelight extends Command {
       }
   
       public CenterLimelight(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {
-        this.addRequirements(Robot.cont.drivetrain);
+        this.addRequirements(RobotContainer.getInstance().drivetrain);
         this.offsetX = offsetX.plus(Constants.Drivetrain.halfRobotWidthBumpersOn);
         this.offsetY = offsetY;
         this.offsetTheta = offsetTheta.plus(Units.Radians.of(Math.PI));
@@ -65,7 +66,7 @@ public class CenterLimelight extends Command {
       double smallst = Double.MAX_VALUE;
       tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get();
       for(int tag : tagsToCheck) {
-        Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(Robot.cont.drivetrain.getEstimatedPosition());
+        Pose2d distance = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d().relativeTo(RobotContainer.getInstance().drivetrain.getEstimatedPosition());
         if(Math.hypot(distance.getX(), distance.getY()) < smallst){
             tagPose = Constants.FIELD_LAYOUT.getTagPose(tag).get();
             smallst = Math.hypot(distance.getX(), distance.getY());
@@ -76,7 +77,7 @@ public class CenterLimelight extends Command {
   
     @Override
     public void execute() {
-      Pose2d robotPose = Robot.cont.drivetrain.getEstimatedPosition();
+      Pose2d robotPose = RobotContainer.getInstance().drivetrain.getEstimatedPosition();
       robotPoseTagspace = robotPose.relativeTo(tagPose.toPose2d());
       tagPoseRobotspace = tagPose.toPose2d().relativeTo(robotPose);
       // xSpeed = tagPoseRobotspace.getX();
@@ -93,7 +94,7 @@ public class CenterLimelight extends Command {
       double xSpeedRotated = xSpeedPid * Math.cos(offsetTheta.in(Units.Radians)) - ySpeedPid * Math.sin(offsetTheta.in(Units.Radians));
       double ySpeedRotated = xSpeedPid * Math.sin(offsetTheta.in(Units.Radians)) + ySpeedPid * Math.cos(offsetTheta.in(Units.Radians));
       thetaPid  = centerRotaionPid.calculate(thetaSpeed,offsetTheta.in(Units.Radians));
-      Robot.cont.drivetrain
+      RobotContainer.getInstance().drivetrain
           .control(
                 new ChassisSpeeds(
                   xSpeedRotated,
@@ -106,13 +107,13 @@ public class CenterLimelight extends Command {
       Logger.recordOutput("Drivetrain/Auto/Center Is Finished", false);
       Logger.recordOutput("Drivetrain/Auto/XSpeedPid", xSpeedPid);
       Logger.recordOutput("Drivetrain/Auto/YSpeedPid", ySpeedPid);
-      Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", Robot.cont.drivetrain.limelight.hasValidTargets());
-      Logger.recordOutput("Drivetrain/Auto/Theta", Robot.cont.drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
+      Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", RobotContainer.getInstance().drivetrain.limelight.hasValidTargets());
+      Logger.recordOutput("Drivetrain/Auto/Theta", RobotContainer.getInstance().drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
       Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
       Logger.recordOutput("Drivetrain/Auto/tagPoseRobotSpace", tagPoseRobotspace);
       Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
       Logger.recordOutput("Drivetrain/Auto/thetaPid", thetaPid);
-      Logger.recordOutput("Drivetrain/Auto/estRotation", Robot.cont.drivetrain.getEstimatedPosition().getRotation());
+      Logger.recordOutput("Drivetrain/Auto/estRotation", RobotContainer.getInstance().drivetrain.getEstimatedPosition().getRotation());
       Logger.recordOutput("Drivetrain/Auto/offsetX", offsetX);
       Logger.recordOutput("Drivetrain/Auto/offsetTheta", offsetTheta.in(Units.Radians));
     }
@@ -120,7 +121,7 @@ public class CenterLimelight extends Command {
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
-        Robot.cont.drivetrain.halt();
+        RobotContainer.getInstance().drivetrain.halt();
         Logger.recordOutput("Drivetrain/Auto/Center Is Finished", true);
     }
   
