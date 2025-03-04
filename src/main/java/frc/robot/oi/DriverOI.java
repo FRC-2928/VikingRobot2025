@@ -1,8 +1,6 @@
 package frc.robot.oi;
 
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.MathUtil;
+import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -11,18 +9,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.Tuning;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.LockWheels;
 
 public class DriverOI extends BaseOI {
-	public final Supplier<Double> driveAxial;
-	public final Supplier<Double> driveLateral;
+	public final DoubleSupplier driveAxial;
+	public final DoubleSupplier driveLateral;
 
-	public final Supplier<Double> driveFORX;
-	public final Supplier<Double> driveFORY;
+	public final DoubleSupplier driveFORX;
+	public final DoubleSupplier driveFORY;
 	public final Trigger manualRotation;
 
 	private final Trigger alignReefLeft;
@@ -51,8 +48,6 @@ public class DriverOI extends BaseOI {
 	public final Trigger closeToHP;
 	public final Trigger closeToProcessor;
 	public final Trigger closeToReef;
-
-	public int targetScoringLevel;
 
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
@@ -116,7 +111,6 @@ public class DriverOI extends BaseOI {
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 
-		this.targetScoringLevel = 1;
 		this.passOffCoral = this.controller.a();
 	}
 

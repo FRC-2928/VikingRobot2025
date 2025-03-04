@@ -2,14 +2,6 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.ctre.phoenix6.configs.CANdiConfiguration;
-import com.ctre.phoenix6.configs.DigitalInputsConfigs;
-import com.ctre.phoenix6.hardware.CANdi;
-import com.ctre.phoenix6.signals.S1CloseStateValue;
-import com.ctre.phoenix6.signals.S1FloatStateValue;
-import com.ctre.phoenix6.signals.S2CloseStateValue;
-import com.ctre.phoenix6.signals.S2FloatStateValue;
-
 import choreo.auto.AutoChooser;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -63,6 +55,8 @@ public class RobotContainer {
 	}
 
 	private void init() {
+		this.driverOI = new DriverOI(new CommandXboxController(0));
+		this.operatorOI = new OperatorOI(new CommandXboxController(1));
 		Tuning.algaePivotHome.get();
 		this.diag = new Diagnostics();
 		Tuning.intakeSpeed.get(); // load the class to put the tuning controls on the dashboard
@@ -70,9 +64,6 @@ public class RobotContainer {
 		this.elevator = new Elevator();
 		this.intake = new Intake();
 		this.bananaFlywheels = new BananaFlywheels();
-
-		this.driverOI = new DriverOI(new CommandXboxController(0));
-		this.operatorOI = new OperatorOI(new CommandXboxController(1));
 
 		autoChooser = Autonomous.getChoreoAutoChooser();
 		SmartDashboard.putData("Autonomous Routine", autoChooser);

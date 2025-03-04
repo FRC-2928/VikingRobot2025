@@ -41,8 +41,8 @@ public class moveAlongReef extends Command {
 
   private Translation2d translation() {
 		// get inputs, apply deadbands
-		double axial = this.oi.driveAxial.get()/slowedAmount;
-		double lateral = this.oi.driveLateral.get()/slowedAmount;
+		double axial = this.oi.driveAxial.getAsDouble()/slowedAmount;
+		double lateral = this.oi.driveLateral.getAsDouble()/slowedAmount;
 		axial = -MathUtil.applyDeadband(axial, 0.25); // Negate b/c joystick Y is inverted from field X
 		lateral = -MathUtil.applyDeadband(lateral, 0.25); // Negate b/c joystick X is inverted from field Y
 		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", axial);
