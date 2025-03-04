@@ -23,8 +23,6 @@ public class JoystickDrive extends Command {
 	public final Drivetrain drivetrain;
 	public final DriverOI oi = Robot.cont.driverOI;
 	public double forMagnitude = 0.5;
-	private static boolean slowd = false;
-	private double slowedAmount = 2.0;
 	private double speedMultiplier;
 		
 		private final ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
@@ -44,10 +42,6 @@ public class JoystickDrive extends Command {
 			chooser.setDefaultOption("Swerve Drive", "Swerve Drive");
 			return chooser;
 		}
-	
-		public static void setSlowMode(boolean mode){
-			slowd = mode;
-	}
 
 	@Override
 	public void execute() {
@@ -66,8 +60,8 @@ public class JoystickDrive extends Command {
 	// Returns the translation (X and Y) component from the joystick
 	private Translation2d translation() {
 		// get inputs, apply deadbands
-		double axial = slowd? this.oi.driveAxial.get()/slowedAmount : this.oi.driveAxial.get();
-		double lateral = slowd? this.oi.driveLateral.get()/slowedAmount : this.oi.driveLateral.get();
+		double axial = this.oi.driveAxial.get();
+		double lateral = this.oi.driveLateral.get();
 		axial = -MathUtil.applyDeadband(axial, 0.25); // Negate b/c joystick Y is inverted from field X
 		lateral = -MathUtil.applyDeadband(lateral, 0.25); // Negate b/c joystick X is inverted from field Y
 		Logger.recordOutput("Drivetrain/JoystickDrive/Axial", axial);
@@ -90,7 +84,7 @@ public class JoystickDrive extends Command {
 
 		final String selectedDriveMode = Robot.cont.getDriveMode();
 		if("Swerve Drive".equals(selectedDriveMode)) {
-			theta = slowd? -this.oi.driveFORX.get()/slowedAmount : -this.oi.driveFORX.get();
+			theta = -this.oi.driveFORX.get();
 			theta = MathUtil.applyDeadband(theta, 0.075); // Negate this b/c joystick X is inverted from robot rotation
 		} else {
 			// Joystick Right Axis
@@ -115,7 +109,6 @@ public class JoystickDrive extends Command {
 					this.absoluteController.calculate(measurement, setpoint),
 					0.075
 				);
-				theta = theta / (slowd? slowedAmount : 1);
 			}
 
 			this.forMagnitude = this.forMagnitude * 0.5 + 0.5;

@@ -155,13 +155,7 @@ public class DriverOI extends BaseOI {
 		this.outputGamePiece.whileTrue(Robot.cont.bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> Robot.cont.elevator.onEjectCoral(), Robot.cont.elevator));
 		this.passOffCoral.whileTrue(Robot.cont.passCoral());
-		this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {
-			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel-1, 1, 4);
-		}));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(() -> {
-			this.targetScoringLevel = MathUtil.clamp(this.targetScoringLevel+1, 1, 4);
-		}));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightDown));
+		this.toggleReefHeightUp.onTrue(new InstantCommand(Robot.cont.elevator::toggleReefHeightUp));
 	}
 }

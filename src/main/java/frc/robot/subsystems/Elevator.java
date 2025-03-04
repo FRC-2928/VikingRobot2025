@@ -9,9 +9,11 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -28,15 +30,21 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.Robot;
+import frc.robot.Tuning;
+import frc.robot.oi.OperatorOI;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -120,6 +128,8 @@ public class Elevator extends SubsystemBase {
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
+	private final OperatorOI opOi = Robot.cont.operatorOI;
+	private boolean isClimbEngaged = false;
 
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
@@ -258,6 +268,10 @@ public class Elevator extends SubsystemBase {
 		elevatorCommandedPosition = position;
 	}
 
+	public void controlPositionVelocity(final LinearVelocity voltage){
+		liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
+	}
+
 	private void controlPivot(final Angle rotation) {
 		pivot.setControl(new PositionVoltage(rotation));
 		pivotCommmandedAngle = rotation;
@@ -272,7 +286,7 @@ public class Elevator extends SubsystemBase {
 		       Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 	}
 
-	private void updateMotors() {
+	private void updateMotorsGamePeice() {
 		// are we currently in the elevator danger zone?
 		// is the elevator target within the danger zone?
 		// is the banana in a dangerous orientation?
@@ -303,7 +317,12 @@ public class Elevator extends SubsystemBase {
 			controlPivot(Units.Degrees.of(0));
 		}
 	}
-
+	private void updateMotorsClimb(){
+		controlPositionVelocity(Units.MetersPerSecond.of(MathUtil.applyDeadband(opOi.climbMotion.get(),0.1)*Tuning.elevatorSpeed.get()));
+	}
+	public void setElevatorMode(GamePieceType type){
+		currentGamePieceType = type;
+	}
 	private void updateInputs(final ElevatorInputs inputs) {
 		BaseStatusSignal
 			.refreshAll(
@@ -326,10 +345,30 @@ public class Elevator extends SubsystemBase {
 	@Override
 	public void periodic() {
 		this.updateInputs(this.inputs);
-		this.updateMotors();
+		if(currentGamePieceType == GamePieceType.CAGE && isInTargetPos()){
+			isClimbEngaged = true;
+		}
+		if(!isClimbEngaged){
+			this.updateMotorsClimb();	
+		}
+		else{
+			this.updateMotorsGamePeice();
+		}
 		Logger.processInputs("Elevator", this.inputs);
 	}
-
+	public Command toggleClimbMode(){
+		isClimbEngaged = false;
+		if(currentGamePieceType == GamePieceType.CAGE){
+			return new InstantCommand(
+			() -> {
+					setElevatorMode(GamePieceType.NONE);
+				}
+			);
+		} 
+		return new InstantCommand(() -> {
+			setElevatorMode(GamePieceType.CAGE);
+		});
+	}
 	@Override
 	public void simulationPeriodic() {
 		TalonFXSimState liftMotorASimState = liftMotorA.getSimState();
