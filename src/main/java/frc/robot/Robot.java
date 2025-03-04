@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
-	public static RobotContainer cont;
+	public static final RobotContainer cont = RobotContainer.getInstance();
 	public RobotContainer container;
 
 
@@ -51,7 +51,6 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		Robot.instance = this;
-		Robot.cont = new RobotContainer();
 
 		DriverStation.silenceJoystickConnectionWarning(true);
 	}

@@ -92,6 +92,29 @@ public class Constants {
 		}
 	}
 
+	public static enum HumanPlayerPosition {
+		A1(1, List.of(13, 2)),
+		A2(-1, List.of(13,2)),
+		B1(-1, List.of(12, 1)),
+		B2(1, List.of(12, 1));
+
+		private int direction;
+		private List<Integer> tags;
+
+		private HumanPlayerPosition(int direction, List<Integer> tags) {
+			this.direction = direction;
+			this.tags = tags;
+		}
+
+		public int getDirection() {
+			return direction;
+		}
+
+		public List<Integer> getTagID() {
+			return tags;
+		}
+	}
+
 	public static enum GamePieceType {
 		NONE(0,  Tuning.noneHeightHome,  Tuning.nonePivotHome),   // Game Piece Type for None
 		ALGAE(1, Tuning.coralHeightHome, Tuning.coralPivotHome),  // Game Piece Type for Algae

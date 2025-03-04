@@ -1,5 +1,5 @@
 {
- "name":"CToB1Reverse",
+ "name":"CToB2Reverse",
  "version":1,
  "snapshot":{
   "waypoints":[
@@ -15,7 +15,7 @@
  "params":{
   "waypoints":[
     {"x":{"exp":"3.6494150161743164 m", "val":3.649415016174317}, "y":{"exp":"2.8728232383728027 m", "val":2.8728232383728027}, "heading":{"exp":"C.heading", "val":1.0471975511965976}, "intervals":19, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
-    {"x":{"exp":"B1Reverse.x", "val":0.7907352805137634}, "y":{"exp":"B1Reverse.y", "val":1.3067718744277954}, "heading":{"exp":"B1Reverse.heading", "val":0.942477796076938}, "intervals":40, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
+    {"x":{"exp":"B2Reverse.x", "val":0.7907352805137634}, "y":{"exp":"B2Reverse.y", "val":1.3067718744277954}, "heading":{"exp":"B2Reverse.heading", "val":0.942477796076938}, "intervals":40, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
   "constraints":[
     {"from":"first", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
     {"from":"last", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
