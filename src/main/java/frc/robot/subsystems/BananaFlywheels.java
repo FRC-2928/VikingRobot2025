@@ -68,6 +68,7 @@ public class BananaFlywheels extends SubsystemBase {
 	public BananaFlywheels() {
 		this.heldGamePieceType = GamePieceType.NONE;
 		this.targetedGamePieceType = GamePieceType.NONE;
+		// S2 on the CANdi is tied to the beam-break sensor
 		this.beamBreakStateSignal = Constants.CAN.RIO.BANANA_CANDI.getInstance().getS2State();
 		this.wheels = new TalonFX(Constants.CAN.RIO.bananaWheels, Constants.CAN.RIO.bus);
 		TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
