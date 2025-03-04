@@ -1,13 +1,14 @@
 package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.AutoLog;
+
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,18 +43,20 @@ public class BananaFlywheels extends SubsystemBase {
 	public static class BananaFlywheelsInputs {
 		public boolean holdingCoral;
 		public AngularVelocity flywheelSpeed;
-	}
 
+	}
 
 	private final TalonFX wheels;
 	private final StatusSignal<Angle> angle;
 	private final StatusSignal<AngularVelocity> velocity;
 	private TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
+	
 
 	public BananaFlywheels(){
 		this.wheels = new TalonFX(Constants.CAN.CTRE.bananaWheels, Constants.CAN.CTRE.bus);
 		this.angle = this.wheels.getRotorPosition();
 		this.velocity = this.wheels.getRotorVelocity();
+		
 
 		// Peak output amps
 		flyWheelConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -76,22 +79,25 @@ public class BananaFlywheels extends SubsystemBase {
 
 		this.wheels.getConfigurator().apply(flyWheelConfig);
 		this.wheels.setNeutralMode(NeutralModeValue.Brake);
+
+		StatusSignal.setUpdateFrequencyForAll(50, this.angle, this.velocity);
 	}
 	
 	public void runFlywheels(final Feeder demand){
-		this.wheels.setControl(new VelocityDutyCycle(demand.demand*0.1));
+		this.wheels.setControl(new VelocityDutyCycle(demand.demand * 0.05));
 	}
+	
 //Gets angle of flywheel and holds it at that position
 //Will add the holding coral input once we know which sensor detects the coral
 	public void holdPosition(){
-		Angle wheelAngle = this.angle.getValue();
+		final Angle wheelAngle = this.angle.getValue();
 		this.wheels.setControl(new PositionVoltage(wheelAngle));
-
-
 	}
+//Potentially add more functionallity e.g. move past sensor, when not detetcted move back until detected
 	private boolean holdingCoral() {
 		return false;
 	}
+	
 	public void updateInputs(final BananaFlywheelsInputs inputs) {
 		BaseStatusSignal.refreshAll(this.angle, this.velocity);
 
@@ -109,13 +115,14 @@ public class BananaFlywheels extends SubsystemBase {
 			}, this).withTimeout(0.2)
 		).andThen(
 			new RunCommand(() -> {
-				holdPosition();
+				runFlywheels(Feeder.Halt);
 			},this)
 		);
 		// 1. Run the wheels forward until the sensor returns false
 		// 2. Run the wheels another 0.2 seconds
 		// 3. Stop the wheels
 	}
+
 	public Command rejectCoral(){
 		return new RunCommand(() -> {
 			runFlywheels(Feeder.Forward);

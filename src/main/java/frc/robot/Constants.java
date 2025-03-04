@@ -296,8 +296,8 @@ public class Constants {
 			.withKG(0.12)
 			.withKV(3.099 / DISTANCE_CONVERSION_RATIO)
 			.withKA(0.012 / DISTANCE_CONVERSION_RATIO)
-			.withKP(0.5)
-			.withKD(0.01);
+			.withKP(0)
+			.withKD(0);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
