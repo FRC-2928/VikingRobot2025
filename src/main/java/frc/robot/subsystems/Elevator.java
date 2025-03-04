@@ -28,6 +28,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Velocity;
@@ -50,12 +51,12 @@ import frc.robot.oi.OperatorOI;
 public class Elevator extends SubsystemBase {
 	@AutoLog
 	public static class ElevatorInputs {
-		public Distance height;
-		public boolean isPivotHomed;
-		public boolean isElevatorHomed;
-		public LinearVelocity speed;
-		public Angle pivotAngle;
-		public AngularVelocity pivotAngularVelocity;
+		public Distance height = Units.Meters.zero();
+		public boolean isPivotHomed = true;
+		public boolean isElevatorHomed = true;
+		public LinearVelocity speed = Units.MetersPerSecond.zero();
+		public Angle pivotAngle = Units.Degrees.zero();
+		public AngularVelocity pivotAngularVelocity = Units.RadiansPerSecond.zero();
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
@@ -116,8 +117,11 @@ public class Elevator extends SubsystemBase {
 
 	private final StatusSignal<Angle> elevatorMotorPosition;
 	private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
-	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
+	private final StatusSignal<ReverseLimitValue> elevatorHomedSignal;
+	private final StatusSignal<Current> elevatorMotorStatorCurrent;
+	private final StatusSignal<Current> elevatorMotorSupplyCurrent;
 	private final StatusSignal<Angle> pivotMotorPosition;
+	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
 	private final StatusSignal<ReverseLimitValue> pivotHomedSignal;
 
 	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
@@ -160,17 +164,15 @@ public class Elevator extends SubsystemBase {
 		// pivot motor is on the RIO CAN bus
 		pivot = new TalonFX(Constants.CAN.RIO.bananaPivot, Constants.CAN.RIO.bus);
 
-		liftMotorB.setControl(new Follower(liftMotorA.getDeviceID(), false));
-
 		final TalonFXConfiguration elevatorConfig = new TalonFXConfiguration();
 
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
+		elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteTalonFX;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.elevatorLimitSwitch;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
-		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Gearing, clockwise moves elevator up
+		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;  // Gearing, clockwise moves elevator up
 		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 		
 		// Peak output amps
@@ -179,7 +181,7 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
 		elevatorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
 		
-		// Supply current limites
+		// Supply current limits
 		elevatorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 		elevatorConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
 		elevatorConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
@@ -195,7 +197,9 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6.81655937847;
 		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.55;
 
-		this.liftMotorA.getConfigurator().apply(elevatorConfig);
+		liftMotorA.getConfigurator().apply(elevatorConfig);
+		liftMotorB.getConfigurator().apply(elevatorConfig);
+		liftMotorB.setControl(new Follower(liftMotorA.getDeviceID(), false));
 
 
 		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
@@ -230,6 +234,9 @@ public class Elevator extends SubsystemBase {
 
 		this.elevatorMotorPosition = this.liftMotorA.getPosition();
 		this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
+		this.elevatorMotorStatorCurrent = this.liftMotorA.getStatorCurrent();
+		this.elevatorMotorSupplyCurrent = this.liftMotorA.getSupplyCurrent();
+		this.elevatorHomedSignal = this.liftMotorA.getReverseLimit();
 
 		this.pivotMotorPosition = this.pivot.getRotorPosition();
 		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
@@ -239,6 +246,8 @@ public class Elevator extends SubsystemBase {
 		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
 			elevatorMotorPosition,
 			elevatorMotorVelocity,
+			elevatorMotorStatorCurrent,
+			elevatorMotorSupplyCurrent,
 			pivotMotorPosition,
 			pivotMotorVelocity,
 			pivotHomedSignal);
@@ -329,6 +338,8 @@ public class Elevator extends SubsystemBase {
 			.refreshAll(
 				this.elevatorMotorPosition,
 				this.elevatorMotorVelocity,
+				this.elevatorMotorStatorCurrent,
+				this.elevatorMotorSupplyCurrent,
 				this.pivotMotorPosition,
 				this.pivotMotorVelocity,
 				this.pivotHomedSignal
@@ -336,7 +347,7 @@ public class Elevator extends SubsystemBase {
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
-		inputs.isElevatorHomed = inputs.height.in(Units.Meters) < 1e-7;
+		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.height.in(Units.Meters) < 1e-7;*/
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();

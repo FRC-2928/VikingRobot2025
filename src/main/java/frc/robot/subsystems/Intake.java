@@ -6,11 +6,13 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFXS;
+import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
+import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
 import com.ctre.phoenix6.signals.MotorArrangementValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -33,49 +35,54 @@ public class Intake extends SubsystemBase {
 	@AutoLog
 	public static class IntakeInputs {
 		public boolean troughHasCoral;
-		public AngularVelocity intakeSpeed;
-		public Angle pivotAngle;
+		// public AngularVelocity intakeSpeed;
+		// public Angle pivotAngle;
 		public AngularVelocity troughSpeed;
 	}
 
 	public final IntakeInputsAutoLogged inputs = new IntakeInputsAutoLogged();
 
 	// private final TalonFX wheels;
-	// private final TalonFXS belt;
 	// private final TalonFX pivot;
+	private final TalonFXS trough;
 	
-	//private final SensorCollection sensors;
 	// private final StatusSignal<AngularVelocity> intakeSpeed;
 	// private final StatusSignal<Angle> pivotAngle;
 	// private TalonFXConfiguration intakeWheelsConfig = new TalonFXConfiguration();
 	// private TalonFXConfiguration pivotWheelConfig = new TalonFXConfiguration();
-	private final StatusSignal<AngularVelocity> troughSpeed;
 	private final StatusSignal<ForwardLimitValue> troughSensor;
-	private final TalonFXS trough;
-	private TalonFXSConfiguration troughConfig = new TalonFXSConfiguration();
+	private final StatusSignal<AngularVelocity> troughSpeed;
 
-	// private final CANdi caNdi;
 	public Intake(){
-		this.trough = new TalonFXS(Constants.CAN.CTRE.troughWheels, Constants.CAN.CTRE.bus);
-		
-		// this.intakeSpeed = this.wheels.getRotorVelocity();
-		// this.pivotAngle = this.pivot.getRotorPosition();
-		this.troughSpeed = this.trough.getVelocity();
-		this.troughSensor = this.trough.getForwardLimit();
-		//this.sensors = trough.;
+		trough = new TalonFXS(Constants.CAN.CTRE.troughWheels, Constants.CAN.CTRE.bus);
+		// Set Neutral Mode
+		trough.setNeutralMode(NeutralModeValue.Brake);
 
+		// Create the Config Object for this TalonFXS
+		TalonFXSConfiguration troughConfig = new TalonFXSConfiguration();
+
+		// Motor Arrangement
 		troughConfig.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
 
 		// Peak output amps
 		troughConfig.CurrentLimits.StatorCurrentLimit = 80.0;
-		troughConfig.CurrentLimits.StatorCurrentLimit = 80.0;
 		troughConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+
 		// Supply current limits
 		troughConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 		troughConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
 		troughConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
 		troughConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
 		troughConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
+
+		// Hardware Limit Switch Config
+		troughConfig.HardwareLimitSwitch
+			.withForwardLimitType(ForwardLimitTypeValue.NormallyClosed)
+			.withForwardLimitEnable(true)
+			.withForwardLimitSource(ForwardLimitSourceValue.LimitSwitchPin);
+
+		// // Ground Intake Config
+		// // Ground Intake Wheels Config
 		// intakeWheelsConfig.CurrentLimits.StatorCurrentLimit = 80.0;
 		// intakeWheelsConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 		// intakeWheelsConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
@@ -102,6 +109,11 @@ public class Intake extends SubsystemBase {
 		// this.pivot.getConfigurator().apply(pivotWheelConfig);
 		// this.pivot.setNeutralMode(NeutralModeValue.Brake);
 		this.trough.getConfigurator().apply(troughConfig);
+
+		// this.intakeSpeed = this.wheels.getRotorVelocity();
+		// this.pivotAngle = this.pivot.getRotorPosition();
+		this.troughSpeed = this.trough.getVelocity();
+		this.troughSensor = this.trough.getForwardLimit();
 
 		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(50), 
 			troughSpeed,
