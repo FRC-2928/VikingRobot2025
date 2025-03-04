@@ -58,4 +58,8 @@ public final class Tuning {
 		"/Tuning/CagePivotHome",
 		0
 	);
+	public static final LoggedNetworkNumber offsetCenterReef = new LoggedNetworkNumber(
+		"/Tuning/offsetCenterReef",
+		6.5
+	);
 }

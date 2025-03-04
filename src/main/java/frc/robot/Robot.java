@@ -88,11 +88,12 @@ public class Robot extends LoggedRobot {
 		//get current selected routine
 		//get pose from map (and default)
 		//find differene from est and map pose
-		if(isInArray(Autonomous.AutoRoutines, Autonomous.getChoreoAutoChooser().selectedCommand().getName()) && Robot.cont.drivetrain.getEstimatedPosition() != null){
+		String selected = SmartDashboard.getString("Autonomous Routine/selected", "none");
+		if(selected != "none" && Robot.cont.drivetrain.getEstimatedPosition() != null){
 			Pose2d difference = Robot.cont.drivetrain.est.getEstimatedPosition()
 			.relativeTo(
 				Autonomous.autoMap.get(
-				Autonomous.getChoreoAutoChooser().selectedCommand().getName()));
+					SmartDashboard.getString("Autonomous Routine/selected", "none")));
 			if(difference != null){
 				Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", Math.hypot(difference.getX(), difference.getY()));
 			}
@@ -100,6 +101,7 @@ public class Robot extends LoggedRobot {
 		else{
 			Logger.recordOutput("Drivetrain/Auto/differenceFromStartingPosition", 999);
 		}
+		Logger.recordMetadata("Drivetrain/Auto/selectedRoutine", selected);
 	}
 
 	@Override

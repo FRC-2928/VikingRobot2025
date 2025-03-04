@@ -68,6 +68,9 @@ public class Drivetrain extends SubsystemBase {
 	private final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
 	public final Limelight limelight = new Limelight("limelight");
+	public final Limelight limelightLeftUpForward = new Limelight("LimelightLeftUpForward");
+	public final Limelight limelightUpBack = new Limelight("LimelightUpBack");
+	public final Limelight[] Limelights = {limelight,limelightLeftUpForward,limelightUpBack};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	public final JoystickDrive slowDrive = new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
@@ -168,8 +171,10 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		this.limelight.setIMUMode(1);
-		this.limelight.setRobotOrientation(newPose.getRotation().getMeasure());
+		for(Limelight lime:Limelights){
+			lime.setIMUMode(1);
+			lime.setRobotOrientation(newPose.getRotation().getMeasure());
+		}
 	}
 
 	public void setAngle(final Angle angle){
@@ -223,26 +228,20 @@ public class Drivetrain extends SubsystemBase {
 		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
 
 		// Add vision measurements to pos est with megatag 2
-		PoseEstimate mt2 = this.limelight.getPoseMegatag2();
-		if (mt2 != null) {
-			Logger.recordOutput("Drivetrain/poseMegatag", mt2.pose);
-			boolean doRejectUpdate = false;
+		for(Limelight limelight:Limelights){
+			PoseEstimate mt2 = limelight.getPoseMegatag2();
+			if (mt2 != null) {
+				Logger.recordOutput("Drivetrain/poseMegatag"+limelight.getLimelightName(), mt2.pose);
+				boolean doRejectUpdate = false;
 
-			// if our angular velocity is greater than 720 degrees per second, ignore vision updates
-			if(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
-				doRejectUpdate = true;
-			}
-	
-			if(mt2.tagCount == 0) {
-				doRejectUpdate = true;
-			}
-	
-			Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
-			if(!doRejectUpdate) {
-				est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-				est.addVisionMeasurement(
-					mt2.pose,
-					mt2.timestampSeconds);
+				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
+				Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
+				if(!(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720 || mt2.tagCount == 0)) {
+					est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+					est.addVisionMeasurement(
+						mt2.pose,
+						mt2.timestampSeconds);
+				}
 			}
 		}
 		field.setRobotPose(this.est.getEstimatedPosition());
@@ -256,9 +255,20 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void disabledPeriodic() {
-		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
-		if(this.limelight.hasValidTargets() && mt1 != null){
-			this.setAngle(mt1.pose.getRotation().getMeasure());
+		//TODO: maybe add some more filtering
+		Angle rotaion = Units.Radians.of(0);
+		int numberOfValidTargets = 0;
+		PoseEstimate mostTrusted = null;
+		int highNumAprilTags = 0;
+		for(Limelight lime:Limelights){
+			PoseEstimate mt1 = lime.getPoseMegatag1();
+			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
+				mostTrusted = mt1;
+				highNumAprilTags = lime.getNumberOfAprilTags();
+			}
+		}
+		if(mostTrusted!=null){
+			setAngle(mostTrusted.pose.getRotation().getMeasure());
 		}
 	}
 
@@ -267,7 +277,9 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void setImuMode2(){
-		this.limelight.setIMUMode(2);
+		for(Limelight lime:Limelights){
+			lime.setIMUMode(2);
+		}
 	}
 
 	public void setDefaultCommand() {

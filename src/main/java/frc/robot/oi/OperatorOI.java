@@ -26,6 +26,7 @@ public class OperatorOI extends BaseOI {
 		this.slowdTrigger = this.controller.x();
 		this.hault = this.controller.y();
 		this.foc = this.controller.rightBumper();
+		this.resetAngle = this.controller.back();
 
 		// this.fixedShoot = this.controller.leftTrigger();
 		// this.overrideShoot = this.controller.rightTrigger();
@@ -36,7 +37,7 @@ public class OperatorOI extends BaseOI {
 	public final Trigger foc;
 	public final Trigger climberOverrideLower;
 	public final Trigger climberOverrideRaise;
-
+	public final Trigger resetAngle;
 	public final Trigger initializeClimber;
 	// public final Trigger raiseElevator;
 	// public final Trigger lowerElivator;
@@ -48,6 +49,7 @@ public class OperatorOI extends BaseOI {
 	public final Trigger hault;
 	public final Trigger slowdTrigger;
 	public void configureControls() {
+		this.resetAngle.whileTrue(new RunCommand(Robot.cont.drivetrain::seedLimelightImu)).whileFalse(new RunCommand(Robot.cont.drivetrain::setImuMode2));
 		this.climberDown.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(0)));
 		this.climberUp.whileTrue(new RunCommand(() -> Robot.cont.climber.io.set(Constants.Climber.max)));
 		this.slowdTrigger.whileFalse(new RunCommand(() -> JoystickDrive.setSlowMode(false)))

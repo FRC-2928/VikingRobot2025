@@ -74,6 +74,10 @@ public class Limelight {
         return LimelightHelpers.getLimelightNTDouble(this.limelightName, "imumode_set");
     }
 
+	public String getLimelightName(){
+		return limelightName;
+	}
+
 	// Robot transform in field-space (blue driverstation WPILIB origin). Translation (X,Y,Z) Rotation(X,Y,Z)
 	public Pose3d getBluePose3d() { return LimelightHelpers.getBotPose3d_wpiBlue(this.limelightName); }
 
