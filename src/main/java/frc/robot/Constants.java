@@ -393,22 +393,6 @@ public class Constants {
 		}
 	}
 
-	public static final class PWM {
-		private PWM() { throw new IllegalCallerException("Cannot instantiate `Constants.PWM`"); }
-
-		public static final int climberRatchet = 9;
-
-		public static final int ampBarServoA = 0;
-		public static final int ampBarServoB = 1;
-	}
-
-	public static final class DIO {
-		private DIO() { throw new IllegalCallerException("Cannot instantiate `Constants.DIO`"); }
-
-		public static final int release = 0;
-		public static final int lockout = 1;
-	}
-
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
@@ -617,21 +601,5 @@ public class Constants {
 		
 		/// Current thershold that indicates the Banana is holding a piece of Alage
 		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(10);  // TODO: update based off of logged current values for algae
-	}
-
-	public static class Climber {
-		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
-
-		public static final boolean ratchetEnabled = false;
-
-		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
-		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.01);
-
-		public static final double ratchetLocked = 84;
-		public static final double ratchetFree = 93;
-
-		public static final double max = 129;
-		public static final double disengageDistance = 0.5;
-		public static final double initializeRaiseDistance = 2;
 	}
 }
