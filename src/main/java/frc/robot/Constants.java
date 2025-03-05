@@ -412,14 +412,14 @@ public class Constants {
 	public static final class Drivetrain {
 		private Drivetrain() { throw new IllegalCallerException("Cannot instantiate `Constants.Drivetrain`"); }
 
-		// Gear ratios for SDS MK4i L2, adjust as necessary
+		// Gear ratios for SDS MK4i L3, adjust as necessary
 		public static final double driveGearRatio = (50.0 / 14) * (16.0 / 28) * (45.0 / 15); // ~= 6.746
 		public static final double azimuthGearRatio = 150.0 / 7.0;
 
-		public static final Distance wheelRadius = Units.Inches.of(1.85);
+		public static final Distance wheelRadius = Units.Inches.of(2);
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(15.5);  // MK4i max speed L2
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelCircumference.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
 
 		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
