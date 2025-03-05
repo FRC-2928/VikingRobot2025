@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -80,27 +81,20 @@ public class RobotContainer {
 
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
-			new ParallelCommandGroup(
-				// Center Limelight
-				CenterLimelight.centerLimeLightPosition(reefPos),
-				// Set elevator
-				this.elevator.goToReefHeight(GamePieceType.CORAL)
-			),
-			Commands.deadline(
-				// Scores coral
-				this.bananaFlywheels.scoreHeldCoral(),
-				// Holds elevator in place
+			CenterLimelight.centerLimeLightPosition(reefPos),
+			this.elevator.goToReefHeight(GamePieceType.CORAL),
+			new ParallelDeadlineGroup(
+				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
-			),
-			new InstantCommand(() -> this.elevator.onEjectCoral(), this.elevator)
-		);
+			)
+		).finallyDo(() -> this.elevator.onEjectCoral());
 	}
 
 	public Command telePositionForCoralLeft() {
-		return new ParallelCommandGroup(
-			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightLeft(),
+		return new SequentialCommandGroup(
+			CenterLimelight.centerLimelightLeft(),
+			new ParallelCommandGroup(
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 				drivetrain.slowMode()
 			)
 		);
@@ -113,10 +107,10 @@ public class RobotContainer {
 	}
 
 	public Command telePositionForCoralRight() {
-		return new ParallelCommandGroup(
-			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightRight(),
+		return new SequentialCommandGroup(
+			CenterLimelight.centerLimelightRight(),
+			new ParallelCommandGroup(
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 				drivetrain.slowMode()
 			)
 		);
@@ -124,8 +118,8 @@ public class RobotContainer {
 
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
-			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			CenterLimelight.centerLimelightCenter(),
+			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
@@ -135,6 +129,7 @@ public class RobotContainer {
 			)
 		);
 	}
+
 	public Command telePositionForAlgaeOverideL2() {
 		return new SequentialCommandGroup(
 			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L2),
@@ -147,6 +142,7 @@ public class RobotContainer {
 			)
 		);
 	}
+	
 	public Command telePositionForAlgaeOverideL3() {
 		return new SequentialCommandGroup(
 			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L3),
