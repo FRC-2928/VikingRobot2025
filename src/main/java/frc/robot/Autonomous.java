@@ -20,7 +20,7 @@ import frc.robot.commands.drivetrain.VoltageRampCommand;
 
 public final class Autonomous {
 	public static final Pose2d autoPosLeftBlue = new Pose2d(7.37,5.68,new Rotation2d(4.19));
-	public static final Pose2d autoPosCenterBlue = new Pose2d(0.0,0.0,new Rotation2d());
+	public static final Pose2d autoPosCenterBlue = new Pose2d(7.27,4.15,new Rotation2d(3.13));
 	public static final Pose2d autoPosRightBlue = new Pose2d(7.07,2.44,new Rotation2d(2.09));
 	public static final String[] AutoRoutines = {"[Comp] SimpleFromRight"};
 	public static final Map<String,Pose2d> autoMapBlue = Map.of(
