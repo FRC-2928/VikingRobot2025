@@ -318,39 +318,39 @@ public class Constants {
 		public static final class CTRE {
 			public static final String bus = "canivore";
 
-			public static final int pigeon = 0;
+			public static final int pigeon = 1;
 
-			public static final int swerveFrontLeftAzimuth = 13;
-			public static final int swerveFrontLeftDrive = 14;
+			public static final int swerveFrontLeftAzimuth = 9;
+			public static final int swerveFrontLeftDrive = 8;
 
-			public static final int swerveFrontRightAzimuth = 19;
-			public static final int swerveFrontRightDrive = 18;
+			public static final int swerveFrontRightAzimuth = 15;
+			public static final int swerveFrontRightDrive = 14;
 
-			public static final int swerveBackLeftAzimuth = 10;
-			public static final int swerveBackLeftDrive = 11;
+			public static final int swerveBackLeftAzimuth = 11;
+			public static final int swerveBackLeftDrive = 10;
 
-			public static final int swerveBackRightAzimuth = 15;
+			public static final int swerveBackRightAzimuth = 17;
 			public static final int swerveBackRightDrive = 16;
 
-			public static final int intakeWheels = 99; //TODO: get right number
-			public static final int intakeBelt = 98;
-			public static final int intakePivot = 97;
-			public static final int troughWheels = 96;
+			// public static final int intakeWheels = 99;
+			// public static final int intakeBelt = 6;
+			// public static final int intakePivot = 97;
+			public static final int troughWheels = 6;
 
 			public static final int elevatorLimitSwitch = troughWheels;
 			public static final int troughLimitSwitch = troughWheels;
 
-			public static final int elevatorMotorA = 95;
-			public static final int elevatorMotorB = 94;
+			public static final int elevatorMotorA = 18;
+			public static final int elevatorMotorB = 19;
 		}
 
 		public static final class RIO {
 			/// Name of the CAN bus
 			public static final String bus = "rio";
 			/// CAN ID of the Kraken x44 controlling the Banana pivot
-			public static final int bananaPivot = 99;  // TODO: assign
+			public static final int bananaPivot = 12;  // TODO: 12 or 13
 			/// CAN ID of the Kraken x44 controlling the Banana flywheels
-			public static final int bananaWheels = 98;  // TODO: assign
+			public static final int bananaWheels = 13;  // TODO: 12 or 13
 			/**
 			 * Inner class representing the CANdi for the Banana
 			 */
@@ -358,7 +358,7 @@ public class Constants {
 				/// Singleton instance of the CANdi for the Banana
 				private static CANdi sInstance = null;
 				/// CAN ID of the CANdi bridging the banana limit switch + beam break sensor to the CAN bus
-				private static final int canId = 97;  // TODO: assign
+				private static final int canId = 7;
 				/// Digital Inputs Configs for the CANdi
 				private static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
 					// S1In --> Banana Pivot limit switch
@@ -391,22 +391,6 @@ public class Constants {
 				}
 			}
 		}
-	}
-
-	public static final class PWM {
-		private PWM() { throw new IllegalCallerException("Cannot instantiate `Constants.PWM`"); }
-
-		public static final int climberRatchet = 9;
-
-		public static final int ampBarServoA = 0;
-		public static final int ampBarServoB = 1;
-	}
-
-	public static final class DIO {
-		private DIO() { throw new IllegalCallerException("Cannot instantiate `Constants.DIO`"); }
-
-		public static final int release = 0;
-		public static final int lockout = 1;
 	}
 
 	public static final class Drivetrain {
