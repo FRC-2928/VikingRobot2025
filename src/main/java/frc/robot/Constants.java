@@ -421,10 +421,10 @@ public class Constants {
 
 		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelCircumference.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
 
-		public static final Distance wheelBase = Units.Inches.of(27 - 2.5 * 2);
+		public static final Distance wheelBase = Units.Inches.of(21.75);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
 		public static final Distance halfRobotWidth = Units.Inches.of(27.0/2);
-		public static final Distance halfRobotWidthBumpersOn = Units.Inches.of(27.0/2 + 3);
+		public static final Distance halfRobotWidthBumpersOn = halfRobotWidth.plus(Units.Inches.of(3.25));
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond
@@ -468,23 +468,23 @@ public class Constants {
 
 		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase,
-			Constants.Drivetrain.trackWidth
+			Constants.Drivetrain.wheelBase.div(2d),
+			Constants.Drivetrain.trackWidth.div(2d)
 		);
 		public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase,
-			Constants.Drivetrain.trackWidth.unaryMinus()
+			Constants.Drivetrain.wheelBase.div(2d),
+			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
 		);
 		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.unaryMinus(),
-			Constants.Drivetrain.trackWidth
+			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
+			Constants.Drivetrain.trackWidth.div(2d)
 		);
 		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
-			Constants.Drivetrain.wheelBase.unaryMinus(),
-			Constants.Drivetrain.trackWidth.unaryMinus()
+			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
+			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
 		);
 
 		public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
