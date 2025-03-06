@@ -38,8 +38,9 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger outputGamePiece;
 
-	public final Trigger toggleReefHeightUp;
-	public final Trigger toggleReefHeightDown;
+	// Drivers asked for this control to be only for operator
+	// public final Trigger toggleReefHeightUp;
+	// public final Trigger toggleReefHeightDown;
 
 	public final Trigger holdingCoral;
 
@@ -108,8 +109,9 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels = this.controller.x();
 
-		this.toggleReefHeightDown = this.controller.povDown();
-		this.toggleReefHeightUp = this.controller.povUp();
+		// Drivers asked for this control to be only for operator
+		// this.toggleReefHeightDown = this.controller.povDown();
+		// this.toggleReefHeightUp = this.controller.povUp();
 
 		this.passOffCoral = this.controller.a();
 	}
@@ -150,7 +152,8 @@ public class DriverOI extends BaseOI {
 		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
 		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
-		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
+		// Drivers asked for this control to be only for operator
+		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
+		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
 	}
 }
