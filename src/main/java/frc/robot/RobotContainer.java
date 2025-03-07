@@ -168,6 +168,8 @@ public class RobotContainer {
 	}
 	public Command passCoral(){
 		return new SequentialCommandGroup(
+			// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
+			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
 			Commands.deadline(
 				new SequentialCommandGroup(
 					this.bananaFlywheels.outputForward().withTimeout(Units.Seconds.of(0.5)),

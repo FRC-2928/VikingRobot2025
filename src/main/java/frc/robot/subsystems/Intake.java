@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -24,7 +25,7 @@ import frc.robot.Constants;
 // Minion for trough and limit switch
 public class Intake extends SubsystemBase {
 	public static enum Feeder {
-		Reverse(-1), Halt(0), Forward(1);
+		Reverse(6), Halt(0), Forward(-6); // TODO: negative is currently forward, rework this to not be a hack
 
 		public double voltage; // Stores the voltage commanded for that demand
 
@@ -34,10 +35,10 @@ public class Intake extends SubsystemBase {
 	}
 	@AutoLog
 	public static class IntakeInputs {
-		public boolean troughHasCoral;
+		public boolean troughHasCoral = false;
 		// public AngularVelocity intakeSpeed;
-		// public Angle pivotAngle;
-		public AngularVelocity troughSpeed;
+	// public Angle pivotAngle;
+		public AngularVelocity troughSpeed = Units.RotationsPerSecond.zero();
 	}
 
 	public final IntakeInputsAutoLogged inputs = new IntakeInputsAutoLogged();
@@ -152,5 +153,6 @@ public class Intake extends SubsystemBase {
 	@Override
 	public void periodic() {
 		updateInputs(this.inputs);
+		Logger.processInputs("Intake", this.inputs);
 	}
 }

@@ -450,22 +450,26 @@ public class Constants {
 			17
 		);
 
-		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
+		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
+		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.121826171875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d),
 			Constants.Drivetrain.trackWidth.div(2d)
 		);
-		public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
+		// public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
+		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.32421875);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d),
 			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
 		);
-		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
+		// public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
+		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.4443359375);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
 			Constants.Drivetrain.trackWidth.div(2d)
 		);
-		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
+		// public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
+		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.185791015625);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
 			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
@@ -534,9 +538,9 @@ public class Constants {
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(0.05)
+			.withKP(1.00000074505806)
 			.withKI(0.0)
-			.withKD(0.0)
+			.withKD(0.0) /*TODO: add kD */
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
