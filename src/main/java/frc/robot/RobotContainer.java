@@ -176,10 +176,13 @@ public class RobotContainer {
 				),
 				this.intake.runTrough().until(intake::holdingGamePeice)
 			),
-			new ParallelCommandGroup(
-				this.intake.runTrough(),
-				this.bananaFlywheels.outputForward()
-			).until(() -> !this.intake.holdingGamePeice())
+			new SequentialCommandGroup(
+				this.intake.runTrough().until(intake::holdingGamePeice), // protection to ensure we finish staging the piece
+				new ParallelCommandGroup(
+					this.intake.runTrough(),
+					this.bananaFlywheels.outputForward()
+				).until(() -> !this.intake.holdingGamePeice())
+			)
 		);
 	}
 
