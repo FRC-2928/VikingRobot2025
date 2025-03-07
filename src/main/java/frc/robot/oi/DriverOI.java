@@ -34,8 +34,6 @@ public class DriverOI extends BaseOI {
 	public final Trigger resetFOD;
 	public final Trigger resetAngle;
 
-	public final Trigger resetPoseLimelight;
-
 	public final Trigger outputGamePiece;
 
 	// Drivers asked for this control to be only for operator
@@ -101,9 +99,7 @@ public class DriverOI extends BaseOI {
 							.and(this.closeToReef);
 
 		this.resetFOD = this.controller.y();
-		this.resetAngle = this.controller.back();
-
-		this.resetPoseLimelight = this.controller.b();
+		this.resetAngle = this.controller.b();
 
 		this.outputGamePiece = this.controller.rightTrigger();
 

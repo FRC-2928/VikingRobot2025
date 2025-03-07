@@ -15,8 +15,8 @@ public class OperatorOI extends BaseOI {
 
 		this.climbMotion = this.controller::getLeftY;
 
-		this.climberOverrideLower = this.controller.povDown();
-		this.climberOverrideRaise = this.controller.povUp();
+		// this.climberOverrideLower = this.controller.povDown();
+		// this.climberOverrideRaise = this.controller.povUp();
 
 		this.initializeClimber = this.controller.rightStick();
 		
@@ -38,8 +38,8 @@ public class OperatorOI extends BaseOI {
 
 	public final Trigger climbModeOn;
 	// public final Trigger foc;
-	public final Trigger climberOverrideLower;
-	public final Trigger climberOverrideRaise;
+	// public final Trigger climberOverrideLower;
+	// public final Trigger climberOverrideRaise;
 	public final Trigger resetAngle;
 	public final Trigger initializeClimber;
 	public final Trigger toggleClimb;
