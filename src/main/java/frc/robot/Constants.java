@@ -316,7 +316,7 @@ public class Constants {
 		}
 
 		public static final class CTRE {
-			public static final String bus = "canivore";
+			public static final String bus = "Canivore";
 
 			public static final int pigeon = 1;
 

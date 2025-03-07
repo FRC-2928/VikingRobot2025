@@ -341,11 +341,13 @@ public class Elevator extends SubsystemBase {
 				this.elevatorMotorPosition,
 				this.elevatorMotorVelocity,
 				this.elevatorMotorStatorCurrent,
-				this.elevatorMotorSupplyCurrent,
-				this.pivotMotorPosition,
-				this.pivotMotorVelocity,
-				this.pivotHomedSignal
+				this.elevatorMotorSupplyCurrent
 			);
+
+		BaseStatusSignal.refreshAll(
+			this.pivotMotorPosition,
+			this.pivotMotorVelocity,
+			this.pivotHomedSignal);
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
