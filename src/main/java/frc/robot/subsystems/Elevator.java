@@ -191,8 +191,8 @@ public class Elevator extends SubsystemBase {
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
 		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6.81655937847;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.55;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 6;
 
 		liftMotorA.getConfigurator().apply(elevatorConfig);
 		liftMotorB.getConfigurator().apply(elevatorConfig);
@@ -267,6 +267,7 @@ public class Elevator extends SubsystemBase {
 				rotation.in(Units.Degrees),
 				Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees),
 				Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
+			// System.out.println()
 	}
 	
 	private void controlPosition(final Distance position) {
@@ -284,6 +285,10 @@ public class Elevator extends SubsystemBase {
 		pivotCommmandedAngle = rotation;
 	}
 
+	private void controlPivotHome() {
+
+	}
+
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
 		return this.currentGamePieceType == pieceType;
 	}
@@ -297,7 +302,7 @@ public class Elevator extends SubsystemBase {
 		       Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 	}
 
-	private void updateMotorsGamePiece() {
+	private void updateMotors() {
 		// are we currently in the elevator danger zone?
 		// is the elevator target within the danger zone?
 		// is the banana in a dangerous orientation?
@@ -314,8 +319,13 @@ public class Elevator extends SubsystemBase {
 		}
 
 		if (pivotCommmandedAngle != pivotTargetAngle) {
-			if (pivotTargetAngle.lt(Units.Degrees.of(1))) {
-				controlPivot(pivotTargetAngle);
+			if (pivotTargetAngle.lt(Units.Degrees.of(0.1))) {
+				if (inputs.isPivotHomed) {
+					this.pivotTargetAngle = Units.Degrees.of(0.2);
+					controlPivot(Units.Degrees.of(0.2));
+				} else {
+					controlPivotHome();
+				}
 			}
 			else {
 				if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
@@ -327,9 +337,6 @@ public class Elevator extends SubsystemBase {
 		if (elevatorTargetPosition.lt(elevatorThresholdForPivot) && pivotCommmandedAngle.gt(Units.Degrees.of(1))) {
 			controlPivot(Units.Degrees.of(0));
 		}
-	}
-	private void updateMotorsClimb(final double velocity) {
-		controlPositionVelocity(Units.MetersPerSecond.of(velocity));
 	}
 
 	public void setElevatorMode(GamePieceType type){
@@ -366,6 +373,7 @@ public class Elevator extends SubsystemBase {
 	public void periodic() {
 		this.updateInputs(this.inputs);
 		Logger.processInputs("Elevator", this.inputs);
+		this.updateMotors();
 	}
 
 	public void setDefaultCommand() {
@@ -423,15 +431,6 @@ public class Elevator extends SubsystemBase {
 			setElevatorMode(GamePieceType.CAGE);
 			setTargetCageLevel(CagePosition.SHALLOW); // Hard code the climb to SHALLOW because our climb is shallow
 		});
-	}
-
-	public Command doClimb(DoubleSupplier climbMovement) {
-		return new SequentialCommandGroup(
-			goToReefHeight(GamePieceType.CAGE),
-			new RunCommand(() -> {
-				this.updateMotorsClimb(climbMovement.getAsDouble());
-			}, this)
-		);
 	}
 
 	/**
@@ -501,31 +500,15 @@ public class Elevator extends SubsystemBase {
 				// feed the setpoints to the actuators
 				moveToPosition(desiredElevatorSetpoint);
 				pivotBanana(desiredBananaSetpoint);
-				this.updateMotorsGamePiece();
 			},
 			// require "this" subsystem
 			this);
-	}
-
-	/**
-	 * Returns a command that moves the elevator based on input between -1.0 and 1.0.
-	 * 
-	 * @param input a value between -1 and 1 which describes how fast to move the elevator. It is a supplier since the value can change over time, such as a joystick input.
-	 * @return a command that uses the input supplier to control the elevator motion until interrupted.
-	 */
-	public Command moveElevatorDuringClimb(final DoubleSupplier input) {
-		return new RunCommand(() -> { 
-			this.updateMotorsClimb(input.getAsDouble() * Tuning.elevatorSpeed.get());
-		}, this).finallyDo(() -> {
-			this.updateMotorsClimb(0);
-		});
 	}
 
 	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
 			pivotBanana(currentGamePieceType.getPivot());
 			moveToPosition(currentGamePieceType.getHeight());
-			this.updateMotorsGamePiece();
 		}, this);
 	}
 
