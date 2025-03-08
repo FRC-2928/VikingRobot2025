@@ -24,23 +24,23 @@ public class OperatorOI extends BaseOI {
 		// this.intakeOut = this.controller.b();
 		this.slowedTrigger = this.controller.x();
 		// this.halt = this.controller.y();
-		// this.foc = this.controller.rightBumper();
-		this.resetAngle = this.controller.back();
+		this.setElevatorMode = this.controller.rightBumper();
+		// this.resetAngle = this.controller.back();
 		this.toggleClimb = this.controller.leftBumper();
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.rightTrigger();
-		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
+		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())/* ) .and(RobotContainer.getInstance().driverOI.holdingCoral*/);
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 	}
 
 	public final Trigger climbModeOn;
-	// public final Trigger foc;
+	public final Trigger setElevatorMode;
 	// public final Trigger climberOverrideLower;
 	// public final Trigger climberOverrideRaise;
-	public final Trigger resetAngle;
+	// public final Trigger resetAngle;
 	public final Trigger initializeClimber;
 	public final Trigger toggleClimb;
 	// public final Trigger raiseElevator;
@@ -61,7 +61,8 @@ public class OperatorOI extends BaseOI {
 		this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		// this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
 		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
-		// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
+		setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
+	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
 		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());

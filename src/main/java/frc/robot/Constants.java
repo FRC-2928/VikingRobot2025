@@ -403,7 +403,7 @@ public class Constants {
 		public static final Distance wheelRadius = Units.Inches.of(2);
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelCircumference.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelRadius.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
 
 		public static final Distance wheelBase = Units.Inches.of(21.75);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
@@ -444,7 +444,7 @@ public class Constants {
 			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond))
 			.withKA(0);
 
-		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(5, 0, 0.5, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
 			17
@@ -522,23 +522,24 @@ public class Constants {
 		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
 		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
 
-		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(40);
-		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
+		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(-10);
+		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(-25);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 		.withGravityType(GravityTypeValue.Elevator_Static)
-		.withKS(0)
-		//.withKG(0.1)
-		.withKV(6.81655937847)
-		.withKA(0.53)
-		.withKP(20)
-		.withKD(0);
+		.withKS(0.5)
+		.withKG(0.29)
+		.withKV(6)
+		.withKA(0.1)
+		.withKP(5)
+		.withKI(0.05)
+		.withKD(0.1);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(1.00000074505806)
+			.withKP(0/*1.00000074505806*/)
 			.withKI(0.0)
 			.withKD(0.0) /*TODO: add kD */
 			.withKS(0)
@@ -574,9 +575,10 @@ public class Constants {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 
 		public static enum FeederDemand {
-			REVERSE(-1),
+			REVERSE(4),
 			HALT(0),
-			FORWARD(1);
+			FORWARD(-12),
+			INTAKE_FORWARD(-1);
 
 			private int demand;
 

@@ -167,7 +167,10 @@ public class RobotContainer {
 		);
 	}
 	public Command passCoral(){
-		return new SequentialCommandGroup(
+		return new ParallelCommandGroup(
+			this.bananaFlywheels.intakeForward(),
+			this.intake.runTrough()
+		);/*new SequentialCommandGroup(
 			// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
 			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
 			Commands.deadline(
@@ -185,7 +188,7 @@ public class RobotContainer {
 					this.bananaFlywheels.outputForward()
 				).until(() -> !this.intake.holdingGamePeice())
 			)
-		);
+		);*/
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

@@ -46,8 +46,11 @@ public class Limelight {
 	public Angle getTargetVerticalOffset() { return Units.Degrees.of(this.nt.getEntry("ty").getDouble(0)); }
 
 	public int getNumberOfAprilTags() {
-		final LimelightResults reultsOfJson = LimelightHelpers.getLatestResults(this.limelightName);
-		return reultsOfJson.targets_Fiducials.length;
+		PoseEstimate mt1 = getPoseMegatag1();
+		if(mt1 != null){
+			return getPoseMegatag1().tagCount;
+		}
+		return 0;
 	}
 
 	// Target Area (0% of image to 100% of image)

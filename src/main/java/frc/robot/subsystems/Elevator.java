@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -50,10 +51,11 @@ public class Elevator extends SubsystemBase {
 		public Distance height = Units.Meters.zero();
 		public boolean isPivotHomed = true;
 		public boolean isElevatorHomed = true;
+		public AngularVelocity elevatorAngularVelocity = Units.RadiansPerSecond.zero();
 		public LinearVelocity speed = Units.MetersPerSecond.zero();
 		public Angle pivotAngle = Units.Degrees.zero();
 		public AngularVelocity pivotAngularVelocity = Units.RadiansPerSecond.zero();
-		public int targetCoralLevel = CoralPosition.L1.getValue();
+		public int targetCoralLevel = CoralPosition.NONE.getValue();
 		public int targetAlgaeLevel = AlgaePosition.NONE.getValue();
 		public int targetCageLevel = CoralPosition.NONE.getValue();
 	}
@@ -62,7 +64,7 @@ public class Elevator extends SubsystemBase {
 
 	// --------------------- Internal Higher-Order States ---------------------
 	// Target state variables
-	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
+	private int targetCoralLevel = CoralPosition.NONE.getValue();    // L1 by default
 	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
 	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
 	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
@@ -70,11 +72,11 @@ public class Elevator extends SubsystemBase {
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Feet.of(0),
-		CoralPosition.L1.getValue(),   Units.Feet.of(2.5),
-		CoralPosition.L2.getValue(),   Units.Feet.of(3.5),
-		CoralPosition.L3.getValue(),   Units.Feet.of(4.5),
-		CoralPosition.L4.getValue(),   Units.Feet.of(6.4));
+		CoralPosition.NONE.getValue(), Units.Inches.of(0),
+		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.6),
+		CoralPosition.L3.getValue(),   Units.Meters.of(0.8),
+		CoralPosition.L4.getValue(),   Units.Meters.of(1.28));
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
@@ -95,7 +97,7 @@ public class Elevator extends SubsystemBase {
 		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
 		CoralPosition.L2.getValue(),   Units.Degrees.of(0),
 		CoralPosition.L3.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L4.getValue(),   Units.Degrees.of(45));
+		CoralPosition.L4.getValue(),   Units.Degrees.of(0));
 
 	// Map of Banana Angles for Algae
 	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
@@ -281,7 +283,8 @@ public class Elevator extends SubsystemBase {
 	}
 
 	private void controlPivot(final Angle rotation) {
-		pivot.setControl(new PositionVoltage(rotation));
+		// pivot.setControl(new PositionVoltage(rotation));
+		pivot.setControl(new VoltageOut(-1.5));
 		pivotCommmandedAngle = rotation;
 	}
 
@@ -319,13 +322,15 @@ public class Elevator extends SubsystemBase {
 		}
 
 		if (pivotCommmandedAngle != pivotTargetAngle) {
-			if (pivotTargetAngle.lt(Units.Degrees.of(0.1))) {
-				if (inputs.isPivotHomed) {
-					this.pivotTargetAngle = Units.Degrees.of(0.2);
-					controlPivot(Units.Degrees.of(0.2));
-				} else {
-					controlPivotHome();
-				}
+			if (pivotTargetAngle.lt(Units.Degrees.of(1))) {
+				controlPivot(pivotCommmandedAngle);
+				// TODO: clean up
+				// if (inputs.isPivotHomed) {
+				// 	this.pivotTargetAngle = Units.Degrees.of(0.2);
+				// 	controlPivot(Units.Degrees.of(0.2));
+				// } else {
+				// 	controlPivotHome();
+				// }
 			}
 			else {
 				if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
@@ -358,11 +363,11 @@ public class Elevator extends SubsystemBase {
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
-		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.height.in(Units.Meters) < 1e-7;*/
+		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.height.in(Units.Meters) < 1e-7;*/
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 1*/;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.pivotAngle.in(Units.Degrees) < 1*/;
 
 		inputs.targetCoralLevel = this.targetCoralLevel;
 		inputs.targetAlgaeLevel = this.targetAlgaeLevel;
@@ -393,11 +398,11 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public void toggleReefHeightDown() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 1, 4);
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
 	}
 
 	public void toggleReefHeightUp() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 1, 4);
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
 	}
 
 	public void onEjectAlgae() {

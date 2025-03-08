@@ -79,8 +79,9 @@ public class Intake extends SubsystemBase {
 		// Hardware Limit Switch Config
 		troughConfig.HardwareLimitSwitch
 			.withForwardLimitType(ForwardLimitTypeValue.NormallyClosed)
-			.withForwardLimitEnable(true)
-			.withForwardLimitSource(ForwardLimitSourceValue.LimitSwitchPin);
+			.withForwardLimitEnable(false)
+			.withForwardLimitSource(ForwardLimitSourceValue.LimitSwitchPin)
+			.withReverseLimitEnable(false);
 
 		// // Ground Intake Config
 		// // Ground Intake Wheels Config

@@ -1,6 +1,8 @@
 package frc.robot.oi;
 
 import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -74,14 +76,14 @@ public class DriverOI extends BaseOI {
 			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorBlue) < Tuning.alignRadiusProcessor.get()
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorRed) < Tuning.alignRadiusProcessor.get();});
 		this.closeToReef = new Trigger(() -> {return
-			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
-			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
+			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < 50/*Tuning.alignRadiusReef.get()*/
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < 50/*Tuning.alignRadiusReef.get()*/;});
 
 		this.alignReefLeft = this.controller.leftBumper()
-							.and(this.holdingCoral)
+							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignReefRight = this.controller.rightBumper()
-							.and(this.holdingCoral)
+							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate())
@@ -99,7 +101,7 @@ public class DriverOI extends BaseOI {
 							.and(this.closeToReef);
 
 		this.resetFOD = this.controller.y();
-		this.resetAngle = this.controller.b();
+		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());
 
 		this.outputGamePiece = this.controller.rightTrigger();
 

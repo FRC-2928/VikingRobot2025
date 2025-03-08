@@ -162,9 +162,13 @@ public class BananaFlywheels extends SubsystemBase {
 		// In binary: 00 = NONE, 01 = CORAL, 10 = ALGAE, 11 = CAGE
 		heldGamePieceTypeFlags[0] = (beamBreakStateSignal.getValue() == S2StateValue.Low);  // Coral is bit 0
 		heldGamePieceTypeFlags[1] = motorStatorCurrent.getValue().gt(Banana.HOLDING_ALGAE_CURRENT_THRESHOLD); // Algae is bit 1
+		Logger.recordOutput("BananaFlywheels/IsBeamBroken", heldGamePieceTypeFlags[0]);
+		Logger.recordOutput("BananaFlywheels/IsCurrentThresholdMet", heldGamePieceTypeFlags[1]);
+		Logger.recordOutput("BananaFlywheels/MotorStatorCurrent", motorStatorCurrent.getValue().in(Units.Amps));
 		int heldGamePieceTypeBitset = 0;
 		for (int i = 0; i < heldGamePieceTypeFlags.length; i++) {
 			if (heldGamePieceTypeFlags[i]) {
+				System.out.println("heldPieceType,i=" + i + ",value=" + heldGamePieceTypeFlags[i]);
 				heldGamePieceTypeBitset |= (1 << i);  // shift the bits into position
 			}
 		}
@@ -195,6 +199,15 @@ public class BananaFlywheels extends SubsystemBase {
 		// 1. Run the wheels forward until the sensor returns false
 		// 2. Run the wheels another 0.2 seconds
 		// 3. Stop the wheels
+	}
+
+	public Command intakeForward()
+	{
+		return new RunCommand(() -> {
+			runFlywheels(FeederDemand.INTAKE_FORWARD);
+		}, this).finallyDo(() -> {
+			runFlywheels(FeederDemand.HALT);
+		});
 	}
 
 	public Command outputForward(){

@@ -42,7 +42,7 @@ public class CenterLimelight extends Command {
   private Pose2d tagPoseRobotspace;
   private Pose3d tagPose;
   private List<Integer> tagsToCheck;
-  private static final Distance offsetReef = Units.Inches.of(Tuning.offsetCenterReef.get());
+  private static final Distance offsetReef = Units.Inches.of(4.5/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
         this(offsetX, offsetY, Units.Radians.of(0), tagsToCheck);
@@ -107,8 +107,8 @@ public class CenterLimelight extends Command {
       Logger.recordOutput("Drivetrain/Auto/Center Is Finished", false);
       Logger.recordOutput("Drivetrain/Auto/XSpeedPid", xSpeedPid);
       Logger.recordOutput("Drivetrain/Auto/YSpeedPid", ySpeedPid);
-      Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", RobotContainer.getInstance().drivetrain.limelight.hasValidTargets());
-      Logger.recordOutput("Drivetrain/Auto/Theta", RobotContainer.getInstance().drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
+      // Logger.recordOutput("Drivetrain/Auto/limelightHasValidTargets", RobotContainer.getInstance().drivetrain.limelight.hasValidTargets());
+      // Logger.recordOutput("Drivetrain/Auto/Theta", RobotContainer.getInstance().drivetrain.limelight.getBotPose3d_TargetSpace().getRotation().getAngle());
       Logger.recordOutput("Drivetrain/Auto/robotPoseTagSpace", robotPoseTagspace);
       Logger.recordOutput("Drivetrain/Auto/tagPoseRobotSpace", tagPoseRobotspace);
       Logger.recordOutput("Drivetrain/Auto/thetaSpeed", thetaSpeed);
