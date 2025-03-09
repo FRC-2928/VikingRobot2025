@@ -39,7 +39,7 @@ public class CenterLimelight extends Command {
   /// Transform2d representing the transformation matrix for the tag
   private Transform2d tagPoseTransform;
   private List<Integer> tagsToCheck;
-  private static final Distance offsetReef = Units.Inches.of(4.5/*Tuning.offsetCenterReef.get()*/);
+  private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
         this(offsetX, offsetY, Units.Radians.of(0), tagsToCheck);
@@ -54,7 +54,7 @@ public class CenterLimelight extends Command {
         // X = forward/back distance away from the target in robot space, + half width since Robots are not points
         this.offsetX = offsetX.plus(Constants.Drivetrain.halfRobotWidthBumpersOn);
         this.offsetY = offsetY;
-        this.offsetTheta = offsetTheta;/*offsetTheta.plus(Units.Radians.of(Math.PI));*/
+        this.offsetTheta = /*offsetTheta;*/offsetTheta.plus(Units.Radians.of(Math.PI));
         this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
         this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
         this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
@@ -147,8 +147,8 @@ public class CenterLimelight extends Command {
       var robotPoseRelativeToGoal = robotPose.relativeTo(transformedTagPose);
       // check the values...
       // TODO: adjust thresholds
-      var isXDone = (Math.abs(robotPoseRelativeToGoal.getMeasureX().in(Units.Meters)) < 0.1);
-      var isYDone = (Math.abs(robotPoseRelativeToGoal.getMeasureY().in(Units.Meters)) < 0.1);
+      var isXDone = (Math.abs(robotPoseRelativeToGoal.getMeasureX().in(Units.Meters)) < 0.05);
+      var isYDone = (Math.abs(robotPoseRelativeToGoal.getMeasureY().in(Units.Meters)) < 0.05);
       var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), Units.Degrees.of(5)));
       return (isXDone && isYDone && isRotDone);
       // return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);

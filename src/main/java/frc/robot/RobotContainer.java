@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Constants.AlgaePosition;
+import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
@@ -81,28 +82,29 @@ public class RobotContainer {
 
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
-			CenterLimelight.centerLimeLightPosition(reefPos),
+			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
+				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L2))),
 			this.elevator.goToReefHeight(GamePieceType.CORAL),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
 			)
-		).finallyDo(() -> this.elevator.onEjectCoral());
+		).finallyDo(() -> {this.elevator.onEjectCoral(); this.elevator.setTargetCoralLevel(CoralPosition.NONE);} );
 	}
 
 	public Command telePositionForCoralLeft() {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimelightLeft(),
 			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)/*,
+				drivetrain.slowMode()*/
 			)
 		);
 	}
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
-			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			drivetrain.slowMode()
+			this.elevator.goToGamePieceHeight(GamePieceType.CORAL)/* ,
+			drivetrain.slowMode()*/
 		);
 	}
 
@@ -110,8 +112,8 @@ public class RobotContainer {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimelightRight(),
 			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)/* ,
+				drivetrain.slowMode()*/
 			)
 		);
 	}
@@ -124,8 +126,8 @@ public class RobotContainer {
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
-				),
-				drivetrain.slowMode()
+				)/*,
+				drivetrain.slowMode()*/
 			)
 		);
 	}
@@ -137,8 +139,8 @@ public class RobotContainer {
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
-				),
-				drivetrain.slowMode()
+				)/*,
+				drivetrain.slowMode()*/
 			)
 		);
 	}
@@ -150,8 +152,8 @@ public class RobotContainer {
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
-				),
-				drivetrain.slowMode()
+				)/*,
+				drivetrain.slowMode()*/
 			)
 		);
 	}
@@ -159,8 +161,8 @@ public class RobotContainer {
 
 	public Command pullAlgaeOffReef() {
 		return new ParallelCommandGroup(
-			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-			drivetrain.slowMode()
+			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE)/*,
+			drivetrain.slowMode()*/
 		).until(() -> 
 			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
 			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()

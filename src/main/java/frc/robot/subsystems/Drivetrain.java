@@ -74,7 +74,7 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightForward = new Limelight("limelight-forward");
 	public final Limelight limelightSide = new Limelight("limelight-side");
 	public final Limelight limelightReverse = new Limelight("limelight-reverse");
-	public final Limelight[] limelights = {limelightForward,/*limelightSide,limelightReverse*/};
+	public final Limelight[] limelights = {/*limelightForward,*/limelightSide/* ,limelightReverse*/};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -272,10 +272,10 @@ public class Drivetrain extends SubsystemBase {
 		}
 		field.setRobotPose(this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/Imumode", limelightForward.getImuMode());
-		Logger.recordOutput("Drivetrain/limelightHasTargets",limelightForward.hasValidTargets());
+		Logger.recordOutput("Drivetrain/Imumode", limelightSide.getImuMode());
+		Logger.recordOutput("Drivetrain/limelightHasTargets",limelightSide.hasValidTargets());
 		Logger.recordOutput("Drivetrain/matchTimer", Timer.getMatchTime());
-		PoseEstimate mt1 = this.limelightForward.getPoseMegatag1();
+		PoseEstimate mt1 = this.limelightSide.getPoseMegatag1();
 		if (mt1 != null) {
 			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);
 		}
@@ -290,7 +290,7 @@ public class Drivetrain extends SubsystemBase {
 		for(Limelight lime:limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
 			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
-			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
+			if(lime.hasValidTargets() && mt1 != null /*&& lime.getNumberOfAprilTags() > highNumAprilTags*/){
 				mostTrusted = mt1;
 				highNumAprilTags = lime.getNumberOfAprilTags();
 				// System.out.println("got a trusted limelight, numTags=" + highNumAprilTags);	
@@ -328,7 +328,7 @@ public class Drivetrain extends SubsystemBase {
 		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
 	}
 
-	public JoystickDrive slowMode() {
-		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
-	}
+	// public JoystickDrive slowMode() {
+	// 	return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
+	// }
 }

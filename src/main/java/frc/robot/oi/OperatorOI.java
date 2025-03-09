@@ -22,7 +22,7 @@ public class OperatorOI extends BaseOI {
 		
 		// this.intakeIn = this.controller.a();
 		// this.intakeOut = this.controller.b();
-		this.slowedTrigger = this.controller.x();
+		// this.slowedTrigger = this.controller.x();
 		// this.halt = this.controller.y();
 		this.setElevatorMode = this.controller.rightBumper();
 		// this.resetAngle = this.controller.back();
@@ -55,10 +55,10 @@ public class OperatorOI extends BaseOI {
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;
 	// public final Trigger halt;
-	public final Trigger slowedTrigger;
+	// public final Trigger slowedTrigger;
 
 	public void configureControls() {
-		this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
+		// this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		// this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
 		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
 		setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));

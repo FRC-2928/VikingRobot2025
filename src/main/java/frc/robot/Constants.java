@@ -426,7 +426,7 @@ public class Constants {
 		public static final class Auto {
 			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
-			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(4, 0, 0.8, 0);
 			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 
@@ -606,6 +606,8 @@ public class Constants {
 			.withKA(0);
 		
 		/// Current thershold that indicates the Banana is holding a piece of Alage
-		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(10);  // TODO: update based off of logged current values for algae
+		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(16);  // TODO: update based off of logged current values for algae
+		public static final Current HOLDING_CORAL_CURRENT_THRESHOLD_LO = Units.Amps.of(5);  // TODO: update based off of logged current values for coral
+		public static final Current HOLDING_CORAL_CURRENT_THRESHOLD_HI = Units.Amps.of(16);  // TODO: update based off of logged current values for coral
 	}
 }

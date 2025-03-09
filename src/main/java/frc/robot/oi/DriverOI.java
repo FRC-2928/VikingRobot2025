@@ -101,7 +101,7 @@ public class DriverOI extends BaseOI {
 							.and(this.closeToReef);
 
 		this.resetFOD = this.controller.y();
-		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());
+		this.resetAngle = this.controller.b()/* .or(() -> DriverStation.isDisabled())*/;
 
 		this.outputGamePiece = this.controller.rightTrigger();
 
@@ -133,14 +133,14 @@ public class DriverOI extends BaseOI {
 		);
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightCenter(),
-				RobotContainer.getInstance().drivetrain.slowMode()
+				CenterLimelight.centerLimelightCenter()//,
+				// RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignHP.whileTrue(
 			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightClosestHP(),
-				RobotContainer.getInstance().drivetrain.slowMode()
+				CenterLimelight.centerLimelightClosestHP()//,
+				// RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignProcessor.whileTrue(

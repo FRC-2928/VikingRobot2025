@@ -67,15 +67,16 @@ public class Elevator extends SubsystemBase {
 	private int targetCoralLevel = CoralPosition.NONE.getValue();    // L1 by default
 	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
 	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
-	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
+	// TODO: change back to NONE post competition -- hack to get things working
+	private GamePieceType currentGamePieceType  = GamePieceType.CORAL;  // NONE by default
 
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Inches.of(0),
+		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
-		CoralPosition.L2.getValue(),   Units.Meters.of(0.6),
-		CoralPosition.L3.getValue(),   Units.Meters.of(0.8),
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.5),
+		CoralPosition.L3.getValue(),   Units.Meters.of(0.705),
 		CoralPosition.L4.getValue(),   Units.Meters.of(1.28));
 
 	// Map of Elevator Positions for Algae
