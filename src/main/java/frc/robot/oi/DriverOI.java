@@ -101,7 +101,7 @@ public class DriverOI extends BaseOI {
 							.and(this.closeToReef);
 
 		this.resetFOD = this.controller.y();
-		this.resetAngle = this.controller.b()/* .or(() -> DriverStation.isDisabled())*/;
+		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());
 
 		this.outputGamePiece = this.controller.rightTrigger();
 

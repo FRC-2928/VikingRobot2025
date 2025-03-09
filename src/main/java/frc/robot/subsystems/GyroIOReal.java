@@ -40,7 +40,9 @@ public class GyroIOReal implements GyroIO {
 
 	@Override
 	public void updateInputs(final GyroIOInputs inputs) {
-		inputs.connected = StatusCode.OK.equals(BaseStatusSignal.refreshAll(this.yaw, this.yawVelocity));
+		var refreshStatus = BaseStatusSignal.refreshAll(this.yaw, this.yawVelocity);
+		inputs.refreshStatus = refreshStatus;
+		inputs.connected = StatusCode.OK.equals(refreshStatus);
 		inputs.yawPosition = Units.Degrees.of(this.yaw.getValueAsDouble());
 		inputs.yawVelocityRadPerSec = Units.DegreesPerSecond.of(this.yawVelocity.getValueAsDouble());
 	}

@@ -74,7 +74,7 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightForward = new Limelight("limelight-forward");
 	public final Limelight limelightSide = new Limelight("limelight-side");
 	public final Limelight limelightReverse = new Limelight("limelight-reverse");
-	public final Limelight[] limelights = {/*limelightForward,*/limelightSide/* ,limelightReverse*/};
+	public final Limelight[] limelights = {limelightForward, limelightSide, limelightReverse};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -252,9 +252,9 @@ public class Drivetrain extends SubsystemBase {
 			if (mt2 != null) {
 				Logger.recordOutput("Drivetrain/poseMegatag"+limelight.getLimelightName(), mt2.pose);
 				boolean doRejectUpdate = false;
-				if (Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
-					doRejectUpdate = true;
-				}
+				// if (Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
+				// 	doRejectUpdate = true;
+				// }
 
 				if (mt2.tagCount == 0) {
 					doRejectUpdate = true;
@@ -263,7 +263,8 @@ public class Drivetrain extends SubsystemBase {
 				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
 				Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
 				if(!doRejectUpdate) {
-					est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+					var limelightImuTrustLevel = (this.gyroInputs.connected ? 9999999 : 0.7);
+					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,limelightImuTrustLevel));
 					est.addVisionMeasurement(
 						mt2.pose,
 						mt2.timestampSeconds);
@@ -290,7 +291,7 @@ public class Drivetrain extends SubsystemBase {
 		for(Limelight lime:limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
 			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
-			if(lime.hasValidTargets() && mt1 != null /*&& lime.getNumberOfAprilTags() > highNumAprilTags*/){
+			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
 				mostTrusted = mt1;
 				highNumAprilTags = lime.getNumberOfAprilTags();
 				// System.out.println("got a trusted limelight, numTags=" + highNumAprilTags);	
