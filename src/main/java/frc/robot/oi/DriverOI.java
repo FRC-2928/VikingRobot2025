@@ -119,7 +119,9 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(RobotContainer.getInstance().drivetrain::resetAngle));
 		// TODO: update/change this with LL mode 3
-		this.resetAngle.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu)).whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
+		this.resetAngle
+			.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
+			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralLeft()
 		);

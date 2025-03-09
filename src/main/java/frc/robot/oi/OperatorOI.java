@@ -30,7 +30,7 @@ public class OperatorOI extends BaseOI {
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
-		this.passOffCoral = this.controller.rightTrigger();
+		// this.passOffCoral = this.controller.rightTrigger();
 		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())/* ) .and(RobotContainer.getInstance().driverOI.holdingCoral*/);
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
@@ -50,7 +50,7 @@ public class OperatorOI extends BaseOI {
 	public final DoubleSupplier climbMotion;
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
-	public final Trigger passOffCoral;
+	// public final Trigger passOffCoral;
 	public final Trigger alignElevatorCoral;
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;
@@ -65,7 +65,8 @@ public class OperatorOI extends BaseOI {
 	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		// this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		// TODO: change to toggle
 		this.alignElevatorCoral.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralOveride()
 		);

@@ -244,7 +244,15 @@ public class Drivetrain extends SubsystemBase {
 		}
 
 		// Update the odometry pose
-		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		var yawPosition = this.gyroInputs.yawPosition;
+		if (!this.gyroInputs.connected) {
+			yawPosition = Units.Degrees.of(limelightSide.getIMUData().robotYaw);
+			Logger.recordOutput("Drivetrain/UsingLLYaw", true);
+		} else {
+			Logger.recordOutput("Drivetrain/UsingLLYaw", false);
+		}
+
+		this.est.update(new Rotation2d(yawPosition), this.modulePositions());
 
 		// Add vision measurements to pos est with megatag 2
 		for(Limelight limelight:limelights){
@@ -263,8 +271,7 @@ public class Drivetrain extends SubsystemBase {
 				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
 				Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
 				if(!doRejectUpdate) {
-					var limelightImuTrustLevel = (this.gyroInputs.connected ? 9999999 : 0.7);
-					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,limelightImuTrustLevel));
+					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
 					est.addVisionMeasurement(
 						mt2.pose,
 						mt2.timestampSeconds);

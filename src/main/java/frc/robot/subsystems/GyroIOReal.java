@@ -35,7 +35,7 @@ public class GyroIOReal implements GyroIO {
 		this.pigeon.getConfigurator().setYaw(0);
 		this.yaw.setUpdateFrequency(100);
 		this.yawVelocity.setUpdateFrequency(100);
-		this.pigeon.optimizeBusUtilization();
+		// this.pigeon.optimizeBusUtilization();
 	}
 
 	@Override

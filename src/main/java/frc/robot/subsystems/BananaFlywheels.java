@@ -138,9 +138,9 @@ public class BananaFlywheels extends SubsystemBase {
 
 	public boolean holdingCoral() {
 		boolean isBeamBroken = (beamBreakStateSignal.getValue() == S2StateValue.Low);
-		boolean isCurrentThresholdLoMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_LO);
-		boolean isCurrentThresholdHiMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_HI);
-		return isBeamBroken || (isCurrentThresholdLoMet && !isCurrentThresholdHiMet);
+		// boolean isCurrentThresholdLoMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_LO);
+		// boolean isCurrentThresholdHiMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_HI);
+		return isBeamBroken /*|| (isCurrentThresholdLoMet && !isCurrentThresholdHiMet)*/;
 	}
 
 	public GamePieceType getHeldGamePieceType() {
@@ -208,6 +208,7 @@ public class BananaFlywheels extends SubsystemBase {
 
 	public Command intakeForward()
 	{
+		// TODO: fix this temp hack from comp
 		return new SequentialCommandGroup(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.INTAKE_FORWARD);
@@ -217,7 +218,7 @@ public class BananaFlywheels extends SubsystemBase {
 			}, this).until(() -> this.holdingCoral()),
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.INTAKE_FORWARD);
-			}, this).withTimeout(Units.Seconds.of(0.2)),
+			}, this).withTimeout(Units.Seconds.of(0.3)),
 			new InstantCommand(() -> {
 				runFlywheels(FeederDemand.HALT);
 			}, this)

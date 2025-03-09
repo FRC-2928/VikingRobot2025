@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.*;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.robot.vision.LimelightHelpers.IMUData;
 import frc.robot.vision.LimelightHelpers.LimelightResults;
 import frc.robot.vision.LimelightHelpers.PoseEstimate;
 import frc.robot.vision.LimelightHelpers.RawFiducial;
@@ -51,6 +52,10 @@ public class Limelight {
 			return getPoseMegatag1().tagCount;
 		}
 		return 0;
+	}
+
+	public IMUData getIMUData() {
+		return LimelightHelpers.getIMUData(this.limelightName);
 	}
 
 	// Target Area (0% of image to 100% of image)
