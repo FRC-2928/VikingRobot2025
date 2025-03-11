@@ -363,7 +363,7 @@ public class Constants {
 				private static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
 					// S1In --> Banana Pivot limit switch
 					.withS1CloseState(S1CloseStateValue.CloseWhenLow)  // Banana Pivot limit switch -- closed when low
-					.withS1FloatState(S1FloatStateValue.PullLow)      // Banana Pivot limit switch -- high when open
+					.withS1FloatState(S1FloatStateValue.FloatDetect)      // Banana Pivot limit switch -- high when open
 					// S2In --> Banana beam break Sensor
 					.withS2CloseState(S2CloseStateValue.CloseWhenLow)  // Banana Beam break Sensor -- closed when low (beam broken)
 					.withS2FloatState(S2FloatStateValue.PullHigh);     // Banana Beam break Sensor -- high when open (beam intact)
@@ -522,7 +522,7 @@ public class Constants {
 		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
 		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
 
-		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(45);
+		public static final Angle MAX_PIVOT_ANGLE = Units.Rotations.of(8);
 		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
@@ -539,11 +539,11 @@ public class Constants {
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(1.00000074505806)
-			.withKI(0.0)
-			.withKD(0.0) /*TODO: add kD */
+			.withKP(5.00000074505806)
+			.withKI(0.5)
+			.withKD(0.1) /*TODO: add kD */
 			.withKS(0)
-			.withKV(0.015)
+			.withKV(0.0)
 			.withKA(0);
 	}
 

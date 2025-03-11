@@ -98,7 +98,7 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Degrees.of(0),
 		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L2.getValue(),   Units.Degrees.of(0),
+		CoralPosition.L2.getValue(),   Units.Rotations.of(5),
 		CoralPosition.L3.getValue(),   Units.Degrees.of(0),
 		CoralPosition.L4.getValue(),   Units.Degrees.of(0));
 
@@ -288,13 +288,13 @@ public class Elevator extends SubsystemBase {
 
 	private void controlPivot(final Angle rotation, final boolean holdHome) {
 		// pivot.setControl(new PositionVoltage(rotation));
-		// if (holdHome) {
+		if (holdHome) {
 			pivot.setControl(new VoltageOut(-1.5));
 			pivotCommmandedAngle = Units.Degrees.of(0);
-		// } else {
-		// 	pivotCommmandedAngle = rotation;
-		// 	pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
-		// }
+		} else {
+			pivotCommmandedAngle = rotation;
+			pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
+		}
 	}
 
 	// private void controlPivotHome() {
@@ -338,7 +338,7 @@ public class Elevator extends SubsystemBase {
 		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
 		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
 
-		controlPivot(Units.Degrees.of(0), true);
+		// controlPivot(Units.Degrees.of(0), true);
 		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
 			// in the danger zone and staying in the danger zone -- safe to move the elevator
 			controlPosition(elevatorTargetPosition);
@@ -435,7 +435,7 @@ public class Elevator extends SubsystemBase {
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
 
 		inputs.currentGamePieceType = this.currentGamePieceType;
 		inputs.targetCoralLevel = this.targetCoralLevel;
