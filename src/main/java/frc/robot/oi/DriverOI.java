@@ -1,6 +1,8 @@
 package frc.robot.oi;
 
 import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -78,10 +80,10 @@ public class DriverOI extends BaseOI {
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
 
 		this.alignReefLeft = this.controller.leftBumper()
-							.and(this.holdingCoral)
+							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignReefRight = this.controller.rightBumper()
-							.and(this.holdingCoral)
+							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate())
@@ -99,7 +101,7 @@ public class DriverOI extends BaseOI {
 							.and(this.closeToReef);
 
 		this.resetFOD = this.controller.y();
-		this.resetAngle = this.controller.b();
+		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());
 
 		this.outputGamePiece = this.controller.rightTrigger();
 
@@ -117,7 +119,9 @@ public class DriverOI extends BaseOI {
 		this.lockWheels.whileTrue(new LockWheels());
 		this.resetFOD.onTrue(new InstantCommand(RobotContainer.getInstance().drivetrain::resetAngle));
 		// TODO: update/change this with LL mode 3
-		this.resetAngle.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu)).whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
+		this.resetAngle
+			.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
+			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralLeft()
 		);
@@ -147,7 +151,7 @@ public class DriverOI extends BaseOI {
 				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
