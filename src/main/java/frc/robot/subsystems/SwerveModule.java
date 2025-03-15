@@ -62,6 +62,7 @@ public class SwerveModule {
 	public void runCharacterization(final double volts) {
 		this.io.azimuth(Units.Degrees.of(0));
 		this.io.setDriveVoltage(volts);
+		periodic();
 	}
 
 	public void periodic() {

@@ -188,7 +188,7 @@ public class ModuleIOReal implements ModuleIO {
 
 	@Override
 	public void setDriveVoltage(final double volts) {
-		this.drive.setControl(new VoltageOut(volts).withEnableFOC(DriverStation.isAutonomous()));
+		this.drive.setControl(new VoltageOut(volts));
 	}
 
 	@Override

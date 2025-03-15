@@ -44,7 +44,7 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger holdingCoral;
 
-	private final Trigger passOffCoral;
+	// private final Trigger passOffCoral;
 
 	public final Trigger closeToHP;
 	public final Trigger closeToProcessor;
@@ -111,7 +111,7 @@ public class DriverOI extends BaseOI {
 		// this.toggleReefHeightDown = this.controller.povDown();
 		// this.toggleReefHeightUp = this.controller.povUp();
 
-		this.passOffCoral = this.controller.a();
+		// this.passOffCoral = this.controller.a();
 	}
 
 	public void configureControls() {
@@ -135,14 +135,14 @@ public class DriverOI extends BaseOI {
 		);
 		this.alignReefCenterWithCoral.whileTrue(
 			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightCenter()//,
-				// RobotContainer.getInstance().drivetrain.slowMode()
+				CenterLimelight.centerLimelightCenter(),
+				RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignHP.whileTrue(
 			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightClosestHP()//,
-				// RobotContainer.getInstance().drivetrain.slowMode()
+				CenterLimelight.centerLimelightClosestHP(),
+				RobotContainer.getInstance().drivetrain.slowMode()
 			)
 		);
 		this.alignProcessor.whileTrue(
@@ -151,7 +151,7 @@ public class DriverOI extends BaseOI {
 				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		// this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));

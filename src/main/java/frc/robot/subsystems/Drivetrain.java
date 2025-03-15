@@ -297,6 +297,7 @@ public class Drivetrain extends SubsystemBase {
 		int highNumAprilTags = 0;
 		for(Limelight lime:limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
+			// if (mt1.)
 			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
 			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
 				mostTrusted = mt1;
@@ -336,7 +337,7 @@ public class Drivetrain extends SubsystemBase {
 		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
 	}
 
-	// public JoystickDrive slowMode() {
-	// 	return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
-	// }
+	public JoystickDrive slowMode() {
+		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
+	}
 }

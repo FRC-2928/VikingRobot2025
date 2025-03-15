@@ -77,9 +77,9 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
-		CoralPosition.L2.getValue(),   Units.Meters.of(0.495),
-		CoralPosition.L3.getValue(),   Units.Meters.of(0.705),
-		CoralPosition.L4.getValue(),   Units.Meters.of(1.28));
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
+		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
+		CoralPosition.L4.getValue(),   Units.Meters.of(1.32));
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
@@ -98,9 +98,9 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Degrees.of(0),
 		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L2.getValue(),   Units.Rotations.of(5),
-		CoralPosition.L3.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L4.getValue(),   Units.Degrees.of(0));
+		CoralPosition.L2.getValue(),   Units.Rotations.of(2.5),
+		CoralPosition.L3.getValue(),   Units.Rotations.of(2.5),
+		CoralPosition.L4.getValue(),   Units.Rotations.of(6));
 
 	// Map of Banana Angles for Algae
 	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
@@ -177,6 +177,9 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
 		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;  // Gearing, clockwise moves elevator up
 		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+		elevatorConfig.SoftwareLimitSwitch
+			.withForwardSoftLimitEnable(true)
+			.withForwardSoftLimitThreshold(Units.Rotations.of(1.33));
 		
 		// Peak output amps
 		elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -197,8 +200,8 @@ public class Elevator extends SubsystemBase {
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
 		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 6;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 4;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 4;
 
 		liftMotorA.getConfigurator().apply(elevatorConfig);
 		liftMotorB.getConfigurator().apply(elevatorConfig);

@@ -426,7 +426,7 @@ public class Constants {
 		public static final class Auto {
 			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
-			public static final PIDValues centerLimelight = new PIDValues(4, 0, 0.8, 0);
+			public static final PIDValues centerLimelight = new PIDValues(3, 0, 0.3, 0);
 			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 
@@ -440,7 +440,7 @@ public class Constants {
 			.withKP(0)
 			.withKI(0)
 			.withKD(0)
-			.withKS(0)
+			.withKS(0.35)
 			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond))
 			.withKA(0);
 
@@ -527,20 +527,20 @@ public class Constants {
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 		.withGravityType(GravityTypeValue.Elevator_Static)
-		.withKS(0.5)
+		.withKS(0.6)
 		.withKG(0.29)
-		.withKV(6)
+		.withKV(7)
 		.withKA(0.1)
-		.withKP(5)
-		.withKI(0.05)
-		.withKD(0.1);
+		.withKP(10)
+		.withKI(1)
+		.withKD(8);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
 			.withKP(5.00000074505806)
-			.withKI(0.5)
+			.withKI(1)
 			.withKD(0.1) /*TODO: add kD */
 			.withKS(0)
 			.withKV(0.0)
