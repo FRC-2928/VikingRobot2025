@@ -131,9 +131,13 @@ public class DriverOI extends BaseOI {
 			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralLeft()
+		).onFalse(
+			RobotContainer.getInstance().raiseElevatorAtReef()
 		);
 		this.alignReefRight.whileTrue(
 			RobotContainer.getInstance().telePositionForCoralRight()
+		).onFalse(
+			RobotContainer.getInstance().raiseElevatorAtReef()
 		);
 		this.alignReefCenter.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgae()
