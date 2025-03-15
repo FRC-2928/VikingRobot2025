@@ -184,18 +184,23 @@ public class RobotContainer {
 			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
 			Commands.deadline(
 				new SequentialCommandGroup(
-					this.bananaFlywheels.outputForward().withTimeout(Units.Seconds.of(0.5)),
+					this.bananaFlywheels.outputForward().withTimeout(0.5),
 					new InstantCommand(() -> {elevator.onEjectCoral();}),
 					new RunCommand(() -> {}).until(elevator::isInTargetPos)
 				),
-				this.intake.runTrough().until(intake::holdingGamePeice)
+				this.intake.runTroughBackwards()
 			),
 			new SequentialCommandGroup(
-				this.intake.runTrough().until(intake::holdingGamePeice), // protection to ensure we finish staging the piece
 				new ParallelCommandGroup(
-					this.intake.runTrough(),
+					this.intake.runTrough(), // protection to ensure we finish staging the piece
 					this.bananaFlywheels.outputForward()
-				).until(() -> !this.intake.holdingGamePeice())
+				).until(bananaFlywheels::holdingCoral),
+				
+				Commands.deadline(
+					this.bananaFlywheels.rotateBanana(Units.Rotations.of(Tuning.intakeBananaFlywheelsRotations.get())),
+					this.intake.runTrough()
+					
+				)
 			)
 		);
 	}

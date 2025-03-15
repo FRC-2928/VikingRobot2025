@@ -71,4 +71,8 @@ public final class Tuning {
 		"/Tuning/elevatorSpeed",
 		0.3
 	);
+	public static final LoggedNetworkNumber intakeBananaFlywheelsRotations = new LoggedNetworkNumber(
+		"/Tuning/intakeBananaFlywheelsRotations",
+		5
+	);
 }
