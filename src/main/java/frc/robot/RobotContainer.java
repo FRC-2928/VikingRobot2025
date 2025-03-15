@@ -100,14 +100,14 @@ public class RobotContainer {
 			CenterLimelight.centerLimelightLeft(),
 			new ParallelCommandGroup(
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			drivetrain.slowMode()
+			drivetrain.dPadMode()
 		);
 	}
 
@@ -116,7 +116,7 @@ public class RobotContainer {
 			CenterLimelight.centerLimelightRight(),
 			new ParallelCommandGroup(
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -130,7 +130,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -143,7 +143,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -156,7 +156,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}

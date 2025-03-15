@@ -1,5 +1,6 @@
 package frc.robot.oi;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -37,6 +38,9 @@ public class DriverOI extends BaseOI {
 	public final Trigger resetAngle;
 
 	public final Trigger outputGamePiece;
+
+	public final BooleanSupplier reefMovementLeft;
+	public final BooleanSupplier reefMovementRight;
 
 	// Drivers asked for this control to be only for operator
 	// public final Trigger toggleReefHeightUp;
@@ -106,6 +110,9 @@ public class DriverOI extends BaseOI {
 		this.outputGamePiece = this.controller.rightTrigger();
 
 		this.lockWheels = this.controller.x();
+
+		this.reefMovementLeft = this.controller.povLeft();
+		this.reefMovementRight = this.controller.povRight();
 
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown = this.controller.povDown();
