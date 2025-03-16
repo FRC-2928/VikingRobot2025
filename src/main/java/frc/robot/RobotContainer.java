@@ -97,15 +97,21 @@ public class RobotContainer {
 	}
 
 	public Command raiseElevatorAtReef() {
-		return new ConditionalCommand(this.elevator.goToGamePieceHeight(GamePieceType.CORAL), new InstantCommand(), this.driverOI.closeToReef).until(this.driverOI.closeToReef.negate());
+		return new ConditionalCommand(
+			new ParallelCommandGroup(
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL), 
+				this.drivetrain.dPadMode()
+			),
+			new InstantCommand(), 
+			this.driverOI.closeToReef)
+		.until(this.driverOI.closeToReef.negate());
 	}
 
 	public Command telePositionForCoralLeft() {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimelightLeft(),
 			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.dPadMode()
+				
 			)
 		);
 	}
@@ -126,7 +132,6 @@ public class RobotContainer {
 		);
 	}
 
-	public Command 
 
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
