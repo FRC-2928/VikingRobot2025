@@ -27,6 +27,7 @@ public class OperatorOI extends BaseOI {
 		// this.resetAngle = this.controller.back();
 		this.toggleClimb = this.controller.leftBumper();
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
+		
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		// this.passOffCoral = this.controller.rightTrigger();

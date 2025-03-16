@@ -27,6 +27,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
 import frc.robot.commands.drivetrain.CenterLimelight;
+import frc.robot.commands.drivetrain.DPadDrive;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -232,6 +233,26 @@ public class Drivetrain extends SubsystemBase {
 
 	}
 
+	public boolean isUpdateable(PoseEstimate posEst) {
+		if (Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) { 
+			return false;
+		}
+		if (posEst.tagCount == 0) {
+			return false;
+		}
+		if (Double.isNaN(posEst.pose.getX()) || Double.isNaN(posEst.pose.getY()) || Double.isInfinite(posEst.pose.getX()) || Double.isInfinite(posEst.pose.getY())) {
+			return false;
+		}
+		if (Double.isNaN(posEst.pose.getRotation().getDegrees())|| Double.isInfinite(posEst.pose.getRotation().getDegrees())) {
+			return false;
+		}
+		if (posEst.pose.getX() > 100d || posEst.pose.getY() > 100d) {
+			return false;
+		}
+		
+		return true;
+	}
+
 	@Override
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
@@ -261,7 +282,8 @@ public class Drivetrain extends SubsystemBase {
 				Logger.recordOutput("Drivetrain/poseMegatag"+limelight.getLimelightName(), mt2.pose);
 
 				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
-				if(!(Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720 || mt2.tagCount == 0)) {
+				Logger.recordOutput("Drivetrain/doRejectUpdate" +limelight.getLimelightName(), isUpdateable(mt2));
+				if(isUpdateable(mt2)) {
 					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
 					est.addVisionMeasurement(
 						mt2.pose,
@@ -323,5 +345,8 @@ public class Drivetrain extends SubsystemBase {
 
 	public JoystickDrive slowMode() {
 		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
+	}
+	public DPadDrive dPadMode() {
+		return new DPadDrive(this);
 	}
 }
