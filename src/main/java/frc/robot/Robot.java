@@ -56,7 +56,9 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void robotInit() {
-		cont.drivetrain.limelight.setIMUMode(1);
+		for (var limelight : cont.drivetrain.limelights) {
+			limelight.setIMUMode(1);
+		}
 		cont.elevator.setDefaultCommand();
 		initializeSmartDashboard();
 		
@@ -66,7 +68,10 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
 		LoggedPowerDistribution.getInstance(Constants.CAN.Misc.pdh, ModuleType.kRev);
-		cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
+		for (var limelight : cont.drivetrain.limelights) {
+			limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
+		}
+		// cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
 		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef);
 		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP);
 		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor);
@@ -76,7 +81,9 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledInit() {
 		CommandScheduler.getInstance().cancelAll();
-		cont.drivetrain.limelight.setIMUMode(1);
+		for (var limelight : cont.drivetrain.limelights) {
+			limelight.setIMUMode(1);
+		}
 	}
 
 	@Override
@@ -114,7 +121,9 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		cont.drivetrain.limelight.setIMUMode(2);
+		for (var limelight : cont.drivetrain.limelights) {
+			limelight.setIMUMode(2);
+		}
 	}
 
 	@Override

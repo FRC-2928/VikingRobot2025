@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Constants.AlgaePosition;
+import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
@@ -82,12 +83,16 @@ public class RobotContainer {
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimeLightPosition(reefPos),
+			new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L2)),
 			this.elevator.goToReefHeight(GamePieceType.CORAL),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
 			)
-		).finallyDo(() -> this.elevator.onEjectCoral());
+		).finallyDo(() -> {
+			this.elevator.onEjectCoral();
+			this.elevator.setTargetCoralLevel(CoralPosition.NONE);
+		});
 	}
 
 	public Command telePositionForCoralLeft() {
@@ -115,6 +120,8 @@ public class RobotContainer {
 			)
 		);
 	}
+
+	public Command 
 
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
@@ -166,8 +173,17 @@ public class RobotContainer {
 			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
 		);
 	}
-	public Command passCoral(){
+	public Command troughHandoffManual(){
+		return new ParallelCommandGroup(
+			this.bananaFlywheels.intakeForward(),
+			this.intake.runTrough()
+		);
+	}
+
+	public Command troughHandoffAutomated(){
 		return new SequentialCommandGroup(
+			// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
+			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
 			Commands.deadline(
 				new SequentialCommandGroup(
 					this.bananaFlywheels.outputForward().withTimeout(Units.Seconds.of(0.5)),

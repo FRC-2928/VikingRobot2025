@@ -35,12 +35,14 @@ public class GyroIOReal implements GyroIO {
 		this.pigeon.getConfigurator().setYaw(0);
 		this.yaw.setUpdateFrequency(100);
 		this.yawVelocity.setUpdateFrequency(100);
-		this.pigeon.optimizeBusUtilization();
+		// this.pigeon.optimizeBusUtilization();
 	}
 
 	@Override
 	public void updateInputs(final GyroIOInputs inputs) {
-		inputs.connected = StatusCode.OK.equals(BaseStatusSignal.refreshAll(this.yaw, this.yawVelocity));
+		var refreshStatus = BaseStatusSignal.refreshAll(this.yaw, this.yawVelocity);
+		inputs.refreshStatus = refreshStatus;
+		inputs.connected = StatusCode.OK.equals(refreshStatus);
 		inputs.yawPosition = Units.Degrees.of(this.yaw.getValueAsDouble());
 		inputs.yawVelocityRadPerSec = Units.DegreesPerSecond.of(this.yawVelocity.getValueAsDouble());
 	}

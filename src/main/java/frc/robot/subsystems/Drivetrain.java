@@ -11,7 +11,6 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -19,6 +18,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -71,10 +71,10 @@ public class Drivetrain extends SubsystemBase {
 	public final Field2d field = new Field2d();
 	private final SwerveDriveKinematics kinematics = Constants.Drivetrain.kinematics;
 	public final SwerveDrivePoseEstimator est;
-	public final Limelight limelight = new Limelight("limelight");
-	public final Limelight limelightLeftUpForward = new Limelight("LimelightLeftUpForward");
-	public final Limelight limelightUpBack = new Limelight("LimelightUpBack");
-	public final Limelight[] Limelights = {limelight,limelightLeftUpForward,limelightUpBack};
+	public final Limelight limelightForward = new Limelight("limelight-forward");
+	public final Limelight limelightSide = new Limelight("limelight-side");
+	public final Limelight limelightReverse = new Limelight("limelight-reverse");
+	public final Limelight[] limelights = {limelightForward, limelightSide, limelightReverse};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -174,7 +174,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		for(Limelight lime:Limelights){
+		for(Limelight lime : limelights){
 			lime.setIMUMode(1);
 			lime.setRobotOrientation(newPose.getRotation().getMeasure());
 		}
@@ -264,20 +264,26 @@ public class Drivetrain extends SubsystemBase {
 		}
 
 		// Update the odometry pose
-		
-		this.est.update(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions());
+		Angle yawPosition = this.gyroInputs.yawPosition;
+		if (!this.gyroInputs.connected) {
+			yawPosition = Units.Degrees.of(limelightSide.getIMUData().robotYaw);
+			Logger.recordOutput("Drivetrain/UsingLLYaw", true);
+		} else {
+			Logger.recordOutput("Drivetrain/UsingLLYaw", false);
+		}
+
+		this.est.update(new Rotation2d(yawPosition), this.modulePositions());
 
 		// Add vision measurements to pos est with megatag 2
-		for(Limelight limelight:Limelights){
+		for(Limelight limelight : limelights){
 			PoseEstimate mt2 = limelight.getPoseMegatag2();
 			if (mt2 != null) {
 				Logger.recordOutput("Drivetrain/poseMegatag"+limelight.getLimelightName(), mt2.pose);
-				boolean doRejectUpdate = false;
 
 				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
 				Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
 				if(isUpdateable(mt2)) {
-					est.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
 					est.addVisionMeasurement(
 						mt2.pose,
 						mt2.timestampSeconds);
@@ -286,9 +292,10 @@ public class Drivetrain extends SubsystemBase {
 		}
 		field.setRobotPose(this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
-		Logger.recordOutput("Drivetrain/Imumode", limelight.getImuMode());
-		Logger.recordOutput("Drivetrain/limelightHasTargets",limelight.hasValidTargets());
-		PoseEstimate mt1 = this.limelight.getPoseMegatag1();
+		Logger.recordOutput("Drivetrain/Imumode", limelightSide.getImuMode());
+		Logger.recordOutput("Drivetrain/limelightHasTargets",limelightSide.hasValidTargets());
+		Logger.recordOutput("Drivetrain/matchTimer", Timer.getMatchTime());
+		PoseEstimate mt1 = this.limelightSide.getPoseMegatag1();
 		if (mt1 != null) {
 			Logger.recordOutput("Drivetrain/Mt1", mt1.pose);
 		}
@@ -300,7 +307,7 @@ public class Drivetrain extends SubsystemBase {
 		int numberOfValidTargets = 0;
 		PoseEstimate mostTrusted = null;
 		int highNumAprilTags = 0;
-		for(Limelight lime:Limelights){
+		for(Limelight lime : limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
 			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
 				mostTrusted = mt1;
@@ -317,7 +324,7 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void setImuMode2(){
-		for(Limelight lime:Limelights){
+		for(Limelight lime : limelights){
 			lime.setIMUMode(2);
 		}
 	}

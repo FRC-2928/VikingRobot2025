@@ -1,6 +1,5 @@
 package frc.robot;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
@@ -316,7 +315,7 @@ public class Constants {
 		}
 
 		public static final class CTRE {
-			public static final String bus = "canivore";
+			public static final String bus = "Canivore";
 
 			public static final int pigeon = 1;
 
@@ -403,7 +402,7 @@ public class Constants {
 		public static final Distance wheelRadius = Units.Inches.of(2);
 		public static final Distance wheelCircumference = Drivetrain.wheelRadius.times(2 * Math.PI);
 
-		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelCircumference.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
+		public static final LinearVelocity maxVelocity = Units.FeetPerSecond.of(17.1 * wheelRadius.in(Units.Inches) / 2.0);  // MK4i max speed L3, smaller wheel diameter will reduce
 
 		public static final Distance wheelBase = Units.Inches.of(21.75);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
@@ -426,7 +425,7 @@ public class Constants {
 		public static final class Auto {
 			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
-			public static final PIDValues centerLimelight = new PIDValues(2, 0, 0, 0);
+			public static final PIDValues centerLimelight = new PIDValues(4, 0, 0.8, 0);
 			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 
@@ -444,28 +443,32 @@ public class Constants {
 			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond))
 			.withKA(0);
 
-		public static final PIDValues absoluteRotationPID = new PIDValues(2.3, 0, 0.15, 0);
+		public static final PIDValues absoluteRotationPID = new PIDValues(5, 0, 0.5, 0);
 		public static final TrapezoidProfile.Constraints absoluteRotationConstraints = new TrapezoidProfile.Constraints(
 			1,
 			17
 		);
 
-		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
+		// public static final Angle swerveFrontLeftOffset = Units.Rotations.of(-0.420654296875);
+		public static final Angle swerveFrontLeftOffset = Units.Rotations.of(0.121826171875);
 		public static final Translation2d swerveFrontLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d),
 			Constants.Drivetrain.trackWidth.div(2d)
 		);
-		public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
+		// public static final Angle swerveFrontRightOffset = Units.Rotations.of(0.299072265625);
+		public static final Angle swerveFrontRightOffset = Units.Rotations.of(-0.32421875);
 		public static final Translation2d swerveFrontRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d),
 			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
 		);
-		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
+		// public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.033203125);
+		public static final Angle swerveBackLeftOffset = Units.Rotations.of(0.4443359375);
 		public static final Translation2d swerveBackLeftTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
 			Constants.Drivetrain.trackWidth.div(2d)
 		);
-		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
+		// public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.4169921875);
+		public static final Angle swerveBackRightOffset = Units.Rotations.of(-0.185791015625);
 		public static final Translation2d swerveBackRightTranslation = new Translation2d(
 			Constants.Drivetrain.wheelBase.div(2d).unaryMinus(),
 			Constants.Drivetrain.trackWidth.div(2d).unaryMinus()
@@ -518,25 +521,26 @@ public class Constants {
 		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
 		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
 
-		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(40);
+		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(45);
 		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 		.withGravityType(GravityTypeValue.Elevator_Static)
-		.withKS(0)
-		//.withKG(0.1)
-		.withKV(6.81655937847)
-		.withKA(0.53)
-		.withKP(20)
-		.withKD(0);
+		.withKS(0.5)
+		.withKG(0.29)
+		.withKV(6)
+		.withKA(0.1)
+		.withKP(5)
+		.withKI(0.05)
+		.withKD(0.1);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(0.05)
+			.withKP(1.00000074505806)
 			.withKI(0.0)
-			.withKD(0.0)
+			.withKD(0.0) /*TODO: add kD */
 			.withKS(0)
 			.withKV(0.015)
 			.withKA(0);
@@ -570,9 +574,10 @@ public class Constants {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 
 		public static enum FeederDemand {
-			REVERSE(-1),
+			REVERSE(4),
 			HALT(0),
-			FORWARD(1);
+			FORWARD(-12),
+			INTAKE_FORWARD(-1);
 
 			private int demand;
 
@@ -600,22 +605,8 @@ public class Constants {
 			.withKA(0);
 		
 		/// Current thershold that indicates the Banana is holding a piece of Alage
-		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(10);  // TODO: update based off of logged current values for algae
-	}
-
-	public static class Climber {
-		private Climber() { throw new IllegalCallerException("Cannot instantiate `Constants.Climber`"); }
-
-		public static final boolean ratchetEnabled = false;
-
-		public static final SlotConfigs configFast = new SlotConfigs().withKP(0.25);
-		public static final SlotConfigs configSlow = new SlotConfigs().withKP(0.01);
-
-		public static final double ratchetLocked = 84;
-		public static final double ratchetFree = 93;
-
-		public static final double max = 129;
-		public static final double disengageDistance = 0.5;
-		public static final double initializeRaiseDistance = 2;
+		public static final Current HOLDING_ALGAE_CURRENT_THRESHOLD = Units.Amps.of(16);  // TODO: update based off of logged current values for algae
+		public static final Current HOLDING_CORAL_CURRENT_THRESHOLD_LO = Units.Amps.of(5);  // TODO: update based off of logged current values for coral
+		public static final Current HOLDING_CORAL_CURRENT_THRESHOLD_HI = Units.Amps.of(16);  // TODO: update based off of logged current values for coral
 	}
 }

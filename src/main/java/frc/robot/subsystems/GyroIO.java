@@ -15,12 +15,14 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.*;
+import com.ctre.phoenix6.StatusCode;
 
 import org.littletonrobotics.junction.AutoLog;
 
 public interface GyroIO {
 	@AutoLog
 	public static class GyroIOInputs {
+		public StatusCode refreshStatus = StatusCode.OK;
 		public boolean connected = false;
 		public Angle yawPosition = Units.Rotations.zero();
 		public AngularVelocity yawVelocityRadPerSec = Units.RotationsPerSecond.zero();

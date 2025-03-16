@@ -18,7 +18,9 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Banana;
@@ -135,7 +137,10 @@ public class BananaFlywheels extends SubsystemBase {
 	}
 
 	public boolean holdingCoral() {
-		return (heldGamePieceType == GamePieceType.CORAL);
+		boolean isBeamBroken = (beamBreakStateSignal.getValue() == S2StateValue.Low);
+		// boolean isCurrentThresholdLoMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_LO);
+		// boolean isCurrentThresholdHiMet = motorStatorCurrent.getValue().gt(Banana.HOLDING_CORAL_CURRENT_THRESHOLD_HI);
+		return isBeamBroken /*|| (isCurrentThresholdLoMet && !isCurrentThresholdHiMet)*/;
 	}
 
 	public GamePieceType getHeldGamePieceType() {
@@ -162,9 +167,13 @@ public class BananaFlywheels extends SubsystemBase {
 		// In binary: 00 = NONE, 01 = CORAL, 10 = ALGAE, 11 = CAGE
 		heldGamePieceTypeFlags[0] = (beamBreakStateSignal.getValue() == S2StateValue.Low);  // Coral is bit 0
 		heldGamePieceTypeFlags[1] = motorStatorCurrent.getValue().gt(Banana.HOLDING_ALGAE_CURRENT_THRESHOLD); // Algae is bit 1
+		Logger.recordOutput("BananaFlywheels/IsBeamBroken", heldGamePieceTypeFlags[0]);
+		Logger.recordOutput("BananaFlywheels/IsCurrentThresholdMet", heldGamePieceTypeFlags[1]);
+		Logger.recordOutput("BananaFlywheels/MotorStatorCurrent", motorStatorCurrent.getValue().in(Units.Amps));
 		int heldGamePieceTypeBitset = 0;
 		for (int i = 0; i < heldGamePieceTypeFlags.length; i++) {
 			if (heldGamePieceTypeFlags[i]) {
+				// System.out.println("heldPieceType,i=" + i + ",value=" + heldGamePieceTypeFlags[i]);
 				heldGamePieceTypeBitset |= (1 << i);  // shift the bits into position
 			}
 		}
@@ -186,7 +195,7 @@ public class BananaFlywheels extends SubsystemBase {
 		.andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.FORWARD);
-			}, this).withTimeout(0.2)
+			}, this).withTimeout(0.12)
 		).andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.HALT);
@@ -195,6 +204,25 @@ public class BananaFlywheels extends SubsystemBase {
 		// 1. Run the wheels forward until the sensor returns false
 		// 2. Run the wheels another 0.2 seconds
 		// 3. Stop the wheels
+	}
+
+	public Command intakeForward()
+	{
+		// TODO: fix this temp hack from comp
+		return new SequentialCommandGroup(
+			new RunCommand(() -> {
+				runFlywheels(FeederDemand.INTAKE_FORWARD);
+			}, this).withTimeout(Units.Seconds.of(0.06)),
+			new RunCommand(() -> {
+				runFlywheels(FeederDemand.INTAKE_FORWARD);
+			}, this).until(() -> this.holdingCoral()),
+			new RunCommand(() -> {
+				runFlywheels(FeederDemand.INTAKE_FORWARD);
+			}, this).withTimeout(Units.Seconds.of(0.3)),
+			new InstantCommand(() -> {
+				runFlywheels(FeederDemand.HALT);
+			}, this)
+		).finallyDo(() -> {runFlywheels(FeederDemand.HALT);});
 	}
 
 	public Command outputForward(){

@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import java.util.Map;
-import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -12,8 +11,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -35,34 +34,35 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.Tuning;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
 	public static class ElevatorInputs {
 		public Distance height = Units.Meters.zero();
-		public boolean isPivotHomed = true;
-		public boolean isElevatorHomed = true;
+		public boolean isPivotHomed = false;
+		public boolean isElevatorHomed = false;
 		public LinearVelocity speed = Units.MetersPerSecond.zero();
-		public Angle pivotAngle = Units.Degrees.zero();
+		public Angle pivotAngle = Units.Degrees.of(0);
 		public AngularVelocity pivotAngularVelocity = Units.RadiansPerSecond.zero();
-		public int targetCoralLevel = CoralPosition.L1.getValue();
+		public GamePieceType currentGamePieceType = GamePieceType.NONE;
+		public int targetCoralLevel = CoralPosition.NONE.getValue();
 		public int targetAlgaeLevel = AlgaePosition.NONE.getValue();
 		public int targetCageLevel = CoralPosition.NONE.getValue();
+		public Angle pivotCommandedAngle = Units.Degrees.of(20);
+		public Angle pivotDesiredAngle = Units.Degrees.of(0);
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 
 	// --------------------- Internal Higher-Order States ---------------------
 	// Target state variables
-	private int targetCoralLevel = CoralPosition.L1.getValue();    // L1 by default
+	private int targetCoralLevel = CoralPosition.NONE.getValue();    // NONE by default
 	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
 	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
 	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
@@ -70,11 +70,11 @@ public class Elevator extends SubsystemBase {
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Feet.of(0),
-		CoralPosition.L1.getValue(),   Units.Feet.of(2.5),
-		CoralPosition.L2.getValue(),   Units.Feet.of(3.5),
-		CoralPosition.L3.getValue(),   Units.Feet.of(4.5),
-		CoralPosition.L4.getValue(),   Units.Feet.of(6.4));
+		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
+		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.495),
+		CoralPosition.L3.getValue(),   Units.Meters.of(0.705),
+		CoralPosition.L4.getValue(),   Units.Meters.of(1.28));
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
@@ -130,6 +130,7 @@ public class Elevator extends SubsystemBase {
 	private Angle pivotCommmandedAngle; // The angle that the motor is currently told to go to
 
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
+	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
 
@@ -152,7 +153,7 @@ public class Elevator extends SubsystemBase {
 		this.elevatorTargetPosition = Units.Feet.of(0);
 		this.elevatorCommandedPosition = Units.Feet.of(0);
 		this.pivotTargetAngle = Units.Degrees.of(0);
-		this.pivotCommmandedAngle = Units.Degrees.of(0);
+		this.pivotCommmandedAngle = Units.Degrees.of(20);
 
 		// lift motors are on the CANivore
 		liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA, Constants.CAN.CTRE.bus);
@@ -191,8 +192,8 @@ public class Elevator extends SubsystemBase {
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
 		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6.81655937847;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 0.55;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 6;
 
 		liftMotorA.getConfigurator().apply(elevatorConfig);
 		liftMotorB.getConfigurator().apply(elevatorConfig);
@@ -245,6 +246,7 @@ public class Elevator extends SubsystemBase {
 			elevatorMotorVelocity,
 			elevatorMotorStatorCurrent,
 			elevatorMotorSupplyCurrent,
+			elevatorHomedSignal,
 			pivotMotorPosition,
 			pivotMotorVelocity,
 			pivotHomedSignal);
@@ -258,7 +260,7 @@ public class Elevator extends SubsystemBase {
 			MathUtil.clamp(
 				position.in(Units.Meters),
 				Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters),
-				Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meter)));
+				Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meters)));
 	}
 
 	private void pivotBanana(final Angle rotation) {
@@ -279,57 +281,78 @@ public class Elevator extends SubsystemBase {
 		liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
 	}
 
-	private void controlPivot(final Angle rotation) {
-		pivot.setControl(new PositionVoltage(rotation));
-		pivotCommmandedAngle = rotation;
+	private void controlPivot(final Angle rotation, final boolean holdHome) {
+			pivot.setControl(new VoltageOut(-1.5));
+			pivotCommmandedAngle = Units.Degrees.of(0);
 	}
+
 
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
 		return this.currentGamePieceType == pieceType;
 	}
 
 	public boolean isInTargetPos() {
-		if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
-			return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
-				   pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);
-		}
-		return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
-		       Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
+		boolean isElevatorInPosition = elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement);
+		boolean isBananaInPosition = pivotTargetAngle.isNear(pivotCommmandedAngle, toleranceForFinishedPivot);
+		Logger.recordOutput("Elevator/IsElevatorInPosition", isElevatorInPosition);
+		Logger.recordOutput("Elevator/IsBananaInPosition", isBananaInPosition);
+		return isElevatorInPosition && isBananaInPosition;
 	}
 
-	private void updateMotorsGamePiece() {
+	private void updateMotors() {
+		// var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+		var currentElevatorPosition = inputs.height;
+		var currentBananaAngle = pivotCommmandedAngle;
 		// are we currently in the elevator danger zone?
+		boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
 		// is the elevator target within the danger zone?
+		boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
 		// is the banana in a dangerous orientation?
+		boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
 		// are we trying to move the banana into a dangerous orientation?
-		if (elevatorCommandedPosition != elevatorTargetPosition) {
-			if (elevatorTargetPosition.gte(elevatorThresholdForPivot)) {
-				controlPosition(elevatorTargetPosition);
-			}
-			else {
-				if (this.inputs.isPivotHomed) {
-					controlPosition(elevatorTargetPosition);
-				}
-			}
+		boolean bananaTargetInDangerZone = pivotTargetAngle.gt(bananaDangerZoneThreshold);
+
+		Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
+		Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
+		Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
+		Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
+		Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
+		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
+		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
+
+		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
+			// in the danger zone and staying in the danger zone -- safe to move the elevator
+			controlPosition(elevatorTargetPosition);
+			controlPivot(Units.Degrees.of(0), true);
+			return;
 		}
 
-		if (pivotCommmandedAngle != pivotTargetAngle) {
-			if (pivotTargetAngle.lt(Units.Degrees.of(1))) {
-				controlPivot(pivotTargetAngle);
-			}
-			else {
-				if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
-					controlPivot(pivotTargetAngle);
-				}
-			}
+		if (elevatorInDangerZone && !elevatorTargetInDangerZone) {
+			// in the danger zone but moving out of it -- safe to move the elevator
+			controlPosition(elevatorTargetPosition);
+			controlPivot(pivotTargetAngle, true);
 		}
 
-		if (elevatorTargetPosition.lt(elevatorThresholdForPivot) && pivotCommmandedAngle.gt(Units.Degrees.of(1))) {
-			controlPivot(Units.Degrees.of(0));
+		if (!elevatorInDangerZone && elevatorTargetInDangerZone) {
+			// not in the danger zone but moving into it... check the banana first
+			if (bananaAngleInDangerZone || bananaTargetInDangerZone) {
+				// banana is in danger -- move the banana but not the elevator
+				controlPivot(pivotTargetAngle, true);
+				return;
+			}
+
+			// banana is safe and will remain safe -- control both
+			controlPivot(pivotTargetAngle, !bananaTargetInDangerZone);
+			controlPosition(elevatorTargetPosition);
+			return;
 		}
-	}
-	private void updateMotorsClimb(final double velocity) {
-		controlPositionVelocity(Units.MetersPerSecond.of(velocity));
+
+		if (!elevatorInDangerZone && !elevatorTargetInDangerZone) {
+			// no risk to banana -- move both
+			controlPivot(pivotTargetAngle, !bananaTargetInDangerZone);
+			controlPosition(elevatorTargetPosition);
+			return;
+		}
 	}
 
 	public void setElevatorMode(GamePieceType type){
@@ -340,30 +363,38 @@ public class Elevator extends SubsystemBase {
 			.refreshAll(
 				this.elevatorMotorPosition,
 				this.elevatorMotorVelocity,
+				this.elevatorHomedSignal,
 				this.elevatorMotorStatorCurrent,
-				this.elevatorMotorSupplyCurrent,
-				this.pivotMotorPosition,
-				this.pivotMotorVelocity,
-				this.pivotHomedSignal
+				this.elevatorMotorSupplyCurrent
 			);
+
+		// Second refresh for RIO CAN bus
+		BaseStatusSignal.refreshAll(
+			this.pivotMotorPosition,
+			this.pivotMotorVelocity,
+			this.pivotHomedSignal);
 
 		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
-		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.height.in(Units.Meters) < 1e-7;*/
+		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.height.in(Units.Meters) < 1e-7;*/
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 1*/;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
 
+		inputs.currentGamePieceType = this.currentGamePieceType;
 		inputs.targetCoralLevel = this.targetCoralLevel;
 		inputs.targetAlgaeLevel = this.targetAlgaeLevel;
 		inputs.targetCageLevel = this.targetCageLevel;
+		inputs.pivotCommandedAngle = pivotCommmandedAngle;
+		inputs.pivotDesiredAngle = pivotTargetAngle;
 	}
 
 	@Override
 	public void periodic() {
 		this.updateInputs(this.inputs);
 		Logger.processInputs("Elevator", this.inputs);
+		this.updateMotors();
 	}
 
 	public void setDefaultCommand() {
@@ -383,11 +414,11 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public void toggleReefHeightDown() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 1, 4);
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
 	}
 
 	public void toggleReefHeightUp() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 1, 4);
+		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
 	}
 
 	public void onEjectAlgae() {
@@ -421,15 +452,6 @@ public class Elevator extends SubsystemBase {
 			setElevatorMode(GamePieceType.CAGE);
 			setTargetCageLevel(CagePosition.SHALLOW); // Hard code the climb to SHALLOW because our climb is shallow
 		});
-	}
-
-	public Command doClimb(DoubleSupplier climbMovement) {
-		return new SequentialCommandGroup(
-			goToReefHeight(GamePieceType.CAGE),
-			new RunCommand(() -> {
-				this.updateMotorsClimb(climbMovement.getAsDouble());
-			}, this)
-		);
 	}
 
 	/**
@@ -499,31 +521,15 @@ public class Elevator extends SubsystemBase {
 				// feed the setpoints to the actuators
 				moveToPosition(desiredElevatorSetpoint);
 				pivotBanana(desiredBananaSetpoint);
-				this.updateMotorsGamePiece();
 			},
 			// require "this" subsystem
 			this);
-	}
-
-	/**
-	 * Returns a command that moves the elevator based on input between -1.0 and 1.0.
-	 * 
-	 * @param input a value between -1 and 1 which describes how fast to move the elevator. It is a supplier since the value can change over time, such as a joystick input.
-	 * @return a command that uses the input supplier to control the elevator motion until interrupted.
-	 */
-	public Command moveElevatorDuringClimb(final DoubleSupplier input) {
-		return new RunCommand(() -> { 
-			this.updateMotorsClimb(input.getAsDouble() * Tuning.elevatorSpeed.get());
-		}, this).finallyDo(() -> {
-			this.updateMotorsClimb(0);
-		});
 	}
 
 	private Command toDefaultPosition() {
 		return new RunCommand(() -> {
 			pivotBanana(currentGamePieceType.getPivot());
 			moveToPosition(currentGamePieceType.getHeight());
-			this.updateMotorsGamePiece();
 		}, this);
 	}
 
