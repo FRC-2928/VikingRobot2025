@@ -13,7 +13,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -22,7 +21,6 @@ import frc.robot.Constants;
 import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.RobotContainer;
-import frc.robot.Tuning;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CenterLimelight extends Command {
@@ -181,33 +179,30 @@ public class CenterLimelight extends Command {
     }
 
     public static CenterLimelight centerLimelightLeft(){
-      return new CenterLimelight(Units.Inches.of(3.85), offsetReef.negate(), reefTags);
+
+      return new CenterLimelight(Units.Inches.of(3.85),offsetReef.negate(), reefTags);
   }
   public static CenterLimelight centerLimelightRight(){
-    return new CenterLimelight(Units.Inches.of(3.85), offsetReef, reefTags);
-  }
-  public static CenterLimelight centerLimelightRightRotated(){
-    // return new CenterLimelight(Units.Feet.of(0).plus(Constants.Drivetrain.halfRobotWidthBumpersOn),Units.Inches.of(6.5).plus(Constants.Drivetrain.halfRobotWidthBumpersOn), Units.Degrees.of(45), reefTags);
-    return new CenterLimelight(Units.Feet.of(0),offsetReef, Units.Degrees.of(180), reefTags);
+    return new CenterLimelight(Units.Inches.of(3.85),offsetReef, reefTags);
   }
 
   public static CenterLimelight centerLimelightCenter(){
-    return new CenterLimelight(Units.Inches.of(3.5),Units.Inches.of(0), reefTags);
+    return new CenterLimelight(Units.Inches.of(3.85),Units.Inches.of(0), reefTags);
   }
 
   public static CenterLimelight centerLimeLightPosition(ReefPosition reefPos) {
-    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(6.5 * reefPos.getDirection()), reefPos.getTagID());
+    return new CenterLimelight(Units.Inches.of(3.85), offsetReef.times(reefPos.getDirection())/*Units.Inches.of(6.5 * reefPos.getDirection())*/, reefPos.getTagID());
   }
 
   public static CenterLimelight centerLimelightHPReverse(HumanPlayerPosition hpPose) {
-    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(-15), hpPose.getTagID());
+    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(-15), Units.Radians.of(Math.PI), hpPose.getTagID());
   }
 
   public static CenterLimelight centerLimelightClosestHP() {
-    return new CenterLimelight(Units.Inches.of(0), Units.Inches.of(-8), Units.Radians.of(Math.PI), List.of(1, 2, 12, 13));
+    return new CenterLimelight(Units.Inches.of(3.85), Units.Inches.of(-8), Units.Radians.of(Math.PI), List.of(1, 2, 12, 13));
   }
 
   public static CenterLimelight centerLimelightProcessor() {
-    return new CenterLimelight(Units.Inches.of(0), Units.Inches.of(-15), Units.Radians.of(0), List.of(3, 16));
+    return new CenterLimelight(Units.Inches.of(3.85), Units.Inches.of(-15), Units.Radians.of(0), List.of(3, 16));
   }
 }
