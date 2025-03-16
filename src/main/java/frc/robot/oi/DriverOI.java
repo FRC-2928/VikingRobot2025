@@ -1,5 +1,6 @@
 package frc.robot.oi;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -50,6 +51,9 @@ public class DriverOI extends BaseOI {
 	public final Trigger closeToProcessor;
 	public final Trigger closeToReef;
 
+	public final BooleanSupplier reefMovementLeft;
+	public final BooleanSupplier reefMovementRight;
+
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
@@ -76,8 +80,8 @@ public class DriverOI extends BaseOI {
 			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorBlue) < Tuning.alignRadiusProcessor.get()
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorRed) < Tuning.alignRadiusProcessor.get();});
 		this.closeToReef = new Trigger(() -> {return
-			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < 50/*Tuning.alignRadiusReef.get()*/
-			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < 50/*Tuning.alignRadiusReef.get()*/;});
+			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
 
 		this.alignReefLeft = this.controller.leftBumper()
 							/* .and(this.holdingCoral)*/
@@ -86,7 +90,7 @@ public class DriverOI extends BaseOI {
 							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
-							.and(this.holdingCoral.negate())
+							/*.and(this.holdingCoral.negate())*/
 							.and(this.closeToHP);
 		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate())
@@ -104,6 +108,9 @@ public class DriverOI extends BaseOI {
 		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());
 
 		this.outputGamePiece = this.controller.rightTrigger();
+
+		this.reefMovementLeft = this.controller.povLeft();
+		this.reefMovementRight = this.controller.povRight();
 
 		this.lockWheels = this.controller.x();
 
@@ -123,10 +130,16 @@ public class DriverOI extends BaseOI {
 			.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
 			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralLeft()
+			new SequentialCommandGroup(
+				RobotContainer.getInstance().telePositionForCoralLeft(),
+				RobotContainer.getInstance().drivetrain.dPadMode()
+			)
 		);
 		this.alignReefRight.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralRight()
+			new SequentialCommandGroup(
+				RobotContainer.getInstance().telePositionForCoralRight(),
+				RobotContainer.getInstance().drivetrain.dPadMode()
+			)
 		);
 		this.alignReefCenter.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgae()
