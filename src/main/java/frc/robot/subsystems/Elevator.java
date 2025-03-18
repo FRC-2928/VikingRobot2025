@@ -79,7 +79,7 @@ public class Elevator extends SubsystemBase {
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
 		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
 		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
-		CoralPosition.L4.getValue(),   Units.Meters.of(1.32));
+		CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
@@ -179,7 +179,7 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 		elevatorConfig.SoftwareLimitSwitch
 			.withForwardSoftLimitEnable(true)
-			.withForwardSoftLimitThreshold(Units.Rotations.of(1.33));
+			.withForwardSoftLimitThreshold(Units.Rotations.of(1.31));
 		
 		// Peak output amps
 		elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
