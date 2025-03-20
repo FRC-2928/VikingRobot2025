@@ -325,6 +325,12 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
+	public void setImuMode3(){
+		for(Limelight lime:limelights){
+			lime.setIMUMode(3);
+		}
+	}
+
 	public void setDefaultCommand() {
 		this.setDefaultCommand(this.joystickDrive);
 	}

@@ -195,7 +195,7 @@ public class BananaFlywheels extends SubsystemBase {
 		.andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.FORWARD);
-			}, this).withTimeout(0.12)
+			}, this).withTimeout(0.2)
 		).andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.HALT);

@@ -110,9 +110,9 @@ public class CenterLimelight extends Command {
       // robotThetaTagSpace = toleranceMetTheta ? Units.Radians.of(0) : robotThetaTagSpace;
 
       // Everything is relative to the desired centerpoint of the bot, so PIDs should seek 0 delta between poses
-      double xSpeedPid = centerPIDx.calculate(/*toleranceMetX ? 0 :*/ robotXTagSpace, 0);
-      double ySpeedPid = centerPIDy.calculate(/*toleranceMetY ? 0 :*/ robotYTagSpace, 0);
-      double thetaSpeedPid = centerRotaionPid.calculate(/*toleranceMetTheta ? 0 :*/ robotThetaTagSpace.in(Units.Radians), 0);
+      double xSpeedPid = centerPIDx.calculate(toleranceMetX ? 0 : robotXTagSpace, 0);
+      double ySpeedPid = centerPIDy.calculate(toleranceMetY ? 0 : robotYTagSpace, 0);
+      double thetaSpeedPid = centerRotaionPid.calculate(toleranceMetTheta ? 0 : robotThetaTagSpace.in(Units.Radians), 0);
       // TODO: scale speeds up as necessary
       RobotContainer.getInstance().drivetrain
           .control(

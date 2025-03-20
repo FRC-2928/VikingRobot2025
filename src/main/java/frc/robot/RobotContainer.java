@@ -88,7 +88,7 @@ public class RobotContainer {
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
-			)
+			).withTimeout(0.25)
 		).finallyDo(() -> {this.elevator.onEjectCoral(); this.elevator.setTargetCoralLevel(CoralPosition.NONE);} );
 	}
 
@@ -191,6 +191,10 @@ public class RobotContainer {
 				).until(() -> !this.intake.holdingGamePeice())
 			)
 		);*/
+	}
+
+	public Command reverseTrough() {
+		return this.intake.reverseTrough();
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

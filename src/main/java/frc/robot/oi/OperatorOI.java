@@ -3,6 +3,7 @@ package frc.robot.oi;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.RobotContainer;
@@ -68,7 +69,10 @@ public class OperatorOI extends BaseOI {
 		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
 		// TODO: change to toggle
 		this.alignElevatorCoral.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralOveride()
+			new ParallelCommandGroup(
+				RobotContainer.getInstance().telePositionForCoralOveride(),
+				RobotContainer.getInstance().reverseTrough()
+			)
 		);
 		this.alignElevatorAlgaeL2.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
