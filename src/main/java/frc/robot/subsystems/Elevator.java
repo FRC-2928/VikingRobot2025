@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import java.util.Map;
-import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -12,7 +11,6 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -36,14 +34,12 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.Tuning;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -300,9 +296,6 @@ public class Elevator extends SubsystemBase {
 		}
 	}
 
-	// private void controlPivotHome() {
-	// }
-
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
 		return this.currentGamePieceType == pieceType;
 	}
@@ -313,12 +306,6 @@ public class Elevator extends SubsystemBase {
 		Logger.recordOutput("Elevator/IsElevatorInPosition", isElevatorInPosition);
 		Logger.recordOutput("Elevator/IsBananaInPosition", isBananaInPosition);
 		return isElevatorInPosition && isBananaInPosition;
-		// if (elevatorTargetPosition.gt(elevatorThresholdForPivot)) {
-		// 	return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
-		// 		   pivotTargetAngle.isNear(inputs.pivotAngle, toleranceForFinishedPivot);
-		// }
-		// return elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement) &&
-		//        Units.Degrees.of(0).isNear(inputs.pivotAngle, toleranceForFinishedPivot);
 	}
 
 	private void updateMotors() {
@@ -341,7 +328,6 @@ public class Elevator extends SubsystemBase {
 		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
 		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
 
-		// controlPivot(Units.Degrees.of(0), true);
 		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
 			// in the danger zone and staying in the danger zone -- safe to move the elevator
 			controlPosition(elevatorTargetPosition);

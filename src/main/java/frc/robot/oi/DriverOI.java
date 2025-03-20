@@ -39,6 +39,9 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger outputGamePiece;
 
+	public final BooleanSupplier reefMovementLeft;
+	public final BooleanSupplier reefMovementRight;
+
 	// Drivers asked for this control to be only for operator
 	// public final Trigger toggleReefHeightUp;
 	// public final Trigger toggleReefHeightDown;
@@ -114,6 +117,9 @@ public class DriverOI extends BaseOI {
 
 		this.lockWheels = this.controller.x();
 
+		this.reefMovementLeft = this.controller.povLeft();
+		this.reefMovementRight = this.controller.povRight();
+
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown = this.controller.povDown();
 		// this.toggleReefHeightUp = this.controller.povUp();
@@ -130,16 +136,14 @@ public class DriverOI extends BaseOI {
 			.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
 			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
 		this.alignReefLeft.whileTrue(
-			new SequentialCommandGroup(
-				RobotContainer.getInstance().telePositionForCoralLeft(),
-				RobotContainer.getInstance().drivetrain.dPadMode()
-			)
+			RobotContainer.getInstance().telePositionForCoralLeft()
+		).onFalse(
+			RobotContainer.getInstance().raiseElevatorAtReef()
 		);
 		this.alignReefRight.whileTrue(
-			new SequentialCommandGroup(
-				RobotContainer.getInstance().telePositionForCoralRight(),
-				RobotContainer.getInstance().drivetrain.dPadMode()
-			)
+			RobotContainer.getInstance().telePositionForCoralRight()
+		).onFalse(
+			RobotContainer.getInstance().raiseElevatorAtReef()
 		);
 		this.alignReefCenter.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgae()
@@ -164,7 +168,7 @@ public class DriverOI extends BaseOI {
 				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
-		// this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		// this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));

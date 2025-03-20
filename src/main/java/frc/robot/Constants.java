@@ -1,6 +1,5 @@
 package frc.robot;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
@@ -426,7 +425,7 @@ public class Constants {
 		public static final class Auto {
 			public static final PIDValues translationDynamic = new PIDValues(10, 0, 0, 0);
 			public static final PIDValues thetaDynamic = new PIDValues(10, 0, 0, 0);
-			public static final PIDValues centerLimelight = new PIDValues(3, 0, 0.3, 0);
+			public static final PIDValues centerLimelight = new PIDValues(4, 0, 0.8, 0);
 			public static final PIDValues centerTheta = new PIDValues(4, 0, 0.2, 0);
 		}
 

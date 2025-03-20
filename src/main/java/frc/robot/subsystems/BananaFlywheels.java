@@ -9,6 +9,8 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
+import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.S2StateValue;
@@ -75,7 +77,7 @@ public class BananaFlywheels extends SubsystemBase {
 		this.wheels = new TalonFX(Constants.CAN.RIO.bananaWheels, Constants.CAN.RIO.bus);
 		TalonFXConfiguration flyWheelConfig = new TalonFXConfiguration();
 
-		flyWheelConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Gearing, clockwise moves elevator up
+		flyWheelConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; // Gearing, clockwise moves elevator up
 		flyWheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 		// Peak output amps
@@ -88,7 +90,16 @@ public class BananaFlywheels extends SubsystemBase {
 		flyWheelConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 		flyWheelConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
 		flyWheelConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
-		flyWheelConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+		flyWheelConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw 
+		
+
+
+		flyWheelConfig.HardwareLimitSwitch
+			.withForwardLimitType(ForwardLimitTypeValue.NormallyClosed)
+			.withForwardLimitEnable(true)
+			.withForwardLimitSource(ForwardLimitSourceValue.RemoteCANdiS2)
+			.withForwardLimitRemoteSensorID(Constants.CAN.RIO.BANANA_CANDI.getInstance().getDeviceID())
+			.withReverseLimitEnable(false);
 
 		flyWheelConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.1;
 
@@ -126,7 +137,17 @@ public class BananaFlywheels extends SubsystemBase {
 	}
 	
 	public void runFlywheels(FeederDemand demand) {
-		this.wheels.setControl(new VoltageOut(demand.getValue()*6.0));
+		this.wheels.setControl(new VoltageOut(demand.getValue()));
+	}
+	public void runFlywheelsWithoutLimit(FeederDemand demand) {
+		this.wheels.setControl(new VoltageOut(demand.getValue()).withIgnoreHardwareLimits(true));
+	}
+
+	public void runFlywheels(Angle rotations){
+		this.wheels.setControl(new PositionVoltage(rotations.in(Units.Rotations)).withFeedForward(-6));
+	}
+	public void runFlywheelsWithoutLimit(Angle rotations){
+		this.wheels.setControl(new PositionVoltage(rotations.in(Units.Rotations)).withFeedForward(FeederDemand.INTAKE_FORWARD.getValue()).withIgnoreHardwareLimits(true));
 	}
 
 	//Gets angle of flywheel and holds it at that position
@@ -195,7 +216,7 @@ public class BananaFlywheels extends SubsystemBase {
 		.andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.FORWARD);
-			}, this).withTimeout(0.2)
+			}, this).withTimeout(0.12)
 		).andThen(
 			new RunCommand(() -> {
 				runFlywheels(FeederDemand.HALT);
@@ -228,6 +249,21 @@ public class BananaFlywheels extends SubsystemBase {
 	public Command outputForward(){
 		return new RunCommand(() -> {
 			runFlywheels(FeederDemand.FORWARD);
+		}, this).finallyDo(() -> {
+			runFlywheels(FeederDemand.HALT);
+		});
+	}
+	public Command outputForwardWithoutLimit(){
+		return new RunCommand(() -> {
+			runFlywheels(FeederDemand.FORWARD);
+		}, this).finallyDo(() -> {
+			runFlywheels(FeederDemand.HALT);
+		});
+	}
+
+	public Command rotateBanana(Angle rotations){
+		return new RunCommand(() -> {
+			runFlywheelsWithoutLimit(rotations);
 		}, this).finallyDo(() -> {
 			runFlywheels(FeederDemand.HALT);
 		});

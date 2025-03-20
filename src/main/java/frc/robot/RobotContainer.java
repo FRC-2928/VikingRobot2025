@@ -7,6 +7,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -89,22 +90,35 @@ public class RobotContainer {
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
 			).withTimeout(0.25)
-		).finallyDo(() -> {this.elevator.onEjectCoral(); this.elevator.setTargetCoralLevel(CoralPosition.NONE);} );
+		).finallyDo(() -> {
+        this.elevator.onEjectCoral();
+        this.elevator.setTargetCoralLevel(CoralPosition.NONE);
+      });
+	}
+
+	public Command raiseElevatorAtReef() {
+		return new ConditionalCommand(
+			new ParallelCommandGroup(
+				this.elevator.goToGamePieceHeight(GamePieceType.CORAL), 
+				this.drivetrain.dPadMode()
+			),
+			new InstantCommand(), 
+			this.driverOI.closeToReef)
+		.until(this.driverOI.closeToReef.negate());
 	}
 
 	public Command telePositionForCoralLeft() {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimelightLeft(),
 			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				
 			)
 		);
 	}
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			drivetrain.slowMode()
+			drivetrain.dPadMode()
 		);
 	}
 
@@ -113,10 +127,11 @@ public class RobotContainer {
 			CenterLimelight.centerLimelightRight(),
 			new ParallelCommandGroup(
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
+
 
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
@@ -127,7 +142,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -140,7 +155,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -153,7 +168,7 @@ public class RobotContainer {
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.acceptAlgae()
 				),
-				drivetrain.slowMode()
+				drivetrain.dPadMode()
 			)
 		);
 	}
@@ -168,29 +183,39 @@ public class RobotContainer {
 			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
 		);
 	}
-	public Command passCoral(){
+
+	public Command troughHandoffManual(){
 		return new ParallelCommandGroup(
 			this.bananaFlywheels.intakeForward(),
 			this.intake.runTrough()
-		);/*new SequentialCommandGroup(
+		);
+  }
+
+	public Command troughHandoffAutomated(){
+		return new SequentialCommandGroup(
 			// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
 			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
 			Commands.deadline(
 				new SequentialCommandGroup(
-					this.bananaFlywheels.outputForward().withTimeout(Units.Seconds.of(0.5)),
+					this.bananaFlywheels.outputForward().withTimeout(0.5),
 					new InstantCommand(() -> {elevator.onEjectCoral();}),
 					new RunCommand(() -> {}).until(elevator::isInTargetPos)
 				),
-				this.intake.runTrough().until(intake::holdingGamePeice)
+				this.intake.runTroughBackwards()
 			),
 			new SequentialCommandGroup(
-				this.intake.runTrough().until(intake::holdingGamePeice), // protection to ensure we finish staging the piece
 				new ParallelCommandGroup(
-					this.intake.runTrough(),
+					this.intake.runTrough(), // protection to ensure we finish staging the piece
 					this.bananaFlywheels.outputForward()
-				).until(() -> !this.intake.holdingGamePeice())
+				).until(bananaFlywheels::holdingCoral),
+				
+				Commands.deadline(
+					this.bananaFlywheels.rotateBanana(Units.Rotations.of(Tuning.intakeBananaFlywheelsRotations.get())),
+					this.intake.runTrough()
+					
+				)
 			)
-		);*/
+		);
 	}
 
 	public Command reverseTrough() {

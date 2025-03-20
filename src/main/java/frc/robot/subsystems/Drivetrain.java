@@ -175,7 +175,7 @@ public class Drivetrain extends SubsystemBase {
 
 	public void reset(final Pose2d newPose) {
 		this.est.resetPosition(new Rotation2d(this.gyroInputs.yawPosition), this.modulePositions(), newPose);
-		for(Limelight lime:limelights){
+		for(Limelight lime : limelights){
 			lime.setIMUMode(1);
 			lime.setRobotOrientation(newPose.getRotation().getMeasure());
 		}
@@ -233,6 +233,26 @@ public class Drivetrain extends SubsystemBase {
 
 	}
 
+	public boolean isUpdateable(PoseEstimate posEst) {
+		if (Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) { 
+			return false;
+		}
+		if (posEst.tagCount == 0) {
+			return false;
+		}
+		if (Double.isNaN(posEst.pose.getX()) || Double.isNaN(posEst.pose.getY()) || Double.isInfinite(posEst.pose.getX()) || Double.isInfinite(posEst.pose.getY())) {
+			return false;
+		}
+		if (Double.isNaN(posEst.pose.getRotation().getDegrees())|| Double.isInfinite(posEst.pose.getRotation().getDegrees())) {
+			return false;
+		}
+		if (posEst.pose.getX() > 100d || posEst.pose.getY() > 100d) {
+			return false;
+		}
+		
+		return true;
+	}
+
 	@Override
 	public void periodic() {
 		this.gyro.updateInputs(this.gyroInputs);
@@ -245,7 +265,7 @@ public class Drivetrain extends SubsystemBase {
 		}
 
 		// Update the odometry pose
-		var yawPosition = this.gyroInputs.yawPosition;
+		Angle yawPosition = this.gyroInputs.yawPosition;
 		if (!this.gyroInputs.connected) {
 			yawPosition = Units.Degrees.of(limelightSide.getIMUData().robotYaw);
 			Logger.recordOutput("Drivetrain/UsingLLYaw", true);
@@ -256,22 +276,14 @@ public class Drivetrain extends SubsystemBase {
 		this.est.update(new Rotation2d(yawPosition), this.modulePositions());
 
 		// Add vision measurements to pos est with megatag 2
-		for(Limelight limelight:limelights){
+		for(Limelight limelight : limelights){
 			PoseEstimate mt2 = limelight.getPoseMegatag2();
 			if (mt2 != null) {
 				Logger.recordOutput("Drivetrain/poseMegatag"+limelight.getLimelightName(), mt2.pose);
-				boolean doRejectUpdate = false;
-				// if (Math.abs(this.gyroInputs.yawVelocityRadPerSec.in(Units.DegreesPerSecond)) > 720) {
-				// 	doRejectUpdate = true;
-				// }
-
-				if (mt2.tagCount == 0) {
-					doRejectUpdate = true;
-				}
 
 				// if our angular velocity is greater than 720 degrees per second, ignore vision updates or if it doesnt see any tags		
-				Logger.recordOutput("Drivetrain/doRejectUpdate", doRejectUpdate);
-				if(!doRejectUpdate) {
+				Logger.recordOutput("Drivetrain/doRejectUpdate" +limelight.getLimelightName(), isUpdateable(mt2));
+				if(isUpdateable(mt2)) {
 					est.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
 					est.addVisionMeasurement(
 						mt2.pose,
@@ -296,7 +308,7 @@ public class Drivetrain extends SubsystemBase {
 		int numberOfValidTargets = 0;
 		PoseEstimate mostTrusted = null;
 		int highNumAprilTags = 0;
-		for(Limelight lime:limelights){
+		for(Limelight lime : limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
 			// if (mt1.)
 			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
@@ -320,13 +332,13 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void setImuMode2(){
-		for(Limelight lime:limelights){
+		for(Limelight lime : limelights){
 			lime.setIMUMode(2);
 		}
 	}
 
 	public void setImuMode3(){
-		for(Limelight lime:limelights){
+		for(Limelight lime : limelights){
 			lime.setIMUMode(3);
 		}
 	}

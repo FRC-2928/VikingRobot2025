@@ -49,7 +49,7 @@ public final class Autonomous {
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.E),
 			autoFactory.trajectoryCmd("EToB1Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.B1)),
-			RobotContainer.getInstance().passCoral(),
+			RobotContainer.getInstance().troughHandoffManual(),
 			autoFactory.trajectoryCmd("B1ReverseToD"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.D)
 		));
@@ -64,7 +64,7 @@ public final class Autonomous {
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.J),
 			autoFactory.trajectoryCmd("JToA2Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.A2)),
-			RobotContainer.getInstance().passCoral(),
+			RobotContainer.getInstance().troughHandoffManual(),
 			autoFactory.trajectoryCmd("A2ReverseToK"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.K)
 		));

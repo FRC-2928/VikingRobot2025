@@ -38,9 +38,11 @@ public class CenterLimelight extends Command {
   /// Transform2d representing the transformation matrix for the tag
   private Transform2d tagPoseTransform;
   private List<Integer> tagsToCheck;
+
   private Distance xTolerance = Units.Inches.of(0.25);
   private Distance yTolerance = Units.Inches.of(0.5);
   private Angle thetaTolerance = Units.Degrees.of(0.5);
+
   private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
@@ -113,6 +115,7 @@ public class CenterLimelight extends Command {
       double xSpeedPid = centerPIDx.calculate(toleranceMetX ? 0 : robotXTagSpace, 0);
       double ySpeedPid = centerPIDy.calculate(toleranceMetY ? 0 : robotYTagSpace, 0);
       double thetaSpeedPid = centerRotaionPid.calculate(toleranceMetTheta ? 0 : robotThetaTagSpace.in(Units.Radians), 0);
+
       // TODO: scale speeds up as necessary
       RobotContainer.getInstance().drivetrain
           .control(
@@ -122,6 +125,7 @@ public class CenterLimelight extends Command {
                   thetaSpeedPid
                 )
       );
+
       Logger.recordOutput("Drivetrain/CenterLimelight/robotXTagSpace", robotXTagSpace);
       Logger.recordOutput("Drivetrain/CenterLimelight/robotYTagSpace",  robotYTagSpace);
       Logger.recordOutput("Drivetrain/CenterLimelight/robotThetaTagSpace",  robotThetaTagSpace.in(Units.Degrees));

@@ -6,9 +6,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.RobotContainer;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.commands.drivetrain.JoystickDrive;
+import frc.robot.RobotContainer;
 
 public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {
@@ -23,15 +22,17 @@ public class OperatorOI extends BaseOI {
 		
 		// this.intakeIn = this.controller.a();
 		// this.intakeOut = this.controller.b();
-		this.slowedTrigger = this.controller.x();
+		// this.slowedTrigger = this.controller.x();
 		// this.halt = this.controller.y();
 		this.setElevatorMode = this.controller.rightBumper();
 		// this.resetAngle = this.controller.back();
 		this.toggleClimb = this.controller.leftBumper();
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
+		
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
 		this.passOffCoral = this.controller.leftTrigger();
+
 		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())/* ) .and(RobotContainer.getInstance().driverOI.holdingCoral*/);
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
@@ -51,22 +52,22 @@ public class OperatorOI extends BaseOI {
 	public final DoubleSupplier climbMotion;
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
-	public final Trigger passOffCoral;
+	// public final Trigger passOffCoral;
 	public final Trigger alignElevatorCoral;
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;
 	// public final Trigger halt;
-	public final Trigger slowedTrigger;
+	// public final Trigger slowedTrigger;
 
 	public void configureControls() {
-		this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
+		// this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		// this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
 		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
 		setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
 	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().passCoral());
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// TODO: change to toggle
 		this.alignElevatorCoral.whileTrue(
 			new ParallelCommandGroup(

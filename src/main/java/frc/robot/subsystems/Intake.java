@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 //  Kracken x60 for deploy retract w/ encoder
 //  Kracken x60 for motors (all one)
 // Minion for Belt
@@ -150,6 +151,14 @@ public class Intake extends SubsystemBase {
 			() -> runTrough(Feeder.Halt)
 		);
 	}
+	public Command runTroughBackwards() {
+		return new RunCommand(() -> {
+			runTrough(Feeder.Reverse);
+		}, this).finallyDo(
+			() -> runTrough(Feeder.Halt)
+		);
+	}
+	
 
 	// Runs the trough until the command is interrupted, then stops the trough
 	public Command reverseTrough() {
