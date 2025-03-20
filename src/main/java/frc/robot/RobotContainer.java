@@ -99,7 +99,9 @@ public class RobotContainer {
 	public Command raiseElevatorAtReef() {
 		return new ConditionalCommand(
 			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL), 
+				new SequentialCommandGroup(
+					troughHandoffManual(),
+					this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 				this.drivetrain.dPadMode()
 			),
 			new InstantCommand(), 
@@ -108,13 +110,9 @@ public class RobotContainer {
 	}
 
 	public Command telePositionForCoralLeft() {
-		return new SequentialCommandGroup(
-			CenterLimelight.centerLimelightLeft(),
-			new ParallelCommandGroup(
-				
-			)
-		);
+		return new CenterLimelight.centerLimelightLeft();
 	}
+
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
@@ -124,11 +122,11 @@ public class RobotContainer {
 
 	public Command telePositionForCoralRight() {
 		return new SequentialCommandGroup(
-			CenterLimelight.centerLimelightRight(),
-			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.dPadMode()
-			)
+			CenterLimelight.centerLimelightRight()//,
+			// new ParallelCommandGroup(
+			// 	this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+			// 	drivetrain.dPadMode()
+			// )
 		);
 	}
 
@@ -191,7 +189,13 @@ public class RobotContainer {
 
 	public Command troughHandoffManual(){
 		return new ParallelCommandGroup(
+			new SequentialCommandGroup(
 			this.bananaFlywheels.intakeForward(),
+			new InstantCommand(() -> {
+				if (this.bananaFlywheels.holdingCoral()) {
+					this.elevator.onIntakeCoral();
+				}
+			})),
 			this.intake.runTrough()
 		);
   }

@@ -11,8 +11,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -31,7 +31,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -351,6 +350,7 @@ public class Elevator extends SubsystemBase {
 			// in the danger zone but moving out of it -- safe to move the elevator
 			controlPosition(elevatorTargetPosition);
 			controlPivot(pivotTargetAngle, true);
+			return;
 		}
 
 		if (!elevatorInDangerZone && elevatorTargetInDangerZone) {
@@ -373,42 +373,6 @@ public class Elevator extends SubsystemBase {
 			controlPosition(elevatorTargetPosition);
 			return;
 		}
-
-		// if (elevatorCommandedPosition != elevatorTargetPosition) {
-		// 	if (elevatorTargetPosition.gte(elevatorThresholdForPivot)) {
-		// 		controlPosition(elevatorTargetPosition);
-		// 	}
-		// 	else {
-		// 		if (this.inputs.isPivotHomed) {
-		// 			controlPosition(elevatorTargetPosition);
-		// 		}
-		// 	}
-		// }
-
-		// if ()
-		// if (pivotCommmandedAngle /*current */ != pivotTargetAngle /*desired */) {
-		// 	if (pivotTargetAngle.lt(Units.Degrees.of(20))) {
-		// 		// go to home and stay home
-		// 		controlPivot(pivotCommmandedAngle, true /* hold home */);
-		// 		// TODO: clean up
-		// 		// if (inputs.isPivotHomed) {
-		// 		// 	this.pivotTargetAngle = Units.Degrees.of(0.2);
-		// 		// 	controlPivot(Units.Degrees.of(0.2));
-		// 		// } else {
-		// 		// 	controlPivotHome();
-		// 		// }
-		// 	}
-		// 	// else if 
-		// 	else {
-		// 		if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
-		// 			controlPivot(pivotTargetAngle, false);
-		// 		}
-		// 	}
-		// }
-
-		// if (elevatorTargetPosition.lt(elevatorThresholdForPivot) && pivotCommmandedAngle.gt(Units.Degrees.of(1))) {
-		// 	controlPivot(Units.Degrees.of(0), true);
-		// }
 	}
 
 	public void setElevatorMode(GamePieceType type){
@@ -490,6 +454,16 @@ public class Elevator extends SubsystemBase {
 	private void onEjectGamePieceGeneric() {
 		// reset the home to whatever it was before...
 		this.currentGamePieceType = GamePieceType.NONE;
+		pivotBanana(currentGamePieceType.getPivot());
+		moveToPosition(currentGamePieceType.getHeight());
+	}
+
+	public void onIntakeCoral() {
+		this.currentGamePieceType = GamePieceType.CORAL;
+	}
+
+	public void onAlgaeMode() {
+		this.currentGamePieceType = GamePieceType.ALGAE;
 	}
 
 	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
@@ -519,7 +493,8 @@ public class Elevator extends SubsystemBase {
 	 * @return an executable @c Command that moves the elevator to the appropriate position
 	 */
 	public Command goToReefHeight(GamePieceType pieceType) {
-		return goToGamePieceHeightEndless(pieceType).until(this::isInTargetPos);
+		// TODO: remove pieceType from here and all references...
+		return goToGamePieceHeightEndless().until(this::isInTargetPos);
 	}
 
 	/**
@@ -530,14 +505,15 @@ public class Elevator extends SubsystemBase {
 	 * @return an executable @c Command that moves the elevator to the appropriate position
 	 */
 	public Command goToGamePieceHeight(GamePieceType pieceType) {
-		return goToGamePieceHeightEndless(pieceType);
+		// TODO: remove pieceType from here and all references...
+		return goToGamePieceHeightEndless();
 	}
 
-	private Command goToGamePieceHeightEndless(GamePieceType pieceType) {
+	private Command goToGamePieceHeightEndless() {
 		return new RunCommand(
 			() -> {
 				// update the current target game piece so that the home position is also updated accordingly
-				this.currentGamePieceType = pieceType;
+				// this.currentGamePieceType = hasCurrentGamePieceType();
 				// select the correct set of maps for the given game piece and figure out which key
 				// we're using to determine the elevator position/banana angle
 				Map<Integer, Distance> elevatorPositionsMap;
@@ -545,7 +521,7 @@ public class Elevator extends SubsystemBase {
 				int positionKey;
 
 				// TODO: put these into a map and fetch from there instead of these switch-case blocks
-				switch (pieceType) {
+				switch (currentGamePieceType) {
 					case NONE:  // fall-through
 					case CORAL: // fall-through
 					default: {
