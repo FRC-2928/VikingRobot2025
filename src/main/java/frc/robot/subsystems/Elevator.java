@@ -30,6 +30,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -114,7 +115,7 @@ public class Elevator extends SubsystemBase {
 	private final TalonFX liftMotorA;
 	private final TalonFX liftMotorB;
 	private final TalonFX pivot;
-
+	private boolean haultMode = false;
 	private final StatusSignal<Angle> elevatorMotorPosition;
 	private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
 	private final StatusSignal<ReverseLimitValue> elevatorHomedSignal;
@@ -308,6 +309,11 @@ public class Elevator extends SubsystemBase {
 		return isElevatorInPosition && isBananaInPosition;
 	}
 
+	public void setHaultMode(){
+		haultMode = !haultMode;
+		currentGamePieceType = (haultMode)? GamePieceType.HAULT : GamePieceType.NONE;
+	}
+
 	private void updateMotors() {
 		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		var currentBananaAngle = pivotCommmandedAngle;
@@ -328,6 +334,11 @@ public class Elevator extends SubsystemBase {
 		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
 		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
 
+		if(currentGamePieceType == GamePieceType.HAULT){
+			controlPositionVelocity(Units.MetersPerSecond.of(0));
+			controlPivot(Units.Degrees.of(0), true);
+			return;
+		}
 		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
 			// in the danger zone and staying in the danger zone -- safe to move the elevator
 			controlPosition(elevatorTargetPosition);

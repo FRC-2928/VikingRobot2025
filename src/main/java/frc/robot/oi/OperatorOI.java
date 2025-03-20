@@ -26,7 +26,7 @@ public class OperatorOI extends BaseOI {
 		// this.halt = this.controller.y();
 		this.setElevatorMode = this.controller.rightBumper();
 		// this.resetAngle = this.controller.back();
-		this.toggleClimb = this.controller.leftBumper();
+		this.haultElevatpr = this.controller.leftBumper();
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
 		
 		this.toggleReefHeightDown = this.controller.povDown();
@@ -44,7 +44,7 @@ public class OperatorOI extends BaseOI {
 	// public final Trigger climberOverrideRaise;
 	// public final Trigger resetAngle;
 	public final Trigger initializeClimber;
-	public final Trigger toggleClimb;
+	public final Trigger haultElevatpr;
 	// public final Trigger raiseElevator;
 	// public final Trigger lowerElevator;
 	// public final Trigger intakeOut;
@@ -62,7 +62,7 @@ public class OperatorOI extends BaseOI {
 	public void configureControls() {
 		// this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		// this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
-		toggleClimb.onTrue(RobotContainer.getInstance().elevator.toggleClimbMode());
+		haultElevatpr.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setHaultMode()));
 		setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
 	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));

@@ -136,11 +136,16 @@ public class RobotContainer {
 	public Command telePositionForAlgae() {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimelightCenter(),
+			new ConditionalCommand(
+				this.bananaFlywheels.outputForward().withTimeout(5), 
+				new InstantCommand(), 
+				(() -> (this.bananaFlywheels.holdingCoral() && this.elevator.hasCurrentGamePieceType(GamePieceType.NONE)))),
 			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
+					
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.acceptAlgae()
+					this.bananaFlywheels.outputForward()
 				),
 				drivetrain.dPadMode()
 			)
@@ -153,7 +158,7 @@ public class RobotContainer {
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.acceptAlgae()
+					this.bananaFlywheels.outputForward()
 				),
 				drivetrain.dPadMode()
 			)
@@ -166,7 +171,7 @@ public class RobotContainer {
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.acceptAlgae()
+					this.bananaFlywheels.outputForward()
 				),
 				drivetrain.dPadMode()
 			)

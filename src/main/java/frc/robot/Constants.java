@@ -119,7 +119,8 @@ public class Constants {
 		NONE(0,  Tuning.noneHeightHome,  Tuning.nonePivotHome),   // Game Piece Type for None
 		ALGAE(1, Tuning.coralHeightHome, Tuning.coralPivotHome),  // Game Piece Type for Algae
 		CORAL(2, Tuning.algaeHeightHome, Tuning.algaePivotHome),  // Game Piece Type for Coral
-		CAGE(3,  Tuning.cageHeightHome,  Tuning.cagePivotHome);   // Game Piece Type for Cage
+		CAGE(3,  Tuning.cageHeightHome,  Tuning.cagePivotHome),   // Game Piece Type for Cage
+		HAULT(4,Tuning.cageHeightHome,  Tuning.cagePivotHome);
 		// other pieces here...
 
 		private final int value;

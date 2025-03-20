@@ -268,10 +268,4 @@ public class BananaFlywheels extends SubsystemBase {
 			runFlywheels(FeederDemand.HALT);
 		});
 	}
-
-	public Command acceptAlgae(){
-		return new RunCommand(() -> {
-			runFlywheels(FeederDemand.REVERSE);
-		}, this).finallyDo(this::holdPosition);
-	}
 }
