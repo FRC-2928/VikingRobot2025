@@ -27,7 +27,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
 import frc.robot.commands.drivetrain.CenterLimelight;
-import frc.robot.commands.drivetrain.DpadDrive;
+import frc.robot.commands.drivetrain.DPadDrive;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -359,7 +359,7 @@ public class Drivetrain extends SubsystemBase {
 	public JoystickDrive slowMode() {
 		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
 	}
-	public DpadDrive dPadMode() {
-		return new DpadDrive(this);
+	public DPadDrive dPadMode() {
+		return new DPadDrive(this);
 	}
 }

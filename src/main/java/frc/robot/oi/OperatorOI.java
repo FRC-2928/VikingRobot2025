@@ -52,7 +52,7 @@ public class OperatorOI extends BaseOI {
 	public final DoubleSupplier climbMotion;
 	public final Trigger toggleReefHeightUp;
 	public final Trigger toggleReefHeightDown;
-	// public final Trigger passOffCoral;
+	public final Trigger passOffCoral;
 	public final Trigger alignElevatorCoral;
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;

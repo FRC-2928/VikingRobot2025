@@ -39,9 +39,6 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger outputGamePiece;
 
-	public final BooleanSupplier reefMovementLeft;
-	public final BooleanSupplier reefMovementRight;
-
 	// Drivers asked for this control to be only for operator
 	// public final Trigger toggleReefHeightUp;
 	// public final Trigger toggleReefHeightDown;
@@ -116,10 +113,6 @@ public class DriverOI extends BaseOI {
 		this.reefMovementRight = this.controller.povRight();
 
 		this.lockWheels = this.controller.x();
-
-		this.reefMovementLeft = this.controller.povLeft();
-		this.reefMovementRight = this.controller.povRight();
-
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown = this.controller.povDown();
 		// this.toggleReefHeightUp = this.controller.povUp();
