@@ -47,6 +47,7 @@ public class Elevator extends SubsystemBase {
 		public Distance height = Units.Meters.zero();
 		public boolean isPivotHomed = false;
 		public boolean isElevatorHomed = false;
+		public AngularVelocity elevatorAngularVelocity = Units.RadiansPerSecond.zero();
 		public LinearVelocity speed = Units.MetersPerSecond.zero();
 		public Angle pivotAngle = Units.Degrees.of(0);
 		public AngularVelocity pivotAngularVelocity = Units.RadiansPerSecond.zero();
@@ -72,9 +73,9 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
-		CoralPosition.L2.getValue(),   Units.Meters.of(0.495),
-		CoralPosition.L3.getValue(),   Units.Meters.of(0.705),
-		CoralPosition.L4.getValue(),   Units.Meters.of(1.28));
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
+		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
+		CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
@@ -93,9 +94,9 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Degrees.of(0),
 		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L2.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L3.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L4.getValue(),   Units.Degrees.of(45));
+		CoralPosition.L2.getValue(),   Units.Rotations.of(2.5),
+		CoralPosition.L3.getValue(),   Units.Rotations.of(2.5),
+		CoralPosition.L4.getValue(),   Units.Rotations.of(6));
 
 	// Map of Banana Angles for Algae
 	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
@@ -126,8 +127,8 @@ public class Elevator extends SubsystemBase {
 	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
 	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
 
-	private Distance elevatorCommandedPosition; // The pos that the motor is currently told to go to
-	private Angle pivotCommmandedAngle; // The angle that the motor is currently told to go to
+	private Distance elevatorCommandedPosition;  // The pos that the motor is currently told to go to
+	private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
 
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
@@ -172,6 +173,9 @@ public class Elevator extends SubsystemBase {
 		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
 		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;  // Gearing, clockwise moves elevator up
 		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+		elevatorConfig.SoftwareLimitSwitch
+			.withForwardSoftLimitEnable(true)
+			.withForwardSoftLimitThreshold(Units.Rotations.of(1.31));
 		
 		// Peak output amps
 		elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
@@ -192,8 +196,8 @@ public class Elevator extends SubsystemBase {
 		// Motion Magic Params
 		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
 		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 6;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 6;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 4;
+		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 4;
 
 		liftMotorA.getConfigurator().apply(elevatorConfig);
 		liftMotorB.getConfigurator().apply(elevatorConfig);
@@ -282,10 +286,15 @@ public class Elevator extends SubsystemBase {
 	}
 
 	private void controlPivot(final Angle rotation, final boolean holdHome) {
+		// pivot.setControl(new PositionVoltage(rotation));
+		if (holdHome) {
 			pivot.setControl(new VoltageOut(-1.5));
 			pivotCommmandedAngle = Units.Degrees.of(0);
+		} else {
+			pivotCommmandedAngle = rotation;
+			pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
+		}
 	}
-
 
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
 		return this.currentGamePieceType == pieceType;
@@ -300,8 +309,7 @@ public class Elevator extends SubsystemBase {
 	}
 
 	private void updateMotors() {
-		// var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
-		var currentElevatorPosition = inputs.height;
+		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		var currentBananaAngle = pivotCommmandedAngle;
 		// are we currently in the elevator danger zone?
 		boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
@@ -353,6 +361,42 @@ public class Elevator extends SubsystemBase {
 			controlPosition(elevatorTargetPosition);
 			return;
 		}
+
+		// if (elevatorCommandedPosition != elevatorTargetPosition) {
+		// 	if (elevatorTargetPosition.gte(elevatorThresholdForPivot)) {
+		// 		controlPosition(elevatorTargetPosition);
+		// 	}
+		// 	else {
+		// 		if (this.inputs.isPivotHomed) {
+		// 			controlPosition(elevatorTargetPosition);
+		// 		}
+		// 	}
+		// }
+
+		// if ()
+		// if (pivotCommmandedAngle /*current */ != pivotTargetAngle /*desired */) {
+		// 	if (pivotTargetAngle.lt(Units.Degrees.of(20))) {
+		// 		// go to home and stay home
+		// 		controlPivot(pivotCommmandedAngle, true /* hold home */);
+		// 		// TODO: clean up
+		// 		// if (inputs.isPivotHomed) {
+		// 		// 	this.pivotTargetAngle = Units.Degrees.of(0.2);
+		// 		// 	controlPivot(Units.Degrees.of(0.2));
+		// 		// } else {
+		// 		// 	controlPivotHome();
+		// 		// }
+		// 	}
+		// 	// else if 
+		// 	else {
+		// 		if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
+		// 			controlPivot(pivotTargetAngle, false);
+		// 		}
+		// 	}
+		// }
+
+		// if (elevatorTargetPosition.lt(elevatorThresholdForPivot) && pivotCommmandedAngle.gt(Units.Degrees.of(1))) {
+		// 	controlPivot(Units.Degrees.of(0), true);
+		// }
 	}
 
 	public void setElevatorMode(GamePieceType type){
@@ -380,7 +424,7 @@ public class Elevator extends SubsystemBase {
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
 
 		inputs.currentGamePieceType = this.currentGamePieceType;
 		inputs.targetCoralLevel = this.targetCoralLevel;

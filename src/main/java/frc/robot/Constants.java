@@ -362,7 +362,7 @@ public class Constants {
 				private static final DigitalInputsConfigs dioConfigs = new DigitalInputsConfigs()
 					// S1In --> Banana Pivot limit switch
 					.withS1CloseState(S1CloseStateValue.CloseWhenLow)  // Banana Pivot limit switch -- closed when low
-					.withS1FloatState(S1FloatStateValue.PullHigh)      // Banana Pivot limit switch -- high when open
+					.withS1FloatState(S1FloatStateValue.FloatDetect)      // Banana Pivot limit switch -- high when open
 					// S2In --> Banana beam break Sensor
 					.withS2CloseState(S2CloseStateValue.CloseWhenLow)  // Banana Beam break Sensor -- closed when low (beam broken)
 					.withS2FloatState(S2FloatStateValue.PullHigh);     // Banana Beam break Sensor -- high when open (beam intact)
@@ -439,7 +439,7 @@ public class Constants {
 			.withKP(0)
 			.withKI(0)
 			.withKD(0)
-			.withKS(0)
+			.withKS(0.35)
 			.withKV(12.0/maxVelocity.in(Units.MetersPerSecond))
 			.withKA(0);
 
@@ -521,28 +521,28 @@ public class Constants {
 		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
 		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
 
-		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(45);
+		public static final Angle MAX_PIVOT_ANGLE = Units.Rotations.of(8);
 		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 		.withGravityType(GravityTypeValue.Elevator_Static)
-		.withKS(0.5)
+		.withKS(0.6)
 		.withKG(0.29)
-		.withKV(6)
+		.withKV(7)
 		.withKA(0.1)
-		.withKP(5)
-		.withKI(0.05)
-		.withKD(0.1);
+		.withKP(10)
+		.withKI(1)
+		.withKD(8);
 
 		public static final double pivotCurrentLimit = 40;
 		public static final AngularVelocity pivotMaxVelocityShoot = Units.DegreesPerSecond.of(2);
 		public static final Slot0Configs pivotConfig = new Slot0Configs()
 			.withGravityType(GravityTypeValue.Arm_Cosine)
-			.withKP(1.00000074505806)
-			.withKI(0.0)
-			.withKD(0.0) /*TODO: add kD */
+			.withKP(5.00000074505806)
+			.withKI(1)
+			.withKD(0.1) /*TODO: add kD */
 			.withKS(0)
-			.withKV(0.015)
+			.withKV(0.0)
 			.withKA(0);
 	}
 
@@ -574,10 +574,10 @@ public class Constants {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 
 		public static enum FeederDemand {
-			REVERSE(-12),
+			REVERSE(4),
 			HALT(0),
-			FORWARD(12),
-			INTAKE_FORWARD(6);
+			FORWARD(-12),
+			INTAKE_FORWARD(-1);
 
 			private int demand;
 

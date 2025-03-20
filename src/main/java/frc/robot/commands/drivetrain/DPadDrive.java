@@ -33,12 +33,12 @@ public class DPadDrive extends Command{
 
 	private Translation2d translation() {
 		boolean right = this.oi.reefMovementRight.getAsBoolean();
-		boolean left = this.oi.reefMovementRight.getAsBoolean();
+		boolean left = this.oi.reefMovementLeft.getAsBoolean();
 
-		if (right) {
+		if (left) {
 			return new Translation2d(0d, 0.15d);
 		}
-		if (left) {
+		if (right) {
 			return new Translation2d(0d, -0.15d);
 		}
 		return new Translation2d(0d, 0d);

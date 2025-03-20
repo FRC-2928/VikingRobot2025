@@ -48,11 +48,14 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger holdingCoral;
 
-	private final Trigger passOffCoral;
+	// private final Trigger passOffCoral;
 
 	public final Trigger closeToHP;
 	public final Trigger closeToProcessor;
 	public final Trigger closeToReef;
+
+	public final BooleanSupplier reefMovementLeft;
+	public final BooleanSupplier reefMovementRight;
 
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
@@ -90,7 +93,7 @@ public class DriverOI extends BaseOI {
 							/* .and(this.holdingCoral)*/
 							.and(this.closeToReef);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
-							.and(this.holdingCoral.negate())
+							/*.and(this.holdingCoral.negate())*/
 							.and(this.closeToHP);
 		this.alignProcessor = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							.and(this.holdingCoral.negate())
@@ -109,6 +112,9 @@ public class DriverOI extends BaseOI {
 
 		this.outputGamePiece = this.controller.rightTrigger();
 
+		this.reefMovementLeft = this.controller.povLeft();
+		this.reefMovementRight = this.controller.povRight();
+
 		this.lockWheels = this.controller.x();
 
 		this.reefMovementLeft = this.controller.povLeft();
@@ -118,7 +124,7 @@ public class DriverOI extends BaseOI {
 		// this.toggleReefHeightDown = this.controller.povDown();
 		// this.toggleReefHeightUp = this.controller.povUp();
 
-		this.passOffCoral = this.controller.a();
+		// this.passOffCoral = this.controller.a();
 	}
 
 	public void configureControls() {
@@ -162,7 +168,7 @@ public class DriverOI extends BaseOI {
 				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
 		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
 							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
+		// this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));

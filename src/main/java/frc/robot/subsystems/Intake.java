@@ -160,6 +160,15 @@ public class Intake extends SubsystemBase {
 	}
 	
 
+	// Runs the trough until the command is interrupted, then stops the trough
+	public Command reverseTrough() {
+		return new RunCommand(() -> {
+			runTrough(Feeder.Reverse);
+		}, this).finallyDo(
+			() -> runTrough(Feeder.Halt)
+		);
+	}
+
 	@Override
 	public void periodic() {
 		updateInputs(this.inputs);

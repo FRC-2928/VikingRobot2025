@@ -83,17 +83,17 @@ public class RobotContainer {
 
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
-			CenterLimelight.centerLimeLightPosition(reefPos),
-			new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L2)),
+			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
+				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L4))),
 			this.elevator.goToReefHeight(GamePieceType.CORAL),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
-			)
+			).withTimeout(0.25)
 		).finallyDo(() -> {
-			this.elevator.onEjectCoral();
-			this.elevator.setTargetCoralLevel(CoralPosition.NONE);
-		});
+        this.elevator.onEjectCoral();
+        this.elevator.setTargetCoralLevel(CoralPosition.NONE);
+      });
 	}
 
 	public Command raiseElevatorAtReef() {
@@ -183,12 +183,13 @@ public class RobotContainer {
 			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
 		);
 	}
+
 	public Command troughHandoffManual(){
 		return new ParallelCommandGroup(
 			this.bananaFlywheels.intakeForward(),
 			this.intake.runTrough()
 		);
-	}
+  }
 
 	public Command troughHandoffAutomated(){
 		return new SequentialCommandGroup(
@@ -215,6 +216,10 @@ public class RobotContainer {
 				)
 			)
 		);
+	}
+
+	public Command reverseTrough() {
+		return this.intake.reverseTrough();
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }

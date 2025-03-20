@@ -310,14 +310,21 @@ public class Drivetrain extends SubsystemBase {
 		int highNumAprilTags = 0;
 		for(Limelight lime : limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
+			// if (mt1.)
+			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
 			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
 				mostTrusted = mt1;
 				highNumAprilTags = lime.getNumberOfAprilTags();
+				// System.out.println("got a trusted limelight, numTags=" + highNumAprilTags);	
 			}
 		}
+		// System.out.println(limelightForward.getNumberOfAprilTags() + " limelight Forward Num Apri");
 		if(mostTrusted!=null){
+			// System.out.println("got a trusted limelight");
 			setAngle(mostTrusted.pose.getRotation().getMeasure());
-		}
+		} /*else {
+			// System.out.println("got  NO trusted limelight");
+		}*/
 	}
 
 	public void seedLimelightImu(){
@@ -327,6 +334,12 @@ public class Drivetrain extends SubsystemBase {
 	public void setImuMode2(){
 		for(Limelight lime : limelights){
 			lime.setIMUMode(2);
+		}
+	}
+
+	public void setImuMode3(){
+		for(Limelight lime : limelights){
+			lime.setIMUMode(3);
 		}
 	}
 

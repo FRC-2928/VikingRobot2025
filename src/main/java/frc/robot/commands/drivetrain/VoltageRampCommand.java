@@ -22,7 +22,7 @@ public class VoltageRampCommand extends Command {
 	}
 
 	@Override
-	public boolean isFinished() { return VoltageRampCommand.voltage > 0.5; }
+	public boolean isFinished() { return VoltageRampCommand.voltage > 6; }
 
 	@Override
 	public void end(final boolean interrupted) { RobotContainer.getInstance().drivetrain.halt(); }

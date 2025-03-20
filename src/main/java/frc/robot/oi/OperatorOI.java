@@ -3,6 +3,7 @@ package frc.robot.oi;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
@@ -30,7 +31,8 @@ public class OperatorOI extends BaseOI {
 		
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
-		// this.passOffCoral = this.controller.rightTrigger();
+		this.passOffCoral = this.controller.leftTrigger();
+
 		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())/* ) .and(RobotContainer.getInstance().driverOI.holdingCoral*/);
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
@@ -65,10 +67,13 @@ public class OperatorOI extends BaseOI {
 	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
-		// this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// TODO: change to toggle
 		this.alignElevatorCoral.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralOveride()
+			new ParallelCommandGroup(
+				RobotContainer.getInstance().telePositionForCoralOveride(),
+				RobotContainer.getInstance().reverseTrough()
+			)
 		);
 		this.alignElevatorAlgaeL2.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
