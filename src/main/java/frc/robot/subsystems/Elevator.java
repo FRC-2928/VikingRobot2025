@@ -11,8 +11,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -31,7 +31,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -81,9 +80,11 @@ public class Elevator extends SubsystemBase {
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
-		AlgaePosition.NONE.getValue(), Units.Feet.of(0),
-		AlgaePosition.L2.getValue(),   Units.Feet.of(3.5),
-		AlgaePosition.L3.getValue(),   Units.Feet.of(4.5));
+		AlgaePosition.NONE.getValue(), Units.Inches.of(0),
+		AlgaePosition.L1.getValue(),   Units.Meters.of(0.25),
+		AlgaePosition.L2.getValue(),   Units.Meters.of(0.472),
+		AlgaePosition.L3.getValue(),   Units.Meters.of(0.786),
+		AlgaePosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Cage
 	private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
@@ -102,9 +103,11 @@ public class Elevator extends SubsystemBase {
 
 	// Map of Banana Angles for Algae
 	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
-		AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
-		AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
-		AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
+		AlgaePosition.NONE.getValue(), Units.Rotations.of(6),
+		AlgaePosition.L1.getValue(),   Units.Rotations.of(6),
+		AlgaePosition.L2.getValue(),   Units.Rotations.of(6),
+		AlgaePosition.L3.getValue(),   Units.Rotations.of(6),
+		AlgaePosition.L4.getValue(),   Units.Rotations.of(6));
 
 	// Map of Banana Angles for Cage
 	private final Map<Integer, Angle> bananaAnglesCage = Map.of(
@@ -471,10 +474,12 @@ public class Elevator extends SubsystemBase {
 
 	public void toggleReefHeightDown() {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
+		this.targetAlgaeLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
 	}
 
 	public void toggleReefHeightUp() {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
+		this.targetAlgaeLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
 	}
 
 	public void onEjectAlgae() {
