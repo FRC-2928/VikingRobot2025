@@ -474,12 +474,12 @@ public class Elevator extends SubsystemBase {
 
 	public void toggleReefHeightDown() {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
-		this.targetAlgaeLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
+		this.targetAlgaeLevel = MathUtil.clamp(this.targetAlgaeLevel-1, 0, 4);
 	}
 
 	public void toggleReefHeightUp() {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
-		this.targetAlgaeLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
+		this.targetAlgaeLevel = MathUtil.clamp(this.targetAlgaeLevel+1, 0, 4);
 	}
 
 	public void onEjectAlgae() {
