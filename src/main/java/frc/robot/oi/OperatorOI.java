@@ -67,7 +67,8 @@ public class OperatorOI extends BaseOI {
 	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
 		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
+		// this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
+		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffAutomated());
 		// TODO: change to toggle
 		this.alignElevatorCoral.whileTrue(
 			new ParallelCommandGroup(

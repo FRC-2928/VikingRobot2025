@@ -182,8 +182,7 @@ public class CenterLimelight extends Command {
       // return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);
     }
 
-    public static CenterLimelight centerLimelightLeft(){
-
+  public static CenterLimelight centerLimelightLeft(){
       return new CenterLimelight(Units.Inches.of(3.85),offsetReef.negate(), reefTags);
   }
   public static CenterLimelight centerLimelightRight(){

@@ -98,8 +98,7 @@ public class RobotContainer {
 
 	public Command raiseElevatorAtReef() {
 		return new ConditionalCommand(
-			new ParallelCommandGroup(
-				new SequentialCommandGroup(
+			new SequentialCommandGroup(
 					troughHandoffManual(),
 					this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
 				this.drivetrain.dPadMode()
@@ -110,7 +109,7 @@ public class RobotContainer {
 	}
 
 	public Command telePositionForCoralLeft() {
-		return new CenterLimelight.centerLimelightLeft();
+		return CenterLimelight.centerLimelightLeft();
 	}
 
 	public Command telePositionForCoralOveride() {

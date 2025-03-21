@@ -73,6 +73,6 @@ public final class Tuning {
 	);
 	public static final LoggedNetworkNumber intakeBananaFlywheelsRotations = new LoggedNetworkNumber(
 		"/Tuning/intakeBananaFlywheelsRotations",
-		5
+		50
 	);
 }
