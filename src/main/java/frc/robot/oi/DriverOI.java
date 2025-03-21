@@ -53,6 +53,8 @@ public class DriverOI extends BaseOI {
 
 	public final BooleanSupplier reefMovementLeft;
 	public final BooleanSupplier reefMovementRight;
+	public final BooleanSupplier reefMovementBack;
+	public final BooleanSupplier reefMovementForward;
 
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
@@ -111,11 +113,11 @@ public class DriverOI extends BaseOI {
 
 		this.reefMovementLeft = this.controller.povLeft();
 		this.reefMovementRight = this.controller.povRight();
+		this.reefMovementForward = this.controller.povUp();
+		this.reefMovementBack = this.controller.povDown();
 
 		this.lockWheels = this.controller.x();
 		// Drivers asked for this control to be only for operator
-		// this.toggleReefHeightDown = this.controller.povDown();
-		// this.toggleReefHeightUp = this.controller.povUp();
 
 		// this.passOffCoral = this.controller.a();
 	}

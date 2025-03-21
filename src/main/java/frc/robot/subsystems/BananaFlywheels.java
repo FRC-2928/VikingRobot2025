@@ -96,7 +96,7 @@ public class BananaFlywheels extends SubsystemBase {
 
 		flyWheelConfig.HardwareLimitSwitch
 			.withForwardLimitType(ForwardLimitTypeValue.NormallyClosed)
-			.withForwardLimitEnable(true)
+			.withForwardLimitEnable(false)
 			.withForwardLimitSource(ForwardLimitSourceValue.RemoteCANdiS2)
 			.withForwardLimitRemoteSensorID(Constants.CAN.RIO.BANANA_CANDI.getInstance().getDeviceID())
 			.withReverseLimitEnable(false);

@@ -578,7 +578,7 @@ public class Constants {
 			REVERSE(-4),
 			HALT(0),
 			FORWARD(12),
-			INTAKE_FORWARD(1);
+			INTAKE_FORWARD(6);
 
 			private int demand;
 

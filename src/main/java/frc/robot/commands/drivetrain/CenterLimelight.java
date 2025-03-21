@@ -41,7 +41,7 @@ public class CenterLimelight extends Command {
 
   private Distance xTolerance = Units.Inches.of(0.25);
   private Distance yTolerance = Units.Inches.of(0.5);
-  private Angle thetaTolerance = Units.Degrees.of(0.5);
+  private Angle thetaTolerance = Units.Degrees.of(0.25);
 
   private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
@@ -183,10 +183,10 @@ public class CenterLimelight extends Command {
     }
 
   public static CenterLimelight centerLimelightLeft(){
-      return new CenterLimelight(Units.Inches.of(3.85),offsetReef.negate(), reefTags);
+      return new CenterLimelight(Units.Inches.of(1),offsetReef.negate(), reefTags);
   }
   public static CenterLimelight centerLimelightRight(){
-    return new CenterLimelight(Units.Inches.of(3.85),offsetReef, reefTags);
+    return new CenterLimelight(Units.Inches.of(1),offsetReef, reefTags);
   }
 
   public static CenterLimelight centerLimelightCenter(){
@@ -194,7 +194,7 @@ public class CenterLimelight extends Command {
   }
 
   public static CenterLimelight centerLimeLightPosition(ReefPosition reefPos) {
-    return new CenterLimelight(Units.Inches.of(3.85), offsetReef.times(reefPos.getDirection())/*Units.Inches.of(6.5 * reefPos.getDirection())*/, reefPos.getTagID());
+    return new CenterLimelight(Units.Inches.of(1), offsetReef.times(reefPos.getDirection())/*Units.Inches.of(6.5 * reefPos.getDirection())*/, reefPos.getTagID());
   }
 
   public static CenterLimelight centerLimelightHPReverse(HumanPlayerPosition hpPose) {
