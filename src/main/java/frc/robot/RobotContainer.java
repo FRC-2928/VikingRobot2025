@@ -86,10 +86,11 @@ public class RobotContainer {
 			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
 				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L4))),
 			this.elevator.goToReefHeight(GamePieceType.CORAL),
+			this.elevator.goToGamePieceHeight(GamePieceType.CORAL).withTimeout(0.4),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
-			).withTimeout(0.25)
+			)
 		).finallyDo(() -> {
         this.elevator.onEjectCoral();
         this.elevator.setTargetCoralLevel(CoralPosition.NONE);
@@ -113,6 +114,14 @@ public class RobotContainer {
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+			drivetrain.dPadMode()
+		);
+	}
+
+	public Command telePositionForAlgaeOverride() {
+		return new ParallelCommandGroup(
+			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+			this.bananaFlywheels.outputForward(),
 			drivetrain.dPadMode()
 		);
 	}

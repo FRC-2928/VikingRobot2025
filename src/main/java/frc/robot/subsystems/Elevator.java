@@ -81,7 +81,7 @@ public class Elevator extends SubsystemBase {
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
 		AlgaePosition.NONE.getValue(), Units.Inches.of(0),
-		AlgaePosition.L1.getValue(),   Units.Meters.of(0.25),
+		AlgaePosition.L1.getValue(),   Units.Meters.of(0.05),
 		AlgaePosition.L2.getValue(),   Units.Meters.of(0.472),
 		AlgaePosition.L3.getValue(),   Units.Meters.of(0.786),
 		AlgaePosition.L4.getValue(),   Units.Meters.of(1.31));
@@ -135,7 +135,7 @@ public class Elevator extends SubsystemBase {
 	private Distance elevatorCommandedPosition;  // The pos that the motor is currently told to go to
 	private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
 
-	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
+	private final Distance elevatorThresholdForPivot = Units.Inches.of(1); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
 	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
@@ -495,6 +495,10 @@ public class Elevator extends SubsystemBase {
 	private void onEjectGamePieceGeneric() {
 		// reset the home to whatever it was before...
 		this.currentGamePieceType = GamePieceType.NONE;
+		pivotBanana(currentGamePieceType.getPivot());
+		moveToPosition(currentGamePieceType.getHeight());
+		this.targetAlgaeLevel = 0;
+		this.targetCoralLevel = 0;
 	}
 
 	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){

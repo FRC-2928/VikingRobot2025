@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.CoralPosition;
+import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
@@ -70,8 +71,13 @@ public final class Autonomous {
 		));
 
 		choreoChooser.addCmd("[Comp] Score1CoralFromCenter", () -> Commands.sequence(
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L1);}),	
+			RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL).withTimeout(0.2),
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
+										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
-			autoFactory.trajectoryCmd("SimpleScore"),
+			// autoFactory.trajectoryCmd("SimpleScore"),
+			CenterLimelight.centerLimeLightPosition(ReefPosition.H),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.H),
 			autoFactory.trajectoryCmd("HToBackOff")
 		));
