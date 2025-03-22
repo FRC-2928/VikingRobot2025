@@ -30,6 +30,7 @@ public class OperatorOI extends BaseOI {
 		this.setElevatorModeAlgae = this.controller.leftBumper();
 		this.setElevatorModeNone = this.controller.back();
 		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
+		this.homeElevator = this.controller.rightTrigger();
 		
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
@@ -60,6 +61,7 @@ public class OperatorOI extends BaseOI {
 	public final Trigger alignElevatorCoral;
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;
+	public final Trigger homeElevator;  // sends the elevator back to home
 	// public final Trigger halt;
 	// public final Trigger slowedTrigger;
 
@@ -89,6 +91,8 @@ public class OperatorOI extends BaseOI {
 		this.alignElevatorAlgaeL3.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
 		);
+
+		this.homeElevator.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
 	}
 }
 //change elevator height

@@ -93,7 +93,6 @@ public class RobotContainer {
 			)
 		).finallyDo(() -> {
         this.elevator.onEjectCoral();
-        this.elevator.setTargetCoralLevel(CoralPosition.NONE);
       });
 	}
 
