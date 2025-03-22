@@ -111,7 +111,9 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void disabledExit() {}
+	public void disabledExit() {
+		cont.drivetrain.setFieldAngle();
+	}
 
 	// AUTONOMOUS //
 

@@ -18,6 +18,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -167,6 +169,17 @@ public class Drivetrain extends SubsystemBase {
 
 	public void resetAngle() {
 		this.joystickFOROffset = new Rotation2d(this.gyroInputs.yawPosition);
+	}
+
+	public void setFieldAngle() {
+		this.joystickFOROffset = new Rotation2d(this.gyroInputs.yawPosition);
+		this.joystickFOROffset = this.joystickFOROffset.minus(this.est.getEstimatedPosition().getRotation());
+		Alliance alliance = DriverStation.getAlliance().orElseGet(() -> DriverStation.Alliance.Blue);
+		if (alliance == Alliance.Red) {
+			this.joystickFOROffset = this.joystickFOROffset.plus(Rotation2d.kPi);
+		}
+
+		Logger.recordOutput("Drivetrain/setFieldAngle/FOR Offset", this.joystickFOROffset);
 	}
 
 	public Angle getFieldOrientedAngle() {

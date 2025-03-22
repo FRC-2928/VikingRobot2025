@@ -92,7 +92,7 @@ public class RobotContainer {
 				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
 			)
 		).finallyDo(() -> {
-        this.elevator.onEjectCoral();
+        this.elevator.onEjectCoralAuto();
       });
 	}
 
