@@ -77,7 +77,7 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightForward = new Limelight("limelight-forward");
 	public final Limelight limelightSide = new Limelight("limelight-side");
 	public final Limelight limelightReverse = new Limelight("limelight-reverse");
-	public final Limelight[] limelights = {limelightForward, limelightSide, limelightReverse};
+	public final Limelight[] limelights = {limelightForward, limelightSide/* , limelightReverse*/};
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -307,7 +307,7 @@ public class Drivetrain extends SubsystemBase {
 		field.setRobotPose(this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Pose", this.est.getEstimatedPosition());
 		Logger.recordOutput("Drivetrain/Imumode", limelightSide.getImuMode());
-		Logger.recordOutput("Drivetrain/limelightHasTargets",limelightSide.hasValidTargets());
+		// Logger.recordOutput("Drivetrain/limelightHasTargets",limelightSide.hasValidTargets());
 		Logger.recordOutput("Drivetrain/matchTimer", Timer.getMatchTime());
 		PoseEstimate mt1 = this.limelightSide.getPoseMegatag1();
 		if (mt1 != null) {
@@ -323,21 +323,15 @@ public class Drivetrain extends SubsystemBase {
 		int highNumAprilTags = 0;
 		for(Limelight lime : limelights){
 			PoseEstimate mt1 = lime.getPoseMegatag1();
-			// if (mt1.)
-			// System.out.println("validTargets=" + lime.hasValidTargets() + " numTags=" + lime.getNumberOfAprilTags());
 			if(lime.hasValidTargets() && mt1 != null && lime.getNumberOfAprilTags() > highNumAprilTags){
 				mostTrusted = mt1;
 				highNumAprilTags = lime.getNumberOfAprilTags();
-				// System.out.println("got a trusted limelight, numTags=" + highNumAprilTags);	
 			}
 		}
-		// System.out.println(limelightForward.getNumberOfAprilTags() + " limelight Forward Num Apri");
+
 		if(mostTrusted!=null){
-			// System.out.println("got a trusted limelight");
 			setAngle(mostTrusted.pose.getRotation().getMeasure());
-		} /*else {
-			// System.out.println("got  NO trusted limelight");
-		}*/
+		}
 	}
 
 	public void seedLimelightImu(){

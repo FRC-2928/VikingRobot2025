@@ -190,6 +190,7 @@ public class BananaFlywheels extends SubsystemBase {
 		inputs.flywheelSupplyCurrent = motorStatorCurrent.getValue();
 		inputs.flywheelStatorCurrent = motorSupplyCurrent.getValue();
 		inputs.targetedGamePieceType = this.targetedGamePieceType;
+		inputs.flywheelPosition = this.angle.getValue();
 
 		// The held piece type can be expressed as a bitset of the various indicator flags
 		boolean[] heldGamePieceTypeFlags = new boolean[2];  // create the array of boolean flags (bitflags)
