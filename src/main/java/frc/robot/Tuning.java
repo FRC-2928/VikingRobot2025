@@ -41,11 +41,11 @@ public final class Tuning {
 	);
 	public static final LoggedNetworkNumber coralHeightHome = new LoggedNetworkNumber(
 		"/Tuning/CoralHeightHome",
-		0
+		20 /* inches */
 	);
 	public static final LoggedNetworkNumber coralPivotHome = new LoggedNetworkNumber(
 		"/Tuning/CoralPivotHome",
-		0
+		0 /* rotations */
 	);
 	public static final LoggedNetworkNumber algaeHeightHome = new LoggedNetworkNumber(
 		"/Tuning/AlgaeHeightHome",

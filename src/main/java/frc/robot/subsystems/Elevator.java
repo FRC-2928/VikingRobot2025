@@ -72,7 +72,7 @@ public class Elevator extends SubsystemBase {
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
+		CoralPosition.NONE.getValue(), Units.Inches.of(40),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
 		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
 		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
@@ -80,7 +80,7 @@ public class Elevator extends SubsystemBase {
 
 	// Map of Elevator Positions for Algae
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
-		AlgaePosition.NONE.getValue(), Units.Inches.of(0),
+		AlgaePosition.NONE.getValue(), Units.Inches.of(0.5),
 		AlgaePosition.L1.getValue(),   Units.Meters.of(0.05),
 		AlgaePosition.L2.getValue(),   Units.Meters.of(0.472),
 		AlgaePosition.L3.getValue(),   Units.Meters.of(0.786),
