@@ -28,6 +28,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Banana;
 import frc.robot.Constants.Banana.FeederDemand;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.Tuning;
 
 /* 1.Make a method that stops elevator pivot from going lower a certain angle
  * 2. Run fly wheels forward and backward TalonFX
@@ -146,8 +147,17 @@ public class BananaFlywheels extends SubsystemBase {
 	public void runFlywheels(Angle rotations){
 		this.wheels.setControl(new PositionVoltage(rotations.in(Units.Rotations)).withFeedForward(-6));
 	}
+
+	public void voltageIntakeWithLimits() {
+		this.wheels.setControl(
+			new VoltageOut(FeederDemand.FORWARD.getValue())
+				.withLimitForwardMotion(true));
+	}
+
 	public void runFlywheelsWithoutLimit(Angle rotations){
-		this.wheels.setControl(new PositionVoltage(rotations.in(Units.Rotations)).withFeedForward(FeederDemand.INTAKE_FORWARD.getValue()).withIgnoreHardwareLimits(true));
+		// we know intake direction is + rotations on the Banana, so we'll use that for now...
+		var desiredRotations = this.angle.getValue().plus(rotations).in(Units.Rotations);
+		this.wheels.setControl(new PositionVoltage(desiredRotations).withFeedForward(FeederDemand.INTAKE_FORWARD.getValue()).withIgnoreHardwareLimits(true));
 	}
 
 	//Gets angle of flywheel and holds it at that position
@@ -227,6 +237,13 @@ public class BananaFlywheels extends SubsystemBase {
 		// 3. Stop the wheels
 	}
 
+	public Command intakeForwardWithLimits() {
+		return new RunCommand(() -> {
+			voltageIntakeWithLimits();
+		}, this).until(() -> this.holdingCoral())
+		.andThen(rotateBanana(Units.Rotations.of(Tuning.intakeBananaFlywheelsRotations.get())));
+	}
+
 	public Command intakeForward()
 	{
 		// TODO: fix this temp hack from comp
@@ -253,6 +270,15 @@ public class BananaFlywheels extends SubsystemBase {
 			runFlywheels(FeederDemand.HALT);
 		});
 	}
+
+	public Command outputReverse(){
+		return new RunCommand(() -> {
+			runFlywheels(FeederDemand.REVERSE);
+		}, this).finallyDo(() -> {
+			runFlywheels(FeederDemand.HALT);
+		});
+	}
+
 	public Command outputForwardWithoutLimit(){
 		return new RunCommand(() -> {
 			runFlywheels(FeederDemand.FORWARD);

@@ -82,8 +82,9 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
 		AlgaePosition.NONE.getValue(), Units.Inches.of(0.5),
 		AlgaePosition.L1.getValue(),   Units.Meters.of(0.05),
-		AlgaePosition.L2.getValue(),   Units.Meters.of(0.472),
-		AlgaePosition.L3.getValue(),   Units.Meters.of(0.786),
+		/*0 home, 0 < new1 < old1, old1 < new2 < old2, old2 < new3 < old3, old3 < new4 < old4 */
+		AlgaePosition.L2.getValue(),   Units.Meters.of(/*0.236*/0.472),
+		AlgaePosition.L3.getValue(),   Units.Meters.of(/*0.629*/0.786),
 		AlgaePosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Cage

@@ -103,7 +103,7 @@ public class RobotContainer {
 				this.drivetrain.dPadMode()
 			),
 			new InstantCommand(), 
-			this.driverOI.closeToReef)
+			this.driverOI.inReefAlignRange)
 		.until(this.driverOI.closeToReef.negate());
 	}
 
@@ -197,7 +197,14 @@ public class RobotContainer {
 			this.bananaFlywheels.intakeForward(),
 			this.intake.runTrough()
 		);
-  }
+  	}
+
+	public Command troughHandoffRotationBased() {
+		return new ParallelDeadlineGroup(
+			this.bananaFlywheels.intakeForwardWithLimits(),
+			this.intake.runTrough()
+		);
+	}
 
 	public Command troughHandoffAutomated(){
 		return new SequentialCommandGroup(

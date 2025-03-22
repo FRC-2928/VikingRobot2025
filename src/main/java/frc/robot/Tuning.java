@@ -16,6 +16,9 @@ public final class Tuning {
 	public static final LoggedNetworkNumber alignRadiusReef = new LoggedNetworkNumber
 		("Tuning/AlignReefRadius",
 		3.25);
+	public static final LoggedNetworkNumber closeToReefRadius = new LoggedNetworkNumber
+		("Tuning/CloseToReefRadius",
+		1.5);
 	public static final LoggedNetworkNumber alignRadiusHP = new LoggedNetworkNumber
 		("Tuning/AlignHPRadius",
 		2.01);

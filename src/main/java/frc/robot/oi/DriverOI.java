@@ -49,6 +49,7 @@ public class DriverOI extends BaseOI {
 
 	public final Trigger closeToHP;
 	public final Trigger closeToProcessor;
+	public final Trigger inReefAlignRange;
 	public final Trigger closeToReef;
 
 	public final BooleanSupplier reefMovementLeft;
@@ -81,16 +82,21 @@ public class DriverOI extends BaseOI {
 		this.closeToProcessor = new Trigger(() -> {return
 			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorBlue) < Tuning.alignRadiusProcessor.get()
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.processorRed) < Tuning.alignRadiusProcessor.get();});
-		this.closeToReef = new Trigger(() -> {return
+		this.inReefAlignRange = new Trigger(() -> {return
 			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
 
+		this.closeToReef = new Trigger(() -> {
+			return RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.closeToReefRadius.get()
+			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.closeToReefRadius.get();
+		});
+
 		this.alignReefLeft = this.controller.leftBumper()
 							/* .and(this.holdingCoral)*/
-							.and(this.closeToReef);
+							.and(this.inReefAlignRange);
 		this.alignReefRight = this.controller.rightBumper()
 							/* .and(this.holdingCoral)*/
-							.and(this.closeToReef);
+							.and(this.inReefAlignRange);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							/*.and(this.holdingCoral.negate())*/
 							.and(this.closeToHP);
@@ -100,11 +106,11 @@ public class DriverOI extends BaseOI {
 							/*.and(this.nearProcessor());*/
 		this.alignReefCenter = (this.controller.leftTrigger())
 							.and(this.holdingCoral.negate())
-							.and(this.closeToReef);
+							.and(this.inReefAlignRange);
 							/*.and(this.nearReef())*/
 		this.alignReefCenterWithCoral = (this.controller.leftTrigger())
 							.and(this.holdingCoral)
-							.and(this.closeToReef);
+							.and(this.inReefAlignRange);
 
 		this.resetFOD = this.controller.y();
 		this.resetAngle = this.controller.b().or(() -> DriverStation.isDisabled());

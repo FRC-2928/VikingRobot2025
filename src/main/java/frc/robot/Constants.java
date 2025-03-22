@@ -575,7 +575,7 @@ public class Constants {
 		private Banana() { throw new IllegalCallerException("Cannot instantiate `Constants.Banana`"); }
 
 		public static enum FeederDemand {
-			REVERSE(-4),
+			REVERSE(-12),
 			HALT(0),
 			FORWARD(12),
 			INTAKE_FORWARD(6);
