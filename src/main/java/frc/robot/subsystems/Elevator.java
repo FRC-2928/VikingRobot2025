@@ -492,6 +492,14 @@ public class Elevator extends SubsystemBase {
 		onEjectGamePieceGeneric();
 	}
 
+	public void onEjectCoralAuto() {
+		this.currentGamePieceType = GamePieceType.CORAL;
+		pivotBanana(currentGamePieceType.getPivot());
+		moveToPosition(currentGamePieceType.getHeight());
+		this.targetAlgaeLevel = 0;
+		this.targetCoralLevel = 0;
+	}
+
 	private void onEjectGamePieceGeneric() {
 		// reset the home to whatever it was before...
 		this.currentGamePieceType = GamePieceType.NONE;

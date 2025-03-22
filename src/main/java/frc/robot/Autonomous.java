@@ -77,9 +77,9 @@ public final class Autonomous {
 										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
 			// autoFactory.trajectoryCmd("SimpleScore"),
-			CenterLimelight.centerLimeLightPosition(ReefPosition.H),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.H),
-			autoFactory.trajectoryCmd("HToBackOff")
+			autoFactory.trajectoryCmd("HToBackOff"),
+			RobotContainer.getInstance().drivetrain.haltCommand()
 		));
 
 		choreoChooser.addCmd(
