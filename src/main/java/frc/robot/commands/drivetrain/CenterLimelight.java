@@ -190,7 +190,7 @@ public class CenterLimelight extends Command {
   }
 
   public static CenterLimelight centerLimelightCenter(){
-    return new CenterLimelight(Units.Inches.of(3.85),Units.Inches.of(0), reefTags);
+    return new CenterLimelight(Units.Inches.of(0),Units.Inches.of(0), reefTags);
   }
 
   public static CenterLimelight centerLimeLightPosition(ReefPosition reefPos) {
@@ -198,7 +198,7 @@ public class CenterLimelight extends Command {
   }
 
   public static CenterLimelight centerLimelightHPReverse(HumanPlayerPosition hpPose) {
-    return new CenterLimelight(Units.Inches.of(10), Units.Inches.of(-15), Units.Radians.of(Math.PI), hpPose.getTagID());
+    return new CenterLimelight(Units.Inches.of(0), Units.Inches.of(0), Units.Radians.of(Math.PI), hpPose.getTagID());
   }
 
   public static CenterLimelight centerLimelightClosestHP() {

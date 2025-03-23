@@ -229,13 +229,32 @@ public class BananaFlywheels extends SubsystemBase {
 				runFlywheels(FeederDemand.FORWARD);
 			}, this).withTimeout(0.3)
 		).andThen(
-			new RunCommand(() -> {
+			new InstantCommand(() -> {
 				runFlywheels(FeederDemand.HALT);
 			},this)
 		);
 		// 1. Run the wheels forward until the sensor returns false
 		// 2. Run the wheels another 0.2 seconds
 		// 3. Stop the wheels
+	}
+
+	public Command intakeUntilLimits() {
+		return new RunCommand(() -> {
+			voltageIntakeWithLimits();
+		}, this).until(() -> this.holdingCoral()).finallyDo(
+			() -> {runFlywheels(FeederDemand.HALT);}
+		);
+	}
+
+	public Command advanceCoralTimeBased() {
+		return new SequentialCommandGroup(
+			new RunCommand(() -> {
+				runFlywheels(FeederDemand.INTAKE_FORWARD);
+			}, this).withTimeout(Units.Seconds.of(0.185)),
+			new InstantCommand(() -> {
+				runFlywheels(FeederDemand.HALT);
+			}, this)
+		).finallyDo(() -> {runFlywheels(FeederDemand.HALT);});
 	}
 
 	public Command intakeForwardWithLimits() {

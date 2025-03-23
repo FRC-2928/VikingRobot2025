@@ -72,10 +72,10 @@ public class Robot extends LoggedRobot {
 			limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
 		}
 		// cont.drivetrain.limelight.setRobotOrientation(cont.drivetrain.getEstimatedPosition().getRotation().getMeasure());
-		Logger.recordOutput("RobotTriggers/inReefAlignRange", cont.driverOI.inReefAlignRange);
-		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef);
-		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP);
-		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor);
+		Logger.recordOutput("RobotTriggers/inReefAlignRange", cont.driverOI.inReefAlignRange.getAsBoolean());
+		Logger.recordOutput("RobotTriggers/CloseToReef", cont.driverOI.closeToReef.getAsBoolean());
+		Logger.recordOutput("RobotTriggers/CloseToHP", cont.driverOI.closeToHP.getAsBoolean());
+		Logger.recordOutput("RobotTriggers/CloseToProcessor", cont.driverOI.closeToProcessor.getAsBoolean());
 	}
 
 	// DISABLED //

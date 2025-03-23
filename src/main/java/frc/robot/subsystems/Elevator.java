@@ -72,10 +72,10 @@ public class Elevator extends SubsystemBase {
 	// ------------------- Elevator Position Maps -------------------
 	// Map of Elevator Positions for Coral
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Inches.of(40),
+		CoralPosition.NONE.getValue(), Units.Inches.of(0),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
 		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
-		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
+		CoralPosition.L3.getValue(),   Units.Meters.of(/*0.796*/0.8),
 		CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Algae
@@ -83,8 +83,8 @@ public class Elevator extends SubsystemBase {
 		AlgaePosition.NONE.getValue(), Units.Inches.of(0.5),
 		AlgaePosition.L1.getValue(),   Units.Meters.of(0.05),
 		/*0 home, 0 < new1 < old1, old1 < new2 < old2, old2 < new3 < old3, old3 < new4 < old4 */
-		AlgaePosition.L2.getValue(),   Units.Meters.of(/*0.236*/0.472),
-		AlgaePosition.L3.getValue(),   Units.Meters.of(/*0.629*/0.786),
+		AlgaePosition.L2.getValue(),   Units.Meters.of(0.236/*0.472*/),
+		AlgaePosition.L3.getValue(),   Units.Meters.of(0.629/*0.786*/),
 		AlgaePosition.L4.getValue(),   Units.Meters.of(1.31));
 
 	// Map of Elevator Positions for Cage
@@ -494,7 +494,7 @@ public class Elevator extends SubsystemBase {
 	}
 
 	public void onEjectCoralAuto() {
-		this.currentGamePieceType = GamePieceType.CORAL;
+		this.currentGamePieceType = GamePieceType.NONE;
 		pivotBanana(currentGamePieceType.getPivot());
 		moveToPosition(currentGamePieceType.getHeight());
 		this.targetAlgaeLevel = 0;

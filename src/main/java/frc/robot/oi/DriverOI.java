@@ -4,6 +4,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -56,12 +57,19 @@ public class DriverOI extends BaseOI {
 	public final BooleanSupplier reefMovementRight;
 	public final BooleanSupplier reefMovementBack;
 	public final BooleanSupplier reefMovementForward;
+	private final BaseOI.Haptics haptics;
 
 	public DriverOI(final CommandXboxController controller) {
 		super(controller);
 
 		this.driveAxial = this.controller::getLeftY;
 		this.driveLateral = this.controller::getLeftX;
+		this.haptics = new BaseOI.Haptics(this.hid);
+		this.haptics.type = RumbleType.kBothRumble;
+		this.haptics.interval = 1;
+		this.haptics.dutyCycle = 1;
+		this.haptics.powerTrue = 1;
+		this.haptics.powerFalse = 0;
 
 		this.holdingCoral = new Trigger(() -> (!RobotContainer.getInstance().intake.inputs.troughHasCoral && RobotContainer.getInstance().bananaFlywheels.holdingCoral()));
 
@@ -126,6 +134,10 @@ public class DriverOI extends BaseOI {
 		// Drivers asked for this control to be only for operator
 
 		// this.passOffCoral = this.controller.a();
+	}
+
+	public BaseOI.Haptics getHaptics() {
+		return this.haptics;
 	}
 
 	public void configureControls() {

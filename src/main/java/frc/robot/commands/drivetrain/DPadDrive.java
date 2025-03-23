@@ -47,7 +47,7 @@ public class DPadDrive extends Command{
 			return new Translation2d(0.15d, 0);
 		}
 		if (back) {
-			return new Translation2d(-0.15d, 0);
+			return new Translation2d(-1.0d, 0);
 		}
 		return new Translation2d(0d, 0d);
 	}

@@ -1,5 +1,6 @@
 package frc.robot;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import choreo.auto.AutoChooser;
@@ -83,6 +84,7 @@ public class RobotContainer {
 
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
+			new InstantCommand(() -> { Logger.recordOutput("AutoFinished", false);}),
 			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
 				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L4))),
 			this.elevator.goToReefHeight(GamePieceType.CORAL),
@@ -93,6 +95,7 @@ public class RobotContainer {
 			)
 		).finallyDo(() -> {
         this.elevator.onEjectCoralAuto();
+		Logger.recordOutput("AutoFinished", true);
       });
 	}
 
@@ -103,12 +106,22 @@ public class RobotContainer {
 				this.drivetrain.dPadMode()
 			),
 			new InstantCommand(), 
-			this.driverOI.inReefAlignRange)
+			this.driverOI.closeToReef)
 		.until(this.driverOI.closeToReef.negate());
 	}
 
 	public Command telePositionForCoralLeft() {
-		return CenterLimelight.centerLimelightLeft();
+		return (CenterLimelight.centerLimelightLeft()
+				.andThen(
+					new RunCommand(
+						() -> {
+							driverOI.getHaptics().update();
+						}
+					)
+				))
+				.finallyDo(() -> {
+					driverOI.getHaptics().stop();
+				});
 	}
 	public Command telePositionForCoralOveride() {
 		return new ParallelCommandGroup(
@@ -126,13 +139,17 @@ public class RobotContainer {
 	}
 
 	public Command telePositionForCoralRight() {
-		return new SequentialCommandGroup(
-			CenterLimelight.centerLimelightRight(),
-			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.dPadMode()
-			)
-		);
+		return (CenterLimelight.centerLimelightRight()
+				.andThen(
+					new RunCommand(
+						() -> {
+							driverOI.getHaptics().update();
+						}
+					)
+				))
+				.finallyDo(() -> {
+					driverOI.getHaptics().stop();
+				});
 	}
 
 
@@ -146,7 +163,6 @@ public class RobotContainer {
 			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
 			new ParallelCommandGroup(
 				new SequentialCommandGroup(
-					
 					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
 					this.bananaFlywheels.outputForward()
 				),

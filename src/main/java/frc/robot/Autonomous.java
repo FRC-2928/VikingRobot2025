@@ -10,7 +10,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -45,28 +49,73 @@ public final class Autonomous {
 		AutoFactory autoFactory = RobotContainer.getInstance().drivetrain.autoFactory;
 
 		choreoChooser.addCmd("[Comp] Score2CoralFromRight", () -> Commands.sequence(
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L1);}),	
+			RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL).withTimeout(0.2),
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
+										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
 			autoFactory.trajectoryCmd("StartRightToE"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.E),
 			autoFactory.trajectoryCmd("EToB1Reverse"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.B1)),
-			RobotContainer.getInstance().troughHandoffManual(),
+			new ParallelDeadlineGroup(
+				new SequentialCommandGroup(
+					RobotContainer.getInstance().bananaFlywheels.intakeUntilLimits(),
+					RobotContainer.getInstance().bananaFlywheels.advanceCoralTimeBased()
+				),
+				RobotContainer.getInstance().intake.runTrough()/*,
+				new RepeatCommand(CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.B1)*/
+			).withTimeout(3),
 			autoFactory.trajectoryCmd("B1ReverseToD"),
+			new ConditionalCommand(
+				new InstantCommand(),
+				new ParallelDeadlineGroup(
+					new SequentialCommandGroup(
+						RobotContainer.getInstance().bananaFlywheels.intakeUntilLimits(),
+						RobotContainer.getInstance().bananaFlywheels.advanceCoralTimeBased()
+					),
+					RobotContainer.getInstance().intake.runTrough()
+				),
+				() -> RobotContainer.getInstance().bananaFlywheels.holdingCoral()
+			),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.D)
 		));
+		
+
 		choreoChooser.addCmd("[Comp] Drive forward", () -> new RunCommand(() -> {
 			RobotContainer.getInstance().drivetrain.control(new ChassisSpeeds(3,0,0));
-		}, RobotContainer.getInstance().drivetrain)
-		.withTimeout(0.5));
+			}).withTimeout(0.5)
+		);
+		
 
 		choreoChooser.addCmd("[Comp] Score2CoralFromLeft", () -> Commands.sequence(
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L1);}),	
+			RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL).withTimeout(0.2),
+			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
+										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
 			autoFactory.trajectoryCmd("StartLeftToJ"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.J),
-			autoFactory.trajectoryCmd("JToA2Reverse"),
-			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.A2)),
-			RobotContainer.getInstance().troughHandoffManual(),
-			autoFactory.trajectoryCmd("A2ReverseToK"),
+			autoFactory.trajectoryCmd("JToA2Reverse").andThen(RobotContainer.getInstance().drivetrain.haltCommand()),
+			new ParallelDeadlineGroup(
+				new SequentialCommandGroup(
+					RobotContainer.getInstance().bananaFlywheels.intakeUntilLimits(),
+					RobotContainer.getInstance().bananaFlywheels.advanceCoralTimeBased()
+				),
+				RobotContainer.getInstance().intake.runTrough()/*,
+				new RepeatCommand(CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.A2)*/
+			).withTimeout(3),
+			autoFactory.trajectoryCmd("A2ReverseToK").andThen(RobotContainer.getInstance().drivetrain.haltCommand()),
+			new ConditionalCommand(
+				new InstantCommand(),
+				new ParallelDeadlineGroup(
+					new SequentialCommandGroup(
+						RobotContainer.getInstance().bananaFlywheels.intakeUntilLimits(),
+						RobotContainer.getInstance().bananaFlywheels.advanceCoralTimeBased()
+					),
+					RobotContainer.getInstance().intake.runTrough()
+				),
+				() -> RobotContainer.getInstance().bananaFlywheels.holdingCoral()
+			),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.K)
 		));
 
