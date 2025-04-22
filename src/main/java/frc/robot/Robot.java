@@ -192,12 +192,4 @@ public class Robot extends LoggedRobot {
 		}
 		SmartDashboard.putData("Field", RobotContainer.getInstance().drivetrain.field);
 	}
-	private boolean isInArray(String[] array,String check){
-		for(int i=0; i<array.length;i++){
-			if(array[i] == check){
-				return true;
-			}
-		}
-		return false;
-	}
 }

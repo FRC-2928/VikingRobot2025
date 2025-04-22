@@ -133,7 +133,6 @@ public class Elevator extends SubsystemBase {
 	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
 	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
 
-	private Distance elevatorCommandedPosition;  // The pos that the motor is currently told to go to
 	private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
 
 	private final Distance elevatorThresholdForPivot = Units.Inches.of(1); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
@@ -158,7 +157,6 @@ public class Elevator extends SubsystemBase {
 	 */
 	public Elevator() {
 		this.elevatorTargetPosition = Units.Feet.of(0);
-		this.elevatorCommandedPosition = Units.Feet.of(0);
 		this.pivotTargetAngle = Units.Degrees.of(0);
 		this.pivotCommmandedAngle = Units.Degrees.of(20);
 
@@ -284,7 +282,6 @@ public class Elevator extends SubsystemBase {
 	private void controlPosition(final Distance position) {
 		Logger.recordOutput("Elevator/DesiredPosition", position.in(Units.Meters));
 		liftMotorA.setControl(new MotionMagicExpoVoltage(position.in(Units.Meters)));
-		elevatorCommandedPosition = position;
 	}
 
 	public void controlPositionVelocity(final LinearVelocity voltage){

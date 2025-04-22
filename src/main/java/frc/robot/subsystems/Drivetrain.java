@@ -317,8 +317,6 @@ public class Drivetrain extends SubsystemBase {
 
 	public void disabledPeriodic() {
 		//TODO: maybe add some more filtering
-		Angle rotaion = Units.Radians.of(0);
-		int numberOfValidTargets = 0;
 		PoseEstimate mostTrusted = null;
 		int highNumAprilTags = 0;
 		for(Limelight lime : limelights){

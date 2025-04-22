@@ -1,15 +1,9 @@
 package frc.robot.commands.shooter;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.oi.BaseOI;
-import frc.robot.subsystems.Intake;
-import org.littletonrobotics.junction.Logger;
 
 // THIS CLASS IS ONLY FOR REFERENCE FROM 2024. DO NOT USE IT
 public class IntakeGround extends Command {
