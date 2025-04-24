@@ -25,11 +25,11 @@ public class DriverOI extends BaseOI {
 	public final DoubleSupplier driveFORY;
 	public final Trigger manualRotation;
 
-	private final Trigger alignReefLeft;
-	private final Trigger alignReefRight;
-	private final Trigger alignReefCenter;
+	public final Trigger alignReefLeft;
+	public final Trigger alignReefRight;
+	public final Trigger alignReefCenter;
 	private final Trigger alignReefCenterWithCoral;
-	private final Trigger alignHP;
+	public final Trigger alignHP;
 	private final Trigger alignProcessor;
 
 	public final Trigger lockWheels;
