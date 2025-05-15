@@ -19,6 +19,8 @@ import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.ReefPosition;
+import frc.robot.Superstate.RobotStates;
+import frc.robot.Superstate.WantedRobotStates;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
@@ -39,6 +41,7 @@ public class RobotContainer {
 	public Elevator elevator;
 	public Intake intake;
 	public BananaFlywheels bananaFlywheels;
+	public Superstate superstate;
 	
 	public AutoChooser autoChooser;
 	private static RobotContainer sInstance = null;
@@ -58,6 +61,7 @@ public class RobotContainer {
 	}
 
 	private void init() {
+		this.superstate = new Superstate();
 		this.driverOI = new DriverOI(new CommandXboxController(0));
 		this.operatorOI = new OperatorOI(new CommandXboxController(1));
 		Tuning.algaePivotHome.get();
@@ -79,6 +83,7 @@ public class RobotContainer {
 
 		this.driverOI.configureControls();
 		this.operatorOI.configureControls();
+		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.unscoreAlgae));
 	}
 
 	public Command autoScoreCoral(ReefPosition reefPos) {
@@ -228,4 +233,6 @@ public class RobotContainer {
 	}
 
 	public String getDriveMode() { return this.driveModeChooser.get(); }
+
+	
 }

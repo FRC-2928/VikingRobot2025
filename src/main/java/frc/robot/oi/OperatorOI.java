@@ -62,25 +62,25 @@ public class OperatorOI extends BaseOI {
 	public void configureControls() {
 		// this.slowedTrigger.whileTrue(new JoystickDrive(RobotContainer.getInstance().drivetrain, 0.3));
 		// this.halt.whileTrue(new RunCommand(() -> RobotContainer.getInstance().drivetrain.halt()));
-		haultElevatpr.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setHaultMode()));
-		setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
-	// this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
-		this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
-		this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
-		this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
-		// TODO: change to toggle
-		this.alignElevatorCoral.whileTrue(
-			new ParallelCommandGroup(
-				RobotContainer.getInstance().telePositionForCoralOveride(),
-				RobotContainer.getInstance().reverseTrough()
-			)
-		);
-		this.alignElevatorAlgaeL2.whileTrue(
-			RobotContainer.getInstance().telePositionForAlgaeOverideL2()
-		);
-		this.alignElevatorAlgaeL3.whileTrue(
-			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
-		);
+	// 	haultElevatpr.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setHaultMode()));
+	// 	setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
+	// // this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
+	// 	this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
+	// 	this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
+	// 	this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
+	// 	// TODO: change to toggle
+	// 	this.alignElevatorCoral.whileTrue(
+	// 		new ParallelCommandGroup(
+	// 			RobotContainer.getInstance().telePositionForCoralOveride(),
+	// 			RobotContainer.getInstance().reverseTrough()
+	// 		)
+	// 	);
+	// 	this.alignElevatorAlgaeL2.whileTrue(
+	// 		RobotContainer.getInstance().telePositionForAlgaeOverideL2()
+	// 	);
+	// 	this.alignElevatorAlgaeL3.whileTrue(
+	// 		RobotContainer.getInstance().telePositionForAlgaeOverideL3()
+	// 	);
 	}
 }
 //change elevator height

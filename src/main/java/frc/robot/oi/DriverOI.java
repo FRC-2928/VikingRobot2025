@@ -112,7 +112,7 @@ public class DriverOI extends BaseOI {
 		this.reefMovementLeft = this.controller.povLeft();
 		this.reefMovementRight = this.controller.povRight();
 
-		this.lockWheels = this.controller.x();
+		this.lockWheels = this.controller.a();
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown = this.controller.povDown();
 		// this.toggleReefHeightUp = this.controller.povUp();
@@ -122,45 +122,45 @@ public class DriverOI extends BaseOI {
 
 	public void configureControls() {
 
-		this.lockWheels.whileTrue(new LockWheels());
-		this.resetFOD.onTrue(new InstantCommand(RobotContainer.getInstance().drivetrain::resetAngle));
-		// TODO: update/change this with LL mode 3
-		this.resetAngle
-			.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
-			.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
-		this.alignReefLeft.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralLeft()
-		).onFalse(
-			RobotContainer.getInstance().raiseElevatorAtReef()
-		);
-		this.alignReefRight.whileTrue(
-			RobotContainer.getInstance().telePositionForCoralRight()
-		).onFalse(
-			RobotContainer.getInstance().raiseElevatorAtReef()
-		);
-		this.alignReefCenter.whileTrue(
-			RobotContainer.getInstance().telePositionForAlgae()
-		).onFalse(
-			RobotContainer.getInstance().pullAlgaeOffReef()
-		);
-		this.alignReefCenterWithCoral.whileTrue(
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightCenter(),
-				RobotContainer.getInstance().drivetrain.slowMode()
-			)
-		);
-		this.alignHP.whileTrue(
-			new SequentialCommandGroup(
-				CenterLimelight.centerLimelightClosestHP(),
-				RobotContainer.getInstance().drivetrain.slowMode()
-			)
-		);
-		this.alignProcessor.whileTrue(
-			Commands.sequence(
-				CenterLimelight.centerLimelightProcessor(),
-				new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
-		this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
-							.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
+		// this.lockWheels.whileTrue(new LockWheels());
+		// this.resetFOD.onTrue(new InstantCommand(RobotContainer.getInstance().drivetrain::resetAngle));
+		// // TODO: update/change this with LL mode 3
+		// this.resetAngle
+		// 	.whileTrue(new RunCommand(RobotContainer.getInstance().drivetrain::seedLimelightImu))
+		// 	.whileFalse(new RunCommand(RobotContainer.getInstance().drivetrain::setImuMode2));
+		// this.alignReefLeft.whileTrue(
+		// 	RobotContainer.getInstance().telePositionForCoralLeft()
+		// ).onFalse(
+		// 	RobotContainer.getInstance().raiseElevatorAtReef()
+		// );
+		// this.alignReefRight.whileTrue(
+		// 	RobotContainer.getInstance().telePositionForCoralRight()
+		// ).onFalse(
+		// 	RobotContainer.getInstance().raiseElevatorAtReef()
+		// );
+		// this.alignReefCenter.whileTrue(
+		// 	RobotContainer.getInstance().telePositionForAlgae()
+		// ).onFalse(
+		// 	RobotContainer.getInstance().pullAlgaeOffReef()
+		// );
+		// this.alignReefCenterWithCoral.whileTrue(
+		// 	new SequentialCommandGroup(
+		// 		CenterLimelight.centerLimelightCenter(),
+		// 		RobotContainer.getInstance().drivetrain.slowMode()
+		// 	)
+		// );
+		// this.alignHP.whileTrue(
+		// 	new SequentialCommandGroup(
+		// 		CenterLimelight.centerLimelightClosestHP(),
+		// 		RobotContainer.getInstance().drivetrain.slowMode()
+		// 	)
+		// );
+		// this.alignProcessor.whileTrue(
+		// 	Commands.sequence(
+		// 		CenterLimelight.centerLimelightProcessor(),
+		// 		new InstantCommand(RobotContainer.getInstance().elevator::onEjectAlgae)));
+		// this.outputGamePiece.whileTrue(RobotContainer.getInstance().bananaFlywheels.outputForward())
+		// 					.onFalse(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
 		// this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
