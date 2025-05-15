@@ -16,10 +16,13 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Superstate;
+import frc.robot.Superstate.WantedRobotStates;
 //  Kracken x60 for deploy retract w/ encoder
 //  Kracken x60 for motors (all one)
 // Minion for Belt
@@ -32,6 +35,45 @@ public class Intake extends SubsystemBase {
 
 		private Feeder(final double input) {
 			this.voltage = input;
+		}
+	}
+	public enum IntakeStates{
+		STOPPED,
+		FORWARD,
+		REVERSE
+	}
+	public enum WantedIntakeStates{
+		STOPPED,
+		FORWARD,
+		REVERSE
+	}
+
+	public IntakeStates handleStateTransitions(){
+		switch(wantedIntakeState){
+			case STOPPED:{
+				IntakeState = IntakeStates.STOPPED;
+			}
+			case FORWARD:{
+				IntakeState = IntakeStates.STOPPED;
+			}
+			case REVERSE:{
+				IntakeState = IntakeStates.STOPPED;
+			}
+		}
+		return IntakeState;
+	}
+
+	public void applyStates(){
+		switch(IntakeState){
+			case STOPPED:{
+				runTrough(Feeder.Halt);
+			}
+			case FORWARD:{
+				runTrough(Feeder.Forward);
+			}
+			case REVERSE:{
+				runTrough(Feeder.Reverse);
+			}
 		}
 	}
 	@AutoLog
@@ -47,6 +89,8 @@ public class Intake extends SubsystemBase {
 	// private final TalonFX wheels;
 	// private final TalonFX pivot;
 	private final TalonFXS trough;
+	public IntakeStates IntakeState;
+	public WantedIntakeStates wantedIntakeState;
 	
 	// private final StatusSignal<AngularVelocity> intakeSpeed;
 	// private final StatusSignal<Angle> pivotAngle;
@@ -123,7 +167,6 @@ public class Intake extends SubsystemBase {
 			troughSensor
 		);
 	}
-	
 	public void runIntake(final Feeder demand){
 		// Intake isn't integrated, do nothing
 		// this.wheels.setControl(new VelocityDutyCycle(demand.demand*0.1));
@@ -171,7 +214,17 @@ public class Intake extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		IntakeState = handleStateTransitions();
 		updateInputs(this.inputs);
 		Logger.processInputs("Intake", this.inputs);
+		applyStates();
 	}
+
+	public void setWantedSuperState(WantedIntakeStates wantedSuperState) {
+        wantedIntakeState = wantedSuperState;
+    }
+
+    public Command setWantedSuperStateCommand(WantedIntakeStates wantedSuperState) {
+        return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
+    }
 }

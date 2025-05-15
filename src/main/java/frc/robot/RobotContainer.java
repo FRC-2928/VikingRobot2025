@@ -83,7 +83,9 @@ public class RobotContainer {
 
 		this.driverOI.configureControls();
 		this.operatorOI.configureControls();
-		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.unscoreAlgae));
+		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.Intake));
+		this.driverOI.alignReefLeft.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.autoAlignCoral));
+		this.driverOI.alignReefRight.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.autoAlignCoral));
 	}
 
 	public Command autoScoreCoral(ReefPosition reefPos) {

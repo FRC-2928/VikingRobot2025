@@ -10,8 +10,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelight;
 
 /** Add your docs here. */
@@ -65,15 +67,21 @@ public class Superstate extends SubsystemBase {
 		}
 		return globalState;
 	}
+
 	private void applyStates(){
 		switch(globalState){
-			case unscoreAlgae:{
-				unscoreAlgae();
+			case Intake:{
+				Intake();
 				break;
 			}
-		default:
-			break;
-		}
+			case autoAlignCoral:{
+				autoAlignCoral();
+				break;
+			}
+			default:
+				break;
+			}
+
 	}
 	//Global Variables
 	public boolean coralInEndEffector;
@@ -101,20 +109,25 @@ public class Superstate extends SubsystemBase {
 	}
 
 	public void setWantedSuperState(WantedRobotStates wantedSuperState) {
-        this.wantedGlobalState = wantedSuperState;
+        Superstate.wantedGlobalState = wantedSuperState;
     }
 
     public Command setWantedSuperStateCommand(WantedRobotStates wantedSuperState) {
         return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
     }
 
-	public void unscoreAlgae(){
-		System.out.println("State is Unscore Algae");
+	public void Intake(){
+		System.out.println("State is Intake");
 	}
-
 	public Command autoAlignCoral(){
 		return new ConditionalCommand(CenterLimelight.centerLimelightLeft(), CenterLimelight.centerLimelightRight(), RobotContainer.getInstance().driverOI.alignReefLeft)
-			.andThen(new RunCommand(() -> {this.globalState = RobotStates.autoAlignCoral;}));
+			.andThen(new RunCommand(() -> {Superstate.wantedGlobalState = WantedRobotStates.manualAlignCoral;}));
+	}
+	public Command manualAlignCoral(){
+		return new ParallelCommandGroup(
+				RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL),
+				RobotContainer.getInstance().drivetrain.dPadMode()
+			);
 	}
 	// public Command manualAlignCoral(){
 	// 	return
