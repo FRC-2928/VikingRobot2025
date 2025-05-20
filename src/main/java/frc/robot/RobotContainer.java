@@ -20,7 +20,6 @@ import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.Superstate.RobotStates;
-import frc.robot.Superstate.WantedRobotStates;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.oi.DriverOI;
@@ -83,9 +82,9 @@ public class RobotContainer {
 
 		this.driverOI.configureControls();
 		this.operatorOI.configureControls();
-		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.Intake));
-		this.driverOI.alignReefLeft.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.autoAlignCoral));
-		this.driverOI.alignReefRight.onTrue(superstate.setWantedSuperStateCommand(WantedRobotStates.autoAlignCoral));
+		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(RobotStates.Intake));
+		this.driverOI.alignReefLeft.onTrue(superstate.setWantedSuperStateCommand(RobotStates.AutoAlignCoral));
+		this.driverOI.alignReefRight.onTrue(superstate.setWantedSuperStateCommand(RobotStates.AutoAlignCoral));
 	}
 
 	public Command autoScoreCoral(ReefPosition reefPos) {

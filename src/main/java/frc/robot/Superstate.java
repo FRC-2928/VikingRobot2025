@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.function.BooleanSupplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,54 +13,64 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelight;
 
 /** Add your docs here. */
 public class Superstate extends SubsystemBase {
-	public enum RobotStates{
+	public enum RobotStates {
 		Drive,
 		Intake,
-		autoAlignCoral,
-		manualAlignCoral,
-		Scorecoral,
-		unscoreAlgae
+		AutoAlignCoral,
+		ManualAlignCoral,
+		ScoreCoral,
+		UnscoreAlgae;
+
+		public final BooleanSupplier isCurrentState;
+
+		private RobotStates() {
+			this.isCurrentState = () -> Superstate.globalState == this;
+		}
 	}
-	public enum WantedRobotStates{
-		Drive,
-		Intake,
-		autoAlignCoral,
-		manualAlignCoral,
-		Scorecoral,
-		unscoreAlgae
-	}
-	private RobotStates handleStateTransition(){
-		previousRobotState = globalState;
-		switch (wantedGlobalState){
+
+	// Note from Casey: No need to have 2 separate enums for current state and wanted state, they will be the same thing.
+	// We can store 2 separate class variables for current and wanted
+	// public enum WantedRobotStates {
+	// 	Drive,
+	// 	Intake,
+	// 	AutoAlignCoral,
+	// 	ManualAlignCoral,
+	// 	ScoreCoral,
+	// 	UnscoreAlgae
+	// }
+
+	private RobotStates handleStateTransition() {
+		previousRobotState = globalState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
+		switch (wantedGlobalState) {
 			case Intake:{
 				globalState = RobotStates.Intake;	
 				break;
 			}
-			case autoAlignCoral:{
-				globalState = RobotStates.autoAlignCoral;
+			case AutoAlignCoral:{
+				globalState = RobotStates.AutoAlignCoral;
 				break;
 			}
-			case manualAlignCoral:{
-				globalState = RobotStates.manualAlignCoral;
+			case ManualAlignCoral:{
+				globalState = RobotStates.ManualAlignCoral;
 				break;	
 			}
-			case Scorecoral:{
-				if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
-					globalState = RobotStates.Scorecoral;
-					break;
+			case ScoreCoral:{
+				if (!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))) {
+					globalState = RobotStates.ScoreCoral;
+					break; // This may be a bug. This break won't happen if the conditional fails, and will fall-through to UnscoreAlgae. Consider putting break outside the if block.
 				}
 			}
-			case unscoreAlgae:{
-				if(RobotContainer.getInstance().driverOI.closeToReef.getAsBoolean()){
-					globalState = RobotStates.unscoreAlgae;
-					break;
+			case UnscoreAlgae:{
+				if (RobotContainer.getInstance().driverOI.closeToReef.getAsBoolean()) {
+					globalState = RobotStates.UnscoreAlgae;
+					break; // This may be a bug. This break won't happen if the conditional fails, and will fall-through to default
 				}
 			}
 			default:{
@@ -68,13 +80,19 @@ public class Superstate extends SubsystemBase {
 		return globalState;
 	}
 
-	private void applyStates(){
-		switch(globalState){
+	private void applyStates() {
+		// We need to perform actions each frame based on the state + other triggering conditions (such as sensor input or controller button presses).
+		// One way to do that is like below to run periodic code that tells the robot what to do each frame.
+		// However, we ran into this same issue earlier this season, that behavior can get fairly complex where a single state requires sequential, parallel, or conditional function.
+		// To solve this we can use the existing command framework. Create a command (factory) that runs while we are in a particular state and/or button combo.
+		// We could then run a function from handleStateTransition() that schedules the command at the start of a state and unschedules when we leave the state.
+		// I think it's easier to instead create Triggers such as the one below this method.
+		switch(globalState) {
 			case Intake:{
-				Intake();
+				intake();
 				break;
 			}
-			case autoAlignCoral:{
+			case AutoAlignCoral:{
 				autoAlignCoral();
 				break;
 			}
@@ -83,11 +101,18 @@ public class Superstate extends SubsystemBase {
 			}
 
 	}
+
+	// This sample trigger binds the autoAlignCoral() command to the condition where the robot state is AutoAlignCoral.
+	// Every state can have a command that runs while we are in that state in order to control robot functions.
+	private Trigger doAutoAlignCoral = new Trigger(RobotStates.AutoAlignCoral.isCurrentState).whileTrue(autoAlignCoral());
+
+	// NOTE: Now is a great time to focus on keeping code organized. I recommend putting all global/class variable declarations before any methods
+
 	//Global Variables
 	public boolean coralInEndEffector;
 	public boolean limelightToleranceMet;
-	public RobotStates globalState = RobotStates.Drive;
-	public static WantedRobotStates wantedGlobalState = WantedRobotStates.Drive;
+	public static RobotStates globalState = RobotStates.Drive;
+	public static RobotStates wantedGlobalState = RobotStates.Drive;
 	public RobotStates previousRobotState;
 	//State Triggers
 	// public Trigger isDrive = new Trigger(() -> (globalState == RobotStates.Drive));
@@ -96,7 +121,7 @@ public class Superstate extends SubsystemBase {
 	// public Trigger ismaunualAlignCoral = new Trigger(() -> (globalState == RobotStates.manualAlignCoral));
 	// public Trigger isScorecoral =  new Trigger(() -> (globalState == RobotStates.Scorecoral));
 	// public Trigger isunscoreAlgaie = new Trigger(() -> (globalState == RobotStates.unscoreAlgaie));
-	public void periodic(){
+	public void periodic() {
 		globalState = handleStateTransition();
 		applyStates();
 		Logger.recordOutput("StateMachine/DesiredSuperstate", wantedGlobalState);
@@ -108,22 +133,24 @@ public class Superstate extends SubsystemBase {
 		periodic();
 	}
 
-	public void setWantedSuperState(WantedRobotStates wantedSuperState) {
+	public void setWantedSuperState(RobotStates wantedSuperState) {
         Superstate.wantedGlobalState = wantedSuperState;
     }
 
-    public Command setWantedSuperStateCommand(WantedRobotStates wantedSuperState) {
+    public Command setWantedSuperStateCommand(RobotStates wantedSuperState) {
         return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
     }
 
-	public void Intake(){
+	public void intake() {
 		System.out.println("State is Intake");
 	}
-	public Command autoAlignCoral(){
+
+	public Command autoAlignCoral() {
 		return new ConditionalCommand(CenterLimelight.centerLimelightLeft(), CenterLimelight.centerLimelightRight(), RobotContainer.getInstance().driverOI.alignReefLeft)
-			.andThen(new RunCommand(() -> {Superstate.wantedGlobalState = WantedRobotStates.manualAlignCoral;}));
+					.andThen(setWantedSuperStateCommand(RobotStates.ManualAlignCoral));
 	}
-	public Command manualAlignCoral(){
+
+	public Command manualAlignCoral() {
 		return new ParallelCommandGroup(
 				RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL),
 				RobotContainer.getInstance().drivetrain.dPadMode()

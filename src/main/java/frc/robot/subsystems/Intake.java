@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Superstate;
-import frc.robot.Superstate.WantedRobotStates;
+import frc.robot.Superstate.RobotStates;
 //  Kracken x60 for deploy retract w/ encoder
 //  Kracken x60 for motors (all one)
 // Minion for Belt
