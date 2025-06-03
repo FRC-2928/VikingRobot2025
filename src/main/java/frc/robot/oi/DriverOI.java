@@ -83,12 +83,12 @@ public class DriverOI extends BaseOI {
 			RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) < Tuning.alignRadiusReef.get()
 			|| RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) < Tuning.alignRadiusReef.get();});
 
-		this.alignReefLeft = this.controller.leftBumper()
+		this.alignReefLeft = this.controller.leftBumper();
 							/* .and(this.holdingCoral)*/
-							.and(this.closeToReef);
-		this.alignReefRight = this.controller.rightBumper()
+							// .and(this.closeToReef);
+		this.alignReefRight = this.controller.rightBumper();
 							/* .and(this.holdingCoral)*/
-							.and(this.closeToReef);
+							// .and(this.closeToReef);
 		this.alignHP = (this.controller.leftBumper().or(this.controller.rightBumper()))
 							/*.and(this.holdingCoral.negate())*/
 							.and(this.closeToHP);

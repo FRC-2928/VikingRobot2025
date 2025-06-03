@@ -89,8 +89,8 @@ public class Intake extends SubsystemBase {
 	// private final TalonFX wheels;
 	// private final TalonFX pivot;
 	private final TalonFXS trough;
-	public IntakeStates IntakeState;
-	public WantedIntakeStates wantedIntakeState;
+	public IntakeStates IntakeState = IntakeStates.STOPPED;
+	public WantedIntakeStates wantedIntakeState = WantedIntakeStates.STOPPED;
 	
 	// private final StatusSignal<AngularVelocity> intakeSpeed;
 	// private final StatusSignal<Angle> pivotAngle;

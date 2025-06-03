@@ -60,7 +60,7 @@ public class RobotContainer {
 	}
 
 	private void init() {
-		this.superstate = new Superstate();
+
 		this.driverOI = new DriverOI(new CommandXboxController(0));
 		this.operatorOI = new OperatorOI(new CommandXboxController(1));
 		Tuning.algaePivotHome.get();
@@ -70,7 +70,7 @@ public class RobotContainer {
 		this.elevator = new Elevator();
 		this.intake = new Intake();
 		this.bananaFlywheels = new BananaFlywheels();
-
+		this.superstate = new Superstate();
 		autoChooser = Autonomous.getChoreoAutoChooser();
 		SmartDashboard.putData("Autonomous Routine", autoChooser);
 		RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
