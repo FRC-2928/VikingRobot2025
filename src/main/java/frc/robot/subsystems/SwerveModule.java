@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.*;
+import edu.wpi.first.units.measure.Distance;
 import frc.robot.Constants;
 
 public class SwerveModule {
@@ -53,6 +53,8 @@ public class SwerveModule {
 			state.angle = state.angle.rotateBy(Rotation2d.fromDegrees(180.0));
 		}
 
+		// cosine compensation
+		state.speedMetersPerSecond *= Math.cos(current.angle.minus(state.angle).getRadians());
 		this.io.azimuth(state.angle.getMeasure());
 		this.io.drive(Units.MetersPerSecond.of(state.speedMetersPerSecond));
 
