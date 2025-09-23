@@ -85,6 +85,7 @@ public class RobotContainer {
 		this.driverOI.lockWheels.onTrue(superstate.setWantedSuperStateCommand(RobotStates.Intake));
 		this.driverOI.alignReefLeft.onTrue(superstate.setWantedSuperStateCommand(RobotStates.AutoAlignCoral));
 		this.driverOI.alignReefRight.onTrue(superstate.setWantedSuperStateCommand(RobotStates.AutoAlignCoral));
+		this.driverOI.resetFOD.onTrue(superstate.setWantedSuperStateCommand(RobotStates.Intake));
 	}
 
 	public Command autoScoreCoral(ReefPosition reefPos) {

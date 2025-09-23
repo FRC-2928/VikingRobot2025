@@ -61,6 +61,7 @@ public class Robot extends LoggedRobot {
 		}
 		cont.elevator.setDefaultCommand();
 		initializeSmartDashboard();
+		Logger.recordOutput("RobotTriggers/", cont.driverOI.closeToReef);
 		
 	}
 

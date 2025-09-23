@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Intake.WantedIntakeStates;
 
 /** Add your docs here. */
 public class Superstate extends SubsystemBase {
@@ -76,6 +77,9 @@ public class Superstate extends SubsystemBase {
 					 // This may be a bug. This break won't happen if the conditional fails, and will fall-through to default
 				}
 				break;
+			case Drive:
+				globalState = RobotStates.Drive;
+				break;
 			default:{
 				break;
 			}
@@ -83,37 +87,37 @@ public class Superstate extends SubsystemBase {
 		return globalState;
 	}
 
-	// private void applyStates() {
-	// 	// We need to perform actions each frame based on the state + other triggering conditions (such as sensor input or controller button presses).
-	// 	// One way to do that is like below to run periodic code that tells the robot what to do each frame.
-	// 	// However, we ran into this same issue earlier this season, that behavior can get fairly complex where a single state requires sequential, parallel, or conditional function.
-	// 	// To solve this we can use the existing command framework. Create a command (factory) that runs while we are in a particular state and/or button combo.
-	// 	// We could then run a function from handleStateTransition() that schedules the command at the start of a state and unschedules when we leave the state.
-	// 	// I think it's easier to instead create Triggers such as the one below this method.
-	// 	switch(globalState) {
-	// 		case Intake:{
-	// 			intake();
-	// 			break;
-	// 		}
-	// 		case AutoAlignCoral:{
-	// 			autoAlignCoral();
-	// 			break;
-	// 		}
-	// 		default:
-	// 			break;
-	// 		}
+	private void applyStates() {
+		// We need to perform actions each frame based on the state + other triggering conditions (such as sensor input or controller button presses).
+		// One way to do that is like below to run periodic code that tells the robot what to do each frame.
+		// However, we ran into this same issue earlier this season, that behavior can get fairly complex where a single state requires sequential, parallel, or conditional function.
+		// To solve this we can use the existing command framework. Create a command (factory) that runs while we are in a particular state and/or button combo.
+		// We could then run a function from handleStateTransition() that schedules the command at the start of a state and unschedules when we leave the state.
+		// I think it's easier to instead create Triggers such as the one below this method.
+		switch(globalState) {
+			case Intake:{
+				intake();
+				break;
+			}
+			case AutoAlignCoral:{
+				autoAlignCoral();
+				break;
+			}
+			default:
+				break;
+			}
 
-	// }
+	}
 
 	// This sample trigger binds the autoAlignCoral() command to the condition where the robot state is AutoAlignCoral.
 	// Every state can have a command that runs while we are in that state in order to control robot functions.
 	public Superstate() {
-		RobotStates.Drive.isCurrentState.whileTrue(intake());
-		RobotStates.Intake.isCurrentState.whileTrue(intake());
-		RobotStates.AutoAlignCoral.isCurrentState.whileTrue(autoAlignCoral());
-		RobotStates.ManualAlignCoral.isCurrentState.whileTrue(intake());
-		RobotStates.ScoreCoral.isCurrentState.whileTrue(intake());
-		RobotStates.UnscoreAlgae.isCurrentState.whileTrue(intake());
+		// RobotStates.Drive.isCurrentState.whileTrue(intake());
+		// RobotStates.Intake.isCurrentState.whileTrue(intake());
+		// RobotStates.AutoAlignCoral.isCurrentState.whileTrue(autoAlignCoral());
+		// RobotStates.ManualAlignCoral.isCurrentState.whileTrue(intake());
+		// RobotStates.ScoreCoral.isCurrentState.whileTrue(intake());
+		// RobotStates.UnscoreAlgae.isCurrentState.whileTrue(intake());
 	}
 
 	// NOTE: Now is a great time to focus on keeping code organized. I recommend putting all global/class variable declarations before any methods
@@ -132,6 +136,7 @@ public class Superstate extends SubsystemBase {
 	// public Trigger isScorecoral =  new Trigger(() -> (globalState == RobotStates.Scorecoral));
 	// public Trigger isunscoreAlgaie = new Trigger(() -> (globalState == RobotStates.unscoreAlgaie));
 	public void periodic() {
+		applyStates();
 		globalState = handleStateTransition();
 		Logger.recordOutput("StateMachine/DesiredSuperstate", wantedGlobalState);
         Logger.recordOutput("StateMachine/CurrentSuperstate", globalState);
@@ -150,18 +155,18 @@ public class Superstate extends SubsystemBase {
         return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
     }
 
-	public Command intake() {
-		return new RunCommand((() -> {
-			// TODO: Implementation
-			System.out.println("State is Intake");
-			// do some stuff
-			// ...
+	public void intake() {
 
-			// Transition to next state when the button is not pressed
-			if (!RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()) { // For now, using right bumper for intake
-				setWantedSuperState(RobotStates.Drive);
-			}
-		}));
+		// TODO: Implementation
+		RobotContainer.getInstance().intake.setWantedSuperState(WantedIntakeStates.FORWARD);
+		// do some stuff
+		// ...
+		
+		// Transition to next state when the button is not pressed
+		if (!RobotContainer.getInstance().driverOI.resetFOD.getAsBoolean()) { // For now, using right bumper for intake
+			RobotContainer.getInstance().intake.setWantedSuperState(WantedIntakeStates.STOPPED);
+			setWantedSuperState(RobotStates.Drive);
+		}
 		
 	}
 	public Command driveCommand() {

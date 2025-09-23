@@ -52,13 +52,19 @@ public class Intake extends SubsystemBase {
 		switch(wantedIntakeState){
 			case STOPPED:{
 				IntakeState = IntakeStates.STOPPED;
+				break;
 			}
 			case FORWARD:{
-				IntakeState = IntakeStates.STOPPED;
+				IntakeState = IntakeStates.FORWARD;
+				break;
 			}
 			case REVERSE:{
-				IntakeState = IntakeStates.STOPPED;
+				IntakeState = IntakeStates.REVERSE;
+				break;
 			}
+			default:
+				break;
+			
 		}
 		return IntakeState;
 	}
@@ -67,13 +73,18 @@ public class Intake extends SubsystemBase {
 		switch(IntakeState){
 			case STOPPED:{
 				runTrough(Feeder.Halt);
+				break;
 			}
 			case FORWARD:{
 				runTrough(Feeder.Forward);
+				break;
 			}
 			case REVERSE:{
 				runTrough(Feeder.Reverse);
+				break;
 			}
+			default:
+				break;
 		}
 	}
 	@AutoLog
@@ -217,6 +228,8 @@ public class Intake extends SubsystemBase {
 		IntakeState = handleStateTransitions();
 		updateInputs(this.inputs);
 		Logger.processInputs("Intake", this.inputs);
+		Logger.recordOutput("Intake/States", IntakeState);
+		Logger.recordOutput("Intake/DesiredStates", wantedIntakeState);
 		applyStates();
 	}
 

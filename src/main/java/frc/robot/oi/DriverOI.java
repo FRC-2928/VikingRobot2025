@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.Superstate.RobotStates;
 import frc.robot.RobotContainer;
 import frc.robot.Tuning;
 import frc.robot.commands.drivetrain.CenterLimelight;
@@ -165,5 +166,6 @@ public class DriverOI extends BaseOI {
 		// Drivers asked for this control to be only for operator
 		// this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
 		// this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
+		this.alignReefRight.onTrue(RobotContainer.getInstance().superstate.setWantedSuperStateCommand(RobotStates.Intake));
 	}
 }
