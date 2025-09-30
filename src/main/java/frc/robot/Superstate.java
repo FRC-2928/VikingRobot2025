@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Drivetrain.DrivetrainStates;
+import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
 
 /** Add your docs here. */
@@ -173,14 +175,21 @@ public class Superstate extends SubsystemBase {
 		return new InstantCommand();
 	}
 
-	public Command autoAlignCoral() {
-		return new ParallelCommandGroup( new ConditionalCommand(CenterLimelight.centerLimelightLeft(), CenterLimelight.centerLimelightRight(), RobotContainer.getInstance().driverOI.alignReefLeft)
-					.andThen(setWantedSuperStateCommand(RobotStates.ManualAlignCoral)),
-					//Set state to drive if bumpers arent pressed
-					new RunCommand(() -> {if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
-						setWantedSuperState(RobotStates.Drive);
-					}})
-				);
+	// public Command autoAlignCoral() {
+	// 	return new ParallelCommandGroup( new ConditionalCommand(CenterLimelight.centerLimelightLeft(), CenterLimelight.centerLimelightRight(), RobotContainer.getInstance().driverOI.alignReefLeft)
+	// 				.andThen(setWantedSuperStateCommand(RobotStates.ManualAlignCoral)),
+	// 				//Set state to drive if bumpers arent pressed
+	// 				new RunCommand(() -> {if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
+	// 					setWantedSuperState(RobotStates.Drive);
+	// 				}})
+	// 			);
+	// }
+
+	public void autoAlignCoral(){
+		RobotContainer.getInstance().drivetrain.setWantedSuperState(WantedDrivetrainStates.AutoAlignCoral);
+		if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
+			setWantedSuperState(RobotStates.Drive);
+		}
 	}
 
 	public Command manualAlignCoral() {

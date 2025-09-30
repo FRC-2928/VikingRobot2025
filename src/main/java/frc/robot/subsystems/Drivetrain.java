@@ -21,12 +21,17 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
+import frc.robot.Superstate;
+import frc.robot.Superstate.RobotStates;
 import frc.robot.commands.drivetrain.CenterLimelight;
+import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.commands.drivetrain.DPadDrive;
 import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -65,8 +70,88 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
+	public enum DrivetrainStates {
+		Drive,
+		Intake,
+		AutoAlignCoral,
+		ManualAlignCoral,
+		ScoreCoral,
+		UnscoreAlgae;
+	}
+
+	public enum WantedDrivetrainStates {
+		Drive,
+		Intake,
+		AutoAlignCoral,
+		ManualAlignCoral,
+		ScoreCoral,
+		UnscoreAlgae;
+	}
+
+	private DrivetrainStates handleStateTransition() {
+		previousDrivetrainState = drivetrainState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
+		switch (wanteDrivetrainState) {
+			case Intake:
+				drivetrainState = DrivetrainStates.Intake;	
+				break;
+			
+			case AutoAlignCoral:
+				this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+				this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
+				this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
+				drivetrainState = DrivetrainStates.AutoAlignCoral;
+				break;
+			
+			case ManualAlignCoral:
+				drivetrainState = DrivetrainStates.ManualAlignCoral;
+				break;	
+			
+			case ScoreCoral:
+				if (!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))) {
+					drivetrainState = DrivetrainStates.ScoreCoral;
+					 // This may be a bug. This break won't happen if the conditional fails, and will fall-through to UnscoreAlgae. Consider putting break outside the if block.
+				}
+				break;
+			
+			case UnscoreAlgae:
+				if (RobotContainer.getInstance().driverOI.closeToReef.getAsBoolean()) {
+					drivetrainState = DrivetrainStates.UnscoreAlgae;
+					 // This may be a bug. This break won't happen if the conditional fails, and will fall-through to default
+				}
+				break;
+			case Drive:
+				drivetrainState = DrivetrainStates.Drive;
+				break;
+			default:{
+				break;
+			}
+		}
+		return drivetrainState;
+	}
+
+	private void applyStates() {
+		// We need to perform actions each frame based on the state + other triggering conditions (such as sensor input or controller button presses).
+		// One way to do that is like below to run periodic code that tells the robot what to do each frame.
+		// However, we ran into this same issue earlier this season, that behavior can get fairly complex where a single state requires sequential, parallel, or conditional function.
+		// To solve this we can use the existing command framework. Create a command (factory) that runs while we are in a particular state and/or button combo.
+		// We could then run a function from handleStateTransition() that schedules the command at the start of a state and unschedules when we leave the state.
+		// I think it's easier to instead create Triggers such as the one below this method.
+		switch(drivetrainState) {
+			case AutoAlignCoral:{
+				autoAlignCoral();
+				break;
+			}
+			default:
+				break;
+			}
+
+	}
+
 	private final GyroIO gyro;
 	private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+	public static DrivetrainStates drivetrainState = DrivetrainStates.Drive;
+	public static WantedDrivetrainStates wanteDrivetrainState = WantedDrivetrainStates.Drive;
+	public DrivetrainStates previousDrivetrainState;
 
 	public final SwerveModule[] modules = new SwerveModule[4]; // FL, FR, BL, BR
 	public final Field2d field = new Field2d();
@@ -76,6 +161,9 @@ public class Drivetrain extends SubsystemBase {
 	public final Limelight limelightSide = new Limelight("limelight-side");
 	public final Limelight limelightReverse = new Limelight("limelight-reverse");
 	public final Limelight[] limelights = {limelightForward, limelightSide, limelightReverse};
+	private PIDController centerPIDx;
+    private PIDController centerPIDy;
+    private PIDController centerRotaionPid;
 
 	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -255,6 +343,8 @@ public class Drivetrain extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		applyStates();
+		drivetrainState = handleStateTransition();
 		this.gyro.updateInputs(this.gyroInputs);
 		Logger.processInputs("Drivetrain/Gyro", this.gyroInputs);
 
@@ -362,4 +452,50 @@ public class Drivetrain extends SubsystemBase {
 	public DPadDrive dPadMode() {
 		return new DPadDrive(this);
 	}
+
+	public void autoAlignCoral(){
+		if(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean()){
+			control(CenterLimelightMethod.centerLimelightLeft(centerPIDx, centerPIDy, centerRotaionPid));
+		}
+		else{
+			control(CenterLimelightMethod.centerLimelightRight(centerPIDx, centerPIDy, centerRotaionPid));
+		}
+	}
+
+	public boolean isCenterLimelightFinished() {
+		// 2 ways of looking at the end conditions:
+		// 1. the pose is at/near the target pose
+		// 2. the PID outputs are "close" to zero
+  
+		// First get the robot's current pose in TagSpace
+		Pose2d robotPose = RobotContainer.getInstance().drivetrain.getEstimatedPosition();
+		// Get the "new (0,0,0)" point by transforming the tag pose by the given offsets
+		transformedTagPose = tagPose.transformBy(tagPoseTransform);  // this gets the centerpoint aligned properly
+  
+		// Compare to the target
+		var robotPoseRelativeToGoal = robotPose.relativeTo(transformedTagPose);
+		// check the values...
+		// TODO: adjust thresholds
+		var isXDone = robotPoseRelativeToGoal.getMeasureX().isNear(Units.Inches.of(0), xTolerance);
+		// (Math.abs(robotPoseRelativeToGoal.getMeasureX().in(Units.Inches)) < 0.5);
+		// var isYDone = (Math.abs(robotPoseRelativeToGoal.getMeasureY().in(Units.Inches)) < 0.5);
+		var isYDone = robotPoseRelativeToGoal.getMeasureY().isNear(Units.Inches.of(0), yTolerance);
+		// var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), Units.Degrees.of(5)));
+		var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), thetaTolerance));
+		Logger.recordOutput("Drivetrain/CenterLimelight/isXDone", isXDone);
+		Logger.recordOutput("Drivetrain/CenterLimelight/isYDone", isYDone);
+		Logger.recordOutput("Drivetrain/CenterLimelight/isRotDone", isRotDone);
+		return (isXDone && isYDone && isRotDone);
+		// return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);
+	}
+
+	public void setWantedSuperState(WantedDrivetrainStates wantedSuperState) {
+        Drivetrain.wanteDrivetrainState = wantedSuperState;
+    }
+
+    public Command setWantedSuperStateCommand(WantedDrivetrainStates wantedSuperState) {
+        return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
+    }
+
+
 }
