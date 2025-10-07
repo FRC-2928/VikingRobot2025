@@ -26,9 +26,9 @@ import frc.robot.RobotContainer;
 public class CenterLimelightMethod {
   /** Creates a new centerLimelight. */
 
-  private static final Distance xTolerance = Units.Inches.of(0.25);
-  private static final Distance yTolerance = Units.Inches.of(0.5);
-  private static final Angle thetaTolerance = Units.Degrees.of(0.5);
+  public static final Distance xTolerance = Units.Inches.of(0.25);
+  public static final Distance yTolerance = Units.Inches.of(0.5);
+  public static final Angle thetaTolerance = Units.Degrees.of(0.5);
 
   private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
@@ -46,11 +46,10 @@ public class CenterLimelightMethod {
       }
 
     // Called when the command is initially scheduled.
-    public static void init() {
+    public static Pose2d init(final List<Integer> tagsToCheck) {
       double closest = Double.MAX_VALUE;
       var curBotPoseTranslation = RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation();
-      try {
-        tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get().toPose2d();
+        Pose2d tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get().toPose2d();
         for (int tag : tagsToCheck) {
           Pose2d curTagPose = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d();
           var distToTag = curBotPoseTranslation.getDistance(curTagPose.getTranslation());
@@ -59,9 +58,7 @@ public class CenterLimelightMethod {
               tagPose = curTagPose;
           }
         }
-      } catch (Exception e) {
-        // TODO: handle exception gracefully
-      }
+      return tagPose;
     }
 
 
@@ -75,7 +72,7 @@ public class CenterLimelightMethod {
       Logger.recordOutput("Drivetrain/CenterLimelight/xToleranceInches", xTolerance.in(Units.Inches));
       Logger.recordOutput("Drivetrain/CenterLimelight/yToleranceInches", yTolerance.in(Units.Inches));
       Logger.recordOutput("Drivetrain/CenterLimelight/thetaToleranceDegrees", thetaTolerance.in(Units.Degrees));
-      init();
+
         Pose2d robotPose = RobotContainer.getInstance().drivetrain.getEstimatedPosition();
         
 
@@ -83,15 +80,7 @@ public class CenterLimelightMethod {
         
       double closest = Double.MAX_VALUE;
         var curBotPoseTranslation = RobotContainer.getInstance().drivetrain.getEstimatedPosition().getTranslation();
-      tagPose = Constants.FIELD_LAYOUT.getTagPose(17).get().toPose2d();
-      for (int tag : tagsToCheck) {
-      Pose2d curTagPose = Constants.FIELD_LAYOUT.getTagPose(tag).get().toPose2d();
-      var distToTag = curBotPoseTranslation.getDistance(curTagPose.getTranslation());
-      if(distToTag < closest){
-        closest = distToTag;
-        tagPose = curTagPose;
-      }
-      }  
+      tagPose = init(tagsToCheck);
         Logger.recordOutput("Drivetrain/CenterLimelight/tagpose", tagPose);
 
         // Check tolerances and zero any control efforts that are within the tolerance range

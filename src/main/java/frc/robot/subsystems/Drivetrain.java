@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -9,15 +10,18 @@ import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
 import frc.robot.Superstate;
@@ -34,6 +39,7 @@ import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.commands.drivetrain.DPadDrive;
 import frc.robot.commands.drivetrain.JoystickDrive;
+import frc.robot.commands.drivetrain.JoystickDriveMethod;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
 import frc.robot.vision.LimelightHelpers.PoseEstimate;
@@ -121,6 +127,8 @@ public class Drivetrain extends SubsystemBase {
 				break;
 			case Drive:
 				drivetrainState = DrivetrainStates.Drive;
+				absoluteController = Constants.Drivetrain.absoluteRotationPID
+				.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 				break;
 			default:{
 				break;
@@ -140,6 +148,9 @@ public class Drivetrain extends SubsystemBase {
 			case AutoAlignCoral:{
 				autoAlignCoral();
 				break;
+			}
+			case Drive: {
+				drive();
 			}
 			default:
 				break;
@@ -164,8 +175,10 @@ public class Drivetrain extends SubsystemBase {
 	private PIDController centerPIDx;
     private PIDController centerPIDy;
     private PIDController centerRotaionPid;
+	private ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
+	.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 
-	private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
+	// private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
 
 	public AutoFactory autoFactory;
@@ -432,10 +445,10 @@ public class Drivetrain extends SubsystemBase {
 			lime.setIMUMode(3);
 		}
 	}
-
-	public void setDefaultCommand() {
-		this.setDefaultCommand(this.joystickDrive);
-	}
+	//TODO: idk if this is right
+	// public void setDefaultCommand() {
+	// 	this.setDefaultCommand(this.joystickDrive);
+	// }
 
 	@Override
 	public void simulationPeriodic() {
@@ -446,14 +459,15 @@ public class Drivetrain extends SubsystemBase {
 		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
 	}
 
-	public JoystickDrive slowMode() {
-		return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
-	}
+	// public JoystickDrive slowMode() {
+	// 	return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
+	// }
+
 	public DPadDrive dPadMode() {
 		return new DPadDrive(this);
 	}
 
-	public void autoAlignCoral(){
+	public void autoAlignCoral() {
 		if(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean()){
 			control(CenterLimelightMethod.centerLimelightLeft(centerPIDx, centerPIDy, centerRotaionPid));
 		}
@@ -462,30 +476,37 @@ public class Drivetrain extends SubsystemBase {
 		}
 	}
 
-	public boolean isCenterLimelightFinished() {
+	public void drive() {
+		JoystickDriveMethod.execute(null, 0, 0);
+	}
+
+	public boolean isCenterLimelightFinished(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {
 		// 2 ways of looking at the end conditions:
 		// 1. the pose is at/near the target pose
 		// 2. the PID outputs are "close" to zero
   
 		// First get the robot's current pose in TagSpace
+
+		Pose2d tagPose = CenterLimelightMethod.init(tagsToCheck);
+		Transform2d tagPoseTransform = new Transform2d(offsetX, offsetY, new Rotation2d(offsetTheta));
 		Pose2d robotPose = RobotContainer.getInstance().drivetrain.getEstimatedPosition();
 		// Get the "new (0,0,0)" point by transforming the tag pose by the given offsets
-		transformedTagPose = tagPose.transformBy(tagPoseTransform);  // this gets the centerpoint aligned properly
+		Pose2d transformedTagPose = tagPose.transformBy(tagPoseTransform);  // this gets the centerpoint aligned properly
   
 		// Compare to the target
 		var robotPoseRelativeToGoal = robotPose.relativeTo(transformedTagPose);
 		// check the values...
 		// TODO: adjust thresholds
-		var isXDone = robotPoseRelativeToGoal.getMeasureX().isNear(Units.Inches.of(0), xTolerance);
+		var isXDone = robotPoseRelativeToGoal.getMeasureX().isNear(Units.Inches.of(0), CenterLimelightMethod.xTolerance);
 		// (Math.abs(robotPoseRelativeToGoal.getMeasureX().in(Units.Inches)) < 0.5);
 		// var isYDone = (Math.abs(robotPoseRelativeToGoal.getMeasureY().in(Units.Inches)) < 0.5);
-		var isYDone = robotPoseRelativeToGoal.getMeasureY().isNear(Units.Inches.of(0), yTolerance);
+		var isYDone = robotPoseRelativeToGoal.getMeasureY().isNear(Units.Inches.of(0), CenterLimelightMethod.yTolerance);
 		// var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), Units.Degrees.of(5)));
-		var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), thetaTolerance));
-		Logger.recordOutput("Drivetrain/CenterLimelight/isXDone", isXDone);
-		Logger.recordOutput("Drivetrain/CenterLimelight/isYDone", isYDone);
-		Logger.recordOutput("Drivetrain/CenterLimelight/isRotDone", isRotDone);
-		return (isXDone && isYDone && isRotDone);
+		var isRotDone = (robotPoseRelativeToGoal.getRotation().getMeasure().isNear(Units.Degrees.of(0), CenterLimelightMethod.thetaTolerance));
+		// Logger.recordOutput("Drivetrain/CenterLimelight/isXDone", isXDone);
+		// Logger.recordOutput("Drivetrain/CenterLimelight/isYDone", isYDone);
+		// Logger.recordOutput("Drivetrain/CenterLimelight/isRotDone", isRotDone);
+		return (isXDone & isYDone & isRotDone);
 		// return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);
 	}
 
