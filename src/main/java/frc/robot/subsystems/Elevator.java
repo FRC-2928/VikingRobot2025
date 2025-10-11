@@ -15,6 +15,8 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
+import com.ctre.phoenix6.signals.ForwardLimitValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
@@ -129,17 +131,18 @@ public class Elevator extends SubsystemBase {
 	private final StatusSignal<Current> elevatorMotorSupplyCurrent;
 	private final StatusSignal<Angle> pivotMotorPosition;
 	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
-	private final StatusSignal<ReverseLimitValue> pivotHomedSignal;
+	private final StatusSignal<ForwardLimitValue> pivotHomedSignal;
 
 	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
 	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
 
 	private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
 
-	private final Distance elevatorThresholdForPivot = Units.Inches.of(1); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
-	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
+	private final Distance elevatorThresholdForPivot = Units.Inches.of(16); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
+	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(-5);  // TODO: tune this value
 	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
 	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
+	private final int kThetaMultiplierGain = 10;
 
 	// Simulation objects
 	private final ElevatorSim elevatorSim = new ElevatorSim(
@@ -213,11 +216,11 @@ public class Elevator extends SubsystemBase {
 
 		// Configure the reverse limit to read from CANdi S1
 		bananaConfig.HardwareLimitSwitch
-			.withReverseLimitRemoteCANdiS1(Constants.CAN.RIO.BANANA_CANDI.getInstance())
-			.withReverseLimitEnable(true)
-			.withReverseLimitAutosetPositionEnable(true)
-			.withReverseLimitAutosetPositionValue(Units.Degrees.of(0))
-			.withReverseLimitType(ReverseLimitTypeValue.NormallyOpen);
+			.withForwardLimitRemoteCANdiS1(Constants.CAN.RIO.BANANA_CANDI.getInstance())
+			.withForwardLimitEnable(true)
+			.withForwardLimitAutosetPositionEnable(true)
+			.withForwardLimitAutosetPositionValue(Units.Degrees.of(0))
+			.withForwardLimitType(ForwardLimitTypeValue.NormallyOpen);
 
 		bananaConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 		bananaConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -247,7 +250,7 @@ public class Elevator extends SubsystemBase {
 
 		this.pivotMotorPosition = this.pivot.getRotorPosition();
 		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
-		this.pivotHomedSignal = this.pivot.getReverseLimit();
+		this.pivotHomedSignal = this.pivot.getForwardLimit();
 
 
 		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
@@ -273,9 +276,10 @@ public class Elevator extends SubsystemBase {
 	}
 
 	private void pivotBanana(final Angle rotation) {
+		Logger.recordOutput("Elevator/BananaMath", rotation.times(kThetaMultiplierGain).unaryMinus().in(Units.Rotations));
 		this.pivotTargetAngle = Units.Degrees.of(
 			MathUtil.clamp(
-				rotation.in(Units.Degrees),
+				rotation.times(kThetaMultiplierGain).unaryMinus().in(Units.Degrees),
 				Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees),
 				Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
 	}
@@ -295,13 +299,13 @@ public class Elevator extends SubsystemBase {
 
 	private void controlPivot(final Angle rotation, final boolean holdHome) {
 		// pivot.setControl(new PositionVoltage(rotation));
-		if (holdHome) {
-			pivot.setControl(new VoltageOut(-1.5));
-			pivotCommmandedAngle = Units.Degrees.of(0);
-		} else {
+		// if (holdHome) {
+		// 	pivot.setControl(new VoltageOut(1.5));
+		// 	pivotCommmandedAngle = Units.Degrees.of(0);
+		// } else {
 			pivotCommmandedAngle = rotation;
 			pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
-		}
+		// }
 	}
 
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
@@ -329,9 +333,9 @@ public class Elevator extends SubsystemBase {
 		// is the elevator target within the danger zone?
 		boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
 		// is the banana in a dangerous orientation?
-		boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
+		boolean bananaAngleInDangerZone = currentBananaAngle.lt(bananaDangerZoneThreshold);
 		// are we trying to move the banana into a dangerous orientation?
-		boolean bananaTargetInDangerZone = pivotTargetAngle.gt(bananaDangerZoneThreshold);
+		boolean bananaTargetInDangerZone = pivotTargetAngle.lt(bananaDangerZoneThreshold);
 
 		Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
 		Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
@@ -446,7 +450,7 @@ public class Elevator extends SubsystemBase {
 		
 		inputs.pivotAngle = pivotMotorPosition.getValue();
 		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
+		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ForwardLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
 
 		inputs.currentGamePieceType = this.currentGamePieceType;
 		inputs.targetCoralLevel = this.targetCoralLevel;

@@ -522,8 +522,8 @@ public class Constants {
 		public static final Distance MAX_ELEVATOR_DISTANCE = Units.Inches.of(90);
 		public static final Distance MIN_ELEVATOR_DISTANCE = Units.Inches.of(0);
 
-		public static final Angle MAX_PIVOT_ANGLE = Units.Rotations.of(8);
-		public static final Angle MIN_PIVOT_ANGLE = Units.Degrees.of(0);
+		public static final Angle MAX_PIVOT_ANGLE = Units.Degrees.of(0);
+		public static final Angle MIN_PIVOT_ANGLE = Units.Rotations.of(-80);
 
 		public static final SlotConfigs elevatorConfig = new SlotConfigs()
 		.withGravityType(GravityTypeValue.Elevator_Static)
