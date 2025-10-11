@@ -31,6 +31,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -284,6 +285,10 @@ public class Elevator extends SubsystemBase {
 		liftMotorA.setControl(new MotionMagicExpoVoltage(position.in(Units.Meters)));
 	}
 
+	private void controlVoltage(final Voltage voltage) {
+		liftMotorA.setControl(new VoltageOut(voltage));
+	}
+
 	public void controlPositionVelocity(final LinearVelocity voltage){
 		liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
 	}
@@ -341,9 +346,13 @@ public class Elevator extends SubsystemBase {
 			controlPivot(Units.Degrees.of(0), true);
 			return;
 		}
+
 		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
 			// in the danger zone and staying in the danger zone -- safe to move the elevator
-			controlPosition(elevatorTargetPosition);
+			// heuristic: the target is only ever in the danger zone when we're returning to home
+			// so we can "safely" turn on the safety mode when we're in this state
+			// controlPosition(elevatorTargetPosition);
+			controlVoltage(Units.Volts.of(-1.5));
 			controlPivot(Units.Degrees.of(0), true);
 			return;
 		}
