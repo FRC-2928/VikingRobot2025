@@ -39,6 +39,8 @@ public class OperatorOI extends BaseOI {
 		this.alignElevatorCoral = new Trigger(() -> (this.controller.b().getAsBoolean())/* ) .and(RobotContainer.getInstance().driverOI.holdingCoral*/);
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean()))/* .and(RobotContainer.getInstance().driverOI.holdingCoral)*/;
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean()))/*.and(RobotContainer.getInstance().driverOI.holdingCoral)*/;
+		this.extendBanana = new Trigger(() -> (this.controller.povLeft().getAsBoolean()));
+		this.retractBanana = new Trigger(() -> (this.controller.povRight().getAsBoolean()));
 	}
 
 	public final Trigger climbModeOn;
@@ -62,6 +64,8 @@ public class OperatorOI extends BaseOI {
 	public final Trigger alignElevatorAlgaeL2;
 	public final Trigger alignElevatorAlgaeL3;
 	public final Trigger homeElevator;  // sends the elevator back to home
+	public final Trigger extendBanana;
+	public final Trigger retractBanana;
 	// public final Trigger halt;
 	// public final Trigger slowedTrigger;
 
@@ -91,6 +95,9 @@ public class OperatorOI extends BaseOI {
 		this.alignElevatorAlgaeL3.whileTrue(
 			RobotContainer.getInstance().telePositionForAlgaeOverideL3()
 		);
+
+		// this.extendBanana.onTrue(new InstantCommand(()-> RobotContainer.getInstance().elevator.nudgeBananaAngle(true)));
+		// this.retractBanana.onTrue(new InstantCommand(()-> RobotContainer.getInstance().elevator.nudgeBananaAngle(false)));
 
 		this.homeElevator.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.onEjectCoral(), RobotContainer.getInstance().elevator));
 	}

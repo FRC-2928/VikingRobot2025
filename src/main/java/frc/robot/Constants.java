@@ -408,7 +408,7 @@ public class Constants {
 		public static final Distance wheelBase = Units.Inches.of(21.75);
 		public static final Distance trackWidth = Drivetrain.wheelBase; // For a square drivetrain
 		public static final Distance halfRobotWidth = Units.Inches.of(27.0/2);
-		public static final Distance halfRobotWidthBumpersOn = halfRobotWidth.plus(Units.Inches.of(3.25));
+		public static final Distance halfRobotWidthBumpersOn = halfRobotWidth.plus(Units.Inches.of(1.25));
 
 		// max angular velocity computes to 6.41 radians per second
 		public static final AngularVelocity maxAngularVelocity = Units.RotationsPerSecond

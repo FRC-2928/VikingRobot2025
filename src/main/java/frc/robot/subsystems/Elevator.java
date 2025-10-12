@@ -77,7 +77,7 @@ public class Elevator extends SubsystemBase {
 	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
 		CoralPosition.NONE.getValue(), Units.Inches.of(0),
 		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
-		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
+		CoralPosition.L2.getValue(),   Units.Meters.of(0.52 /*472*/),
 		CoralPosition.L3.getValue(),   Units.Meters.of(/*0.796*/0.8),
 		CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
 
@@ -103,7 +103,7 @@ public class Elevator extends SubsystemBase {
 		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
 		CoralPosition.L2.getValue(),   Units.Rotations.of(2.5),
 		CoralPosition.L3.getValue(),   Units.Rotations.of(2.5),
-		CoralPosition.L4.getValue(),   Units.Rotations.of(6));
+		CoralPosition.L4.getValue(),   Units.Rotations.of(3.5));
 
 	// Map of Banana Angles for Algae
 	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
@@ -491,6 +491,11 @@ public class Elevator extends SubsystemBase {
 	public void toggleReefHeightUp() {
 		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
 		this.targetAlgaeLevel = MathUtil.clamp(this.targetAlgaeLevel+1, 0, 4);
+	}
+
+	public void nudgeBananaAngle(boolean extend) {
+		int direction = extend ? 1 : -1;
+		this.pivotTargetAngle = this.pivotTargetAngle.plus(Units.Rotations.of(direction*5));
 	}
 
 	public void onEjectAlgae() {

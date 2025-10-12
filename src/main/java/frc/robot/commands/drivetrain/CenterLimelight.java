@@ -38,6 +38,7 @@ public class CenterLimelight extends Command {
   /// Transform2d representing the transformation matrix for the tag
   private Transform2d tagPoseTransform;
   private List<Integer> tagsToCheck;
+  private boolean mIsAuto = false;
 
   private Distance xTolerance = Units.Inches.of(0.25);
   private Distance yTolerance = Units.Inches.of(0.5);
@@ -47,6 +48,16 @@ public class CenterLimelight extends Command {
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
         this(offsetX, offsetY, Units.Radians.of(0), tagsToCheck);
+      }
+
+      public CenterLimelight(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck, boolean inAutoFlag) {
+        this(offsetX, offsetX, tagsToCheck);
+        if (inAutoFlag) {
+          this.centerPIDy.setI(20);
+          this.centerPIDy.setIZone(0.25);
+          this.centerPIDy.setIntegratorRange(-1.0, 1.0);
+          Logger.recordOutput("Drivetrain/CenterLimelight/inAutoFlag", inAutoFlag);
+        }
       }
 
       /**
@@ -61,6 +72,9 @@ public class CenterLimelight extends Command {
         // this.offsetTheta = offsetTheta;
         this.offsetTheta = offsetTheta.plus(Units.Radians.of(Math.PI));
         this.centerPIDx = Constants.Drivetrain.Auto.centerLimelight.createController();
+        this.centerPIDx.setD(this.centerPIDx.getD() - 0.1);
+        // this.centerPIDx.setI(20);
+        // this.centerPIDx.setIZone(0.05);
         this.centerPIDy = Constants.Drivetrain.Auto.centerLimelight.createController();
         this.centerRotaionPid = Constants.Drivetrain.Auto.centerTheta.createController();
         this.centerRotaionPid.enableContinuousInput(-Math.PI, Math.PI);
@@ -194,7 +208,11 @@ public class CenterLimelight extends Command {
   }
 
   public static CenterLimelight centerLimeLightPosition(ReefPosition reefPos) {
-    return new CenterLimelight(Units.Inches.of(1), offsetReef.times(reefPos.getDirection())/*Units.Inches.of(6.5 * reefPos.getDirection())*/, reefPos.getTagID());
+    return new CenterLimelight(Units.Inches.of(1), offsetReef.times(reefPos.getDirection()), reefPos.getTagID());
+  }
+
+  public static CenterLimelight centerLimeLightPositionAuto(ReefPosition reefPos) {
+    return new CenterLimelight(Units.Inches.of(1), offsetReef.times(reefPos.getDirection()), reefPos.getTagID(), true);
   }
 
   public static CenterLimelight centerLimelightHPReverse(HumanPlayerPosition hpPose) {

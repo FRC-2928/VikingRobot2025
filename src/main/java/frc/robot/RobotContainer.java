@@ -85,9 +85,9 @@ public class RobotContainer {
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
 			new InstantCommand(() -> { Logger.recordOutput("AutoFinished", false);}),
-			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
+			CenterLimelight.centerLimeLightPositionAuto(reefPos).alongWith(
 				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L4))),
-			this.elevator.goToReefHeight(GamePieceType.CORAL),
+			this.elevator.goToReefHeight(GamePieceType.CORAL).withTimeout(1.2),
 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL).withTimeout(0.4),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral(), 

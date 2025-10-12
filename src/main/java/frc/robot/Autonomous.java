@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Constants.ReefPosition;
@@ -49,7 +51,7 @@ public final class Autonomous {
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
 										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
-			autoFactory.trajectoryCmd("StartRightToE"),
+			// autoFactory.trajectoryCmd("StartRightToE"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.E),
 			autoFactory.trajectoryCmd("EToB1Reverse"),
 			new ParallelDeadlineGroup(
@@ -88,7 +90,7 @@ public final class Autonomous {
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
 										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
-			autoFactory.trajectoryCmd("StartLeftToJ"),
+			// autoFactory.trajectoryCmd("StartLeftToJ"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.J),
 			autoFactory.trajectoryCmd("JToA2Reverse").andThen(RobotContainer.getInstance().drivetrain.haltCommand()),
 			new ParallelDeadlineGroup(
@@ -120,6 +122,7 @@ public final class Autonomous {
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.onEjectCoral();
 										RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.NONE);}),
 			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
+			new WaitCommand(Units.Seconds.of(5)),
 			// autoFactory.trajectoryCmd("SimpleScore"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.H),
 			autoFactory.trajectoryCmd("HToBackOff"),
