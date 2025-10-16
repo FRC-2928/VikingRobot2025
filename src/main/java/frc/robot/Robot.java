@@ -20,10 +20,12 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Superstate.RobotStates;
 
 public class Robot extends LoggedRobot {
 	public static Robot instance;
 	public static final RobotContainer cont = RobotContainer.getInstance();
+	public static final Superstate stateMachine = new Superstate();
 
 	public Robot() {
 		super();
@@ -135,7 +137,9 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		CommandScheduler.getInstance().cancelAll();
-		RobotContainer.getInstance().drivetrain.setDefaultCommand();
+		stateMachine.setWantedSuperState(RobotStates.Drive);
+		// TODO: see if this breaks everything
+		// RobotContainer.getInstance().drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -149,7 +153,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-		RobotContainer.getInstance().drivetrain.setDefaultCommand();
+		// RobotContainer.getInstance().drivetrain.setDefaultCommand();
 	}
 
 	@Override
@@ -190,12 +194,12 @@ public class Robot extends LoggedRobot {
 		}
 		SmartDashboard.putData("Field", RobotContainer.getInstance().drivetrain.field);
 	}
-	private boolean isInArray(String[] array,String check){
-		for(int i=0; i<array.length;i++){
-			if(array[i] == check){
-				return true;
-			}
-		}
-		return false;
-	}
+	// private boolean isInArray(String[] array,String check){
+	// 	for(int i=0; i<array.length;i++){
+	// 		if(array[i] == check){
+	// 			return true;
+	// 		}
+	// 	}
+	// 	return false;
+	// }
 }

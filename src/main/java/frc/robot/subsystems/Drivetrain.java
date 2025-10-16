@@ -28,17 +28,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+// import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import frc.robot.Robot;
+// import frc.robot.Robot;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.RobotContainer;
-import frc.robot.Superstate;
-import frc.robot.Superstate.RobotStates;
+// import frc.robot.Superstate;
+// import frc.robot.Superstate.RobotStates;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.commands.drivetrain.DPadDrive;
-import frc.robot.commands.drivetrain.JoystickDrive;
+// import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.JoystickDriveMethod;
 import frc.robot.subsystems.SwerveModule.Place;
 import frc.robot.vision.Limelight;
@@ -82,7 +82,8 @@ public class Drivetrain extends SubsystemBase {
 		AutoAlignCoral,
 		ManualAlignCoral,
 		ScoreCoral,
-		UnscoreAlgae;
+		UnscoreAlgae,
+		Dpadmode;
 	}
 
 	public enum WantedDrivetrainStates {
@@ -91,6 +92,7 @@ public class Drivetrain extends SubsystemBase {
 		AutoAlignCoral,
 		ManualAlignCoral,
 		ScoreCoral,
+		Dpadmode,
 		UnscoreAlgae;
 	}
 
@@ -127,9 +129,15 @@ public class Drivetrain extends SubsystemBase {
 				break;
 			case Drive:
 				drivetrainState = DrivetrainStates.Drive;
-				absoluteController = Constants.Drivetrain.absoluteRotationPID
+				absoluteControllerJoystickDrive = Constants.Drivetrain.absoluteRotationPID
 				.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
+				joystickDriveSpeed = 1;
 				break;
+			case Dpadmode:
+				drivetrainState = DrivetrainStates.Dpadmode;
+				absoluteControllerDpadDrive = Constants.Drivetrain.absoluteRotationPID
+					.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
+				
 			default:{
 				break;
 			}
@@ -151,6 +159,9 @@ public class Drivetrain extends SubsystemBase {
 			}
 			case Drive: {
 				drive();
+			}
+			case Dpadmode: {
+				dPadMode();
 			}
 			default:
 				break;
@@ -175,8 +186,10 @@ public class Drivetrain extends SubsystemBase {
 	private PIDController centerPIDx;
     private PIDController centerPIDy;
     private PIDController centerRotaionPid;
-	private ProfiledPIDController absoluteController = Constants.Drivetrain.absoluteRotationPID
+	private ProfiledPIDController absoluteControllerJoystickDrive = Constants.Drivetrain.absoluteRotationPID
 	.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
+	private double joystickDriveSpeed = 1;
+	private ProfiledPIDController absoluteControllerDpadDrive;
 
 	// private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -459,13 +472,12 @@ public class Drivetrain extends SubsystemBase {
 		gyro.simulationPeriodic(Units.Radians.of(simulatedTwist.omegaRadiansPerSecond * 0.02));
 	}
 
-	// public JoystickDrive slowMode() {
-	// 	return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
-	// }
+	public void slowMode() {
+		this.joystickDriveSpeed = 0.15;
+		// return new JoystickDrive(this, .15); // Conversion from 1 meter to 6 inches
 
-	public DPadDrive dPadMode() {
-		return new DPadDrive(this);
 	}
+
 
 	public void autoAlignCoral() {
 		if(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean()){
@@ -477,7 +489,10 @@ public class Drivetrain extends SubsystemBase {
 	}
 
 	public void drive() {
-		JoystickDriveMethod.execute(null, 0, 0);
+		control(JoystickDriveMethod.execute(this, joystickDriveSpeed, absoluteControllerJoystickDrive));
+	}
+	public void dPadMode() {
+		control(DpadDriveMethod.execute());
 	}
 
 	public boolean isCenterLimelightFinished(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {

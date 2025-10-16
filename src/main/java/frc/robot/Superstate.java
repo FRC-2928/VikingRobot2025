@@ -3,23 +3,13 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
-import java.util.function.BooleanSupplier;
-
 import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.commands.drivetrain.CenterLimelight;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Drivetrain.DrivetrainStates;
 import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
 
@@ -103,6 +93,10 @@ public class Superstate extends SubsystemBase {
 			}
 			case AutoAlignCoral:{
 				autoAlignCoral();
+				break;
+			}
+			case ManualAlignCoral:{
+				manualAlignCoral();
 				break;
 			}
 			default:

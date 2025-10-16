@@ -38,22 +38,22 @@ public class JoystickDriveMethod {
 			return chooser;
 		}
 
-	public static void execute(final Drivetrain drivetrain, double speedMultiplier, double forMagnitude, ProfiledPIDController absoluteController) {
+	public static ChassisSpeeds execute(Drivetrain drivetrain, double speedMultiplier, ProfiledPIDController absoluteController) {
 	
 		final DriverOI oi;
-		forMagnitude = 0.5;
-		final ChassisSpeeds robotOrientedSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds(), new Rotation2d(drivetrain.getFieldOrientedAngle()));
+		double forMagnitude = 0.5;
 		oi = RobotContainer.getInstance().driverOI;
+		final ChassisSpeeds robotOrientedSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds(speedMultiplier, oi, forMagnitude, absoluteController), new Rotation2d(drivetrain.getFieldOrientedAngle()));
 		absoluteController.enableContinuousInput(-0.5, 0.5);
-		drivetrain.control(robotOrientedSpeeds);
+		return robotOrientedSpeeds;
 	}
 
 	// Returns the Field-oriented ChassisSpeeds based on the joystick inputs
-	public static ChassisSpeeds speeds(double speedMultiplier, DriverOI oi, double forMagnitude) {
+	public static ChassisSpeeds speeds(double speedMultiplier, DriverOI oi, double forMagnitude, ProfiledPIDController absoluteController) {
 		if(DriverStation.isAutonomous()) return new ChassisSpeeds();
 
 		final Translation2d translation = translation(oi);
-		return new ChassisSpeeds(translation.getX() * speedMultiplier, translation.getY() * speedMultiplier, theta(oi, forMagnitude).in(Units.RadiansPerSecond) * speedMultiplier);
+		return new ChassisSpeeds(translation.getX() * speedMultiplier, translation.getY() * speedMultiplier, theta(oi, forMagnitude, absoluteController).in(Units.RadiansPerSecond) * speedMultiplier);
 	}
 
 	// Returns the translation (X and Y) component from the joystick
@@ -78,7 +78,7 @@ public class JoystickDriveMethod {
 	}
 
 	// Returns the rotation component from the joystick
-	private static AngularVelocity theta(DriverOI oi, double forMagnitude) {
+	private static AngularVelocity theta(DriverOI oi, double forMagnitude, ProfiledPIDController absoluteController) {
 		double theta = 0;
 
 		final String selectedDriveMode = RobotContainer.getInstance().getDriveMode();

@@ -189,7 +189,7 @@ public class RobotContainer {
 	public Command pullAlgaeOffReef() {
 		return new ParallelCommandGroup(
 			this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-			drivetrain.slowMode()
+			new RunCommand(() -> {drivetrain.slowMode();})
 		).until(() -> 
 			this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.blueReefCenter) > Tuning.reefBackupWithAlgaeRadius.get() 
 			&& this.drivetrain.getEstimatedPosition().getTranslation().getDistance(Constants.redReefCenter) > Tuning.reefBackupWithAlgaeRadius.get()
