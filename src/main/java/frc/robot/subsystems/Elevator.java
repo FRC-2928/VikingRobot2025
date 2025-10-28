@@ -37,11 +37,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.Superstate;
+import frc.robot.Superstate.RobotStates;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -61,8 +64,34 @@ public class Elevator extends SubsystemBase {
 		public Angle pivotDesiredAngle = Units.Degrees.of(0);
 	}
 
+
+	public enum ElevatorSuperState {
+		
+		Home, /*set elevator to bottom */
+		prepareForHome, /* retract bananna then transition to home state */
+		CoralL1, /* set elevator and pivot for coral l1 */
+		CoralL2,
+		CoralL3,
+		CoralL4,
+		AlgaeL2, /* set elevator and pivot for algae l1 */
+		AlgaeL3
+	}
+
+	public enum ElevatorWantedState {
+		Home,
+		CoralL1,
+		CoralL2,
+		CoralL3,
+		CoralL4,
+		AlgaeL2,
+		AlgaeL3
+	}
+
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 
+	private ElevatorSuperState elavatorState;
+	public ElevatorWantedState wantedElevatorState = ElevatorWantedState.Home;
+	private ElevatorSuperState elevatorPreviosState;
 	// --------------------- Internal Higher-Order States ---------------------
 	// Target state variables
 	private int targetCoralLevel = CoralPosition.NONE.getValue();    // NONE by default
@@ -261,6 +290,52 @@ public class Elevator extends SubsystemBase {
 		this.targetCageLevel = CagePosition.SHALLOW.getValue();  // TODO: change this to accept values from SmartDashboard
 	}
 
+	private ElevatorSuperState handleStateTransition() {
+		elevatorPreviosState = elavatorState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
+		switch (wantedElevatorState) {
+			case Home:
+				elavatorState = ElevatorSuperState.Home;
+				break;
+			
+			case CoralL1:
+				elavatorState = ElevatorSuperState.CoralL1;
+				break;
+			
+			case CoralL2:
+				elavatorState = ElevatorSuperState.CoralL2;
+				break;	
+			
+			case CoralL3:
+				elavatorState = ElevatorSuperState.CoralL3;
+				break;
+			
+			case CoralL4:
+				elavatorState = ElevatorSuperState.CoralL4;
+				break;
+			case AlgaeL2:
+				elavatorState = ElevatorSuperState.AlgaeL2;
+				break;
+			case AlgaeL3:
+				elavatorState = ElevatorSuperState.AlgaeL3;
+				break;
+			default:{
+				break;
+			}
+		}
+		return elavatorState;
+	}
+
+	private void applyStates() {
+		switch (elavatorState) {
+			case Home:
+				
+				break;
+		
+			default:
+				break;
+		}
+	}
+
 	private void moveToPosition(final Distance position) {
 		this.elevatorTargetPosition = Units.Meters.of(
 			MathUtil.clamp(
@@ -287,15 +362,10 @@ public class Elevator extends SubsystemBase {
 		liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
 	}
 
-	private void controlPivot(final Angle rotation, final boolean holdHome) {
+	private void controlPivot(final Angle rotation) {
 		// pivot.setControl(new PositionVoltage(rotation));
-		if (holdHome) {
-			pivot.setControl(new VoltageOut(-1.5));
-			pivotCommmandedAngle = Units.Degrees.of(0);
-		} else {
-			pivotCommmandedAngle = rotation;
-			pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
-		}
+		pivotCommmandedAngle = rotation;
+		pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
 	}
 
 	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
@@ -315,6 +385,34 @@ public class Elevator extends SubsystemBase {
 		currentGamePieceType = (haultMode)? GamePieceType.HAULT : GamePieceType.NONE;
 	}
 
+	private void updateBannanPivot(Angle bannanaPivotDesiredAngle){
+		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+		var currentBananaAngle = pivotCommmandedAngle;
+		// are we currently in the elevator danger zone?
+		bannanaPivotDesiredAngle = Units.Degrees.of(MathUtil.clamp(bannanaPivotDesiredAngle.in(Units.Degrees), 0, 45));
+		boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
+		// is the elevator target within the danger zone?
+		boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
+		// is the banana in a dangerous orientation?
+		boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
+		// are we trying to move the banana into a dangerous orientation?
+		boolean bananaTargetInDangerZone = bannanaPivotDesiredAngle.gt(bananaDangerZoneThreshold);
+
+		Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
+		Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
+		Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
+		Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
+		Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
+		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", bannanaPivotDesiredAngle.in(Units.Degrees));
+		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
+
+		if(currentGamePieceType == GamePieceType.HAULT || elevatorInDangerZone || elevatorTargetInDangerZone){
+			controlPivot(Units.Degrees.of(0));
+			
+		} else{
+			controlPivot(bannanaPivotDesiredAngle);
+		}
+	}
 	private void updateMotors() {
 		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 		var currentBananaAngle = pivotCommmandedAngle;
@@ -373,42 +471,6 @@ public class Elevator extends SubsystemBase {
 			controlPosition(elevatorTargetPosition);
 			return;
 		}
-
-		// if (elevatorCommandedPosition != elevatorTargetPosition) {
-		// 	if (elevatorTargetPosition.gte(elevatorThresholdForPivot)) {
-		// 		controlPosition(elevatorTargetPosition);
-		// 	}
-		// 	else {
-		// 		if (this.inputs.isPivotHomed) {
-		// 			controlPosition(elevatorTargetPosition);
-		// 		}
-		// 	}
-		// }
-
-		// if ()
-		// if (pivotCommmandedAngle /*current */ != pivotTargetAngle /*desired */) {
-		// 	if (pivotTargetAngle.lt(Units.Degrees.of(20))) {
-		// 		// go to home and stay home
-		// 		controlPivot(pivotCommmandedAngle, true /* hold home */);
-		// 		// TODO: clean up
-		// 		// if (inputs.isPivotHomed) {
-		// 		// 	this.pivotTargetAngle = Units.Degrees.of(0.2);
-		// 		// 	controlPivot(Units.Degrees.of(0.2));
-		// 		// } else {
-		// 		// 	controlPivotHome();
-		// 		// }
-		// 	}
-		// 	// else if 
-		// 	else {
-		// 		if (inputs.height.gt(elevatorThresholdForPivot) && elevatorCommandedPosition.gt(elevatorThresholdForPivot)) {
-		// 			controlPivot(pivotTargetAngle, false);
-		// 		}
-		// 	}
-		// }
-
-		// if (elevatorTargetPosition.lt(elevatorThresholdForPivot) && pivotCommmandedAngle.gt(Units.Degrees.of(1))) {
-		// 	controlPivot(Units.Degrees.of(0), true);
-		// }
 	}
 
 	public void setElevatorMode(GamePieceType type){

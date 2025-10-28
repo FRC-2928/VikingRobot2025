@@ -38,6 +38,7 @@ import frc.robot.RobotContainer;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.commands.drivetrain.DPadDrive;
+import frc.robot.commands.drivetrain.DPadDriveMethod;
 // import frc.robot.commands.drivetrain.JoystickDrive;
 import frc.robot.commands.drivetrain.JoystickDriveMethod;
 import frc.robot.subsystems.SwerveModule.Place;
@@ -190,6 +191,8 @@ public class Drivetrain extends SubsystemBase {
 	.createProfiledController(Constants.Drivetrain.absoluteRotationConstraints);
 	private double joystickDriveSpeed = 1;
 	private ProfiledPIDController absoluteControllerDpadDrive;
+
+	
 
 	// private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
@@ -492,7 +495,7 @@ public class Drivetrain extends SubsystemBase {
 		control(JoystickDriveMethod.execute(this, joystickDriveSpeed, absoluteControllerJoystickDrive));
 	}
 	public void dPadMode() {
-		control(DpadDriveMethod.execute());
+		control(DPadDriveMethod.execute(this, this.absoluteControllerDpadDrive));
 	}
 
 	public boolean isCenterLimelightFinished(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {

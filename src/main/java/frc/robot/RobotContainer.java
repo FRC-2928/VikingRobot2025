@@ -103,16 +103,16 @@ public class RobotContainer {
       });
 	}
 
-	public Command raiseElevatorAtReef() {
-		return new ConditionalCommand(
-			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL), 
-				this.drivetrain.dPadMode()
-			),
-			new InstantCommand(), 
-			this.driverOI.closeToReef)
-		.until(this.driverOI.closeToReef.negate());
-	}
+	// public Command raiseElevatorAtReef() {
+	// 	return new ConditionalCommand(
+	// 		new ParallelCommandGroup(
+	// 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL), 
+	// 			this.drivetrain.dPadMode()
+	// 		),
+	// 		new InstantCommand(), 
+	// 		this.driverOI.closeToReef)
+	// 	.until(this.driverOI.closeToReef.negate());
+	// }
 
 	public Command telePositionForCoralLeft() {
 		return new SequentialCommandGroup(
@@ -122,68 +122,68 @@ public class RobotContainer {
 			)
 		);
 	}
-	public Command telePositionForCoralOveride() {
-		return new ParallelCommandGroup(
-			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-			drivetrain.dPadMode()
-		);
-	}
+	// public Command telePositionForCoralOveride() {
+	// 	return new ParallelCommandGroup(
+	// 		this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+	// 		drivetrain.dPadMode()
+	// 	);
+	// }
 
-	public Command telePositionForCoralRight() {
-		return new SequentialCommandGroup(
-			CenterLimelight.centerLimelightRight(),
-			new ParallelCommandGroup(
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				drivetrain.dPadMode()
-			)
-		);
-	}
+	// public Command telePositionForCoralRight() {
+	// 	return new SequentialCommandGroup(
+	// 		CenterLimelight.centerLimelightRight(),
+	// 		new ParallelCommandGroup(
+	// 			this.elevator.goToGamePieceHeight(GamePieceType.CORAL),
+	// 			drivetrain.dPadMode()
+	// 		)
+	// 	);
+	// }
 
 
-	public Command telePositionForAlgae() {
-		return new SequentialCommandGroup(
-			CenterLimelight.centerLimelightCenter(),
-			new ConditionalCommand(
-				this.bananaFlywheels.outputForward().withTimeout(5), 
-				new InstantCommand(), 
-				(() -> (this.bananaFlywheels.holdingCoral() && this.elevator.hasCurrentGamePieceType(GamePieceType.NONE)))),
-			this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
-			new ParallelCommandGroup(
-				new SequentialCommandGroup(
+	// public Command telePositionForAlgae() {
+	// 	return new SequentialCommandGroup(
+	// 		CenterLimelight.centerLimelightCenter(),
+	// 		new ConditionalCommand(
+	// 			this.bananaFlywheels.outputForward().withTimeout(5), 
+	// 			new InstantCommand(), 
+	// 			(() -> (this.bananaFlywheels.holdingCoral() && this.elevator.hasCurrentGamePieceType(GamePieceType.NONE)))),
+	// 		this.elevator.setTargetAlgaeLevelCommand(RobotContainer.getInstance().drivetrain.getAlgaeHeight()),
+	// 		new ParallelCommandGroup(
+	// 			new SequentialCommandGroup(
 					
-					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.outputForward()
-				),
-				drivetrain.dPadMode()
-			)
-		);
-	}
+	// 				this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+	// 				this.bananaFlywheels.outputForward()
+	// 			),
+	// 			drivetrain.dPadMode()
+	// 		)
+	// 	);
+	// }
 
-	public Command telePositionForAlgaeOverideL2() {
-		return new SequentialCommandGroup(
-			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L2),
-			new ParallelCommandGroup(
-				new SequentialCommandGroup(
-					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.outputForward()
-				),
-				drivetrain.dPadMode()
-			)
-		);
-	}
+	// public Command telePositionForAlgaeOverideL2() {
+	// 	return new SequentialCommandGroup(
+	// 		this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L2),
+	// 		new ParallelCommandGroup(
+	// 			new SequentialCommandGroup(
+	// 				this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+	// 				this.bananaFlywheels.outputForward()
+	// 			),
+	// 			drivetrain.dPadMode()
+	// 		)
+	// 	);
+	// }
 	
-	public Command telePositionForAlgaeOverideL3() {
-		return new SequentialCommandGroup(
-			this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L3),
-			new ParallelCommandGroup(
-				new SequentialCommandGroup(
-					this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
-					this.bananaFlywheels.outputForward()
-				),
-				drivetrain.dPadMode()
-			)
-		);
-	}
+	// public Command telePositionForAlgaeOverideL3() {
+	// 	return new SequentialCommandGroup(
+	// 		this.elevator.setTargetAlgaeLevelCommand(AlgaePosition.L3),
+	// 		new ParallelCommandGroup(
+	// 			new SequentialCommandGroup(
+	// 				this.elevator.goToGamePieceHeight(GamePieceType.ALGAE),
+	// 				this.bananaFlywheels.outputForward()
+	// 			),
+	// 			drivetrain.dPadMode()
+	// 		)
+	// 	);
+	// }
 
 
 	public Command pullAlgaeOffReef() {

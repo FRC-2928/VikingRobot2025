@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
 
@@ -59,14 +60,14 @@ public class Superstate extends SubsystemBase {
 			case ScoreCoral:
 				if (!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))) {
 					globalState = RobotStates.ScoreCoral;
-					 // This may be a bug. This break won't happen if the conditional fails, and will fall-through to UnscoreAlgae. Consider putting break outside the if block.
+					// This may be a bug. This break won't happen if the conditional fails, and will fall-through to UnscoreAlgae. Consider putting break outside the if block.
 				}
 				break;
 			
 			case UnscoreAlgae:
 				if (RobotContainer.getInstance().driverOI.closeToReef.getAsBoolean()) {
 					globalState = RobotStates.UnscoreAlgae;
-					 // This may be a bug. This break won't happen if the conditional fails, and will fall-through to default
+					// This may be a bug. This break won't happen if the conditional fails, and will fall-through to default
 				}
 				break;
 			case Drive:
@@ -132,8 +133,9 @@ public class Superstate extends SubsystemBase {
 	// public Trigger isScorecoral =  new Trigger(() -> (globalState == RobotStates.Scorecoral));
 	// public Trigger isunscoreAlgaie = new Trigger(() -> (globalState == RobotStates.unscoreAlgaie));
 	public void periodic() {
-		applyStates();
 		globalState = handleStateTransition();
+		applyStates();
+		
 		Logger.recordOutput("StateMachine/DesiredSuperstate", wantedGlobalState);
         Logger.recordOutput("StateMachine/CurrentSuperstate", globalState);
 	}
@@ -186,13 +188,17 @@ public class Superstate extends SubsystemBase {
 		}
 	}
 
-	public Command manualAlignCoral() {
-		return new ParallelCommandGroup(
-				setWantedSuperStateCommand(RobotStates.ScoreCoral),
-				RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL),
-				RobotContainer.getInstance().drivetrain.dPadMode()
-			);
+	public void manualAlignCoral(){
+		RobotContainer.getInstance().drivetrain.setWantedSuperState(WantedDrivetrainStates.Dpadmode);
+
 	}
+	// public Command manualAlignCoral() {
+	// 	return new ParallelCommandGroup(
+	// 			setWantedSuperStateCommand(RobotStates.ScoreCoral),
+	// 			RobotContainer.getInstance().elevator.goToGamePieceHeight(GamePieceType.CORAL),
+	// 			RobotContainer.getInstance().drivetrain.dPadMode()
+	// 		);
+	// }
 	// public Command manualAlignCoral(){
 	// 	return
 	// }
