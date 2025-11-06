@@ -45,6 +45,7 @@ import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.Superstate;
 import frc.robot.Superstate.RobotStates;
+import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -89,567 +90,665 @@ public class Elevator extends SubsystemBase {
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 
-	private ElevatorSuperState elavatorState;
-	public ElevatorWantedState wantedElevatorState = ElevatorWantedState.Home;
-	private ElevatorSuperState elevatorPreviosState;
-	// --------------------- Internal Higher-Order States ---------------------
-	// Target state variables
-	private int targetCoralLevel = CoralPosition.NONE.getValue();    // NONE by default
-	private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
-	private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
-	private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
-
-	// ------------------- Elevator Position Maps -------------------
-	// Map of Elevator Positions for Coral
-	private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
-		CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
-		CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
-		CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
-		CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
-
-	// Map of Elevator Positions for Algae
-	private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
-		AlgaePosition.NONE.getValue(), Units.Feet.of(0),
-		AlgaePosition.L2.getValue(),   Units.Feet.of(3.5),
-		AlgaePosition.L3.getValue(),   Units.Feet.of(4.5));
-
-	// Map of Elevator Positions for Cage
-	private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
-		CagePosition.NONE.getValue(),    Units.Feet.of(0),
-		CagePosition.DEEP.getValue(),    Units.Feet.of(3.5),
-		CagePosition.SHALLOW.getValue(), Units.Feet.of(4.5));
-
-	// ------------------- Banana Angle Maps -------------------
-	// Map of Banana Angles for Coral
-	private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
-		CoralPosition.NONE.getValue(), Units.Degrees.of(0),
-		CoralPosition.L1.getValue(),   Units.Degrees.of(0),
-		CoralPosition.L2.getValue(),   Units.Rotations.of(2.5),
-		CoralPosition.L3.getValue(),   Units.Rotations.of(2.5),
-		CoralPosition.L4.getValue(),   Units.Rotations.of(6));
-
-	// Map of Banana Angles for Algae
-	private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
-		AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
-		AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
-		AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
-
-	// Map of Banana Angles for Cage
-	private final Map<Integer, Angle> bananaAnglesCage = Map.of(
-		CagePosition.NONE.getValue(),    Units.Degrees.of(0),
-		CagePosition.DEEP.getValue(),    Units.Degrees.of(0),
-		CagePosition.SHALLOW.getValue(), Units.Degrees.of(0));
-
-	// --------------------- Hardware Interfaces ---------------------
-	private final TalonFX liftMotorA;
-	private final TalonFX liftMotorB;
-	private final TalonFX pivot;
-	private boolean haultMode = false;
-	private final StatusSignal<Angle> elevatorMotorPosition;
-	private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
-	private final StatusSignal<ReverseLimitValue> elevatorHomedSignal;
-	private final StatusSignal<Current> elevatorMotorStatorCurrent;
-	private final StatusSignal<Current> elevatorMotorSupplyCurrent;
-	private final StatusSignal<Angle> pivotMotorPosition;
-	private final StatusSignal<AngularVelocity> pivotMotorVelocity;
-	private final StatusSignal<ReverseLimitValue> pivotHomedSignal;
-
-	private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
-	private Angle pivotTargetAngle; // Represents final angle system is trying to reach
-
-	private Distance elevatorCommandedPosition;  // The pos that the motor is currently told to go to
-	private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
-
-	private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
-	private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
-	private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
-	private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
-
-	// Simulation objects
-	private final ElevatorSim elevatorSim = new ElevatorSim(
-		LinearSystemId.createElevatorSystem(
-			DCMotor.getKrakenX60Foc(2), Units.Pounds.of(36).in(Units.Kilogram), 
-			Constants.Elevator.DRUM_RADIUS.in(Units.Meters), 
-			Constants.Elevator.ELEVATOR_GEARING), 
-		DCMotor.getKrakenX60Foc(2), 
-		0, 
-		Units.Inches.of(30).in(Units.Meters),
-		false, 
-		0);
-
-	/**
-	 * Default Constructor
-	 */
-	public Elevator() {
-		this.elevatorTargetPosition = Units.Feet.of(0);
-		this.elevatorCommandedPosition = Units.Feet.of(0);
-		this.pivotTargetAngle = Units.Degrees.of(0);
-		this.pivotCommmandedAngle = Units.Degrees.of(20);
-
-		// lift motors are on the CANivore
-		liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA, Constants.CAN.CTRE.bus);
-		liftMotorB = new TalonFX(Constants.CAN.CTRE.elevatorMotorB, Constants.CAN.CTRE.bus);
-
-		// pivot motor is on the RIO CAN bus
-		pivot = new TalonFX(Constants.CAN.RIO.bananaPivot, Constants.CAN.RIO.bus);
-
-		final TalonFXConfiguration elevatorConfig = new TalonFXConfiguration();
-
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteTalonFX;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.elevatorLimitSwitch;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
-		elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
-		elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;  // Gearing, clockwise moves elevator up
-		elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-		elevatorConfig.SoftwareLimitSwitch
-			.withForwardSoftLimitEnable(true)
-			.withForwardSoftLimitThreshold(Units.Rotations.of(1.31));
-		
-		// Peak output amps
-		elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
-		elevatorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		elevatorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-		elevatorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-		
-		// Supply current limits
-		elevatorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-		elevatorConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
-		elevatorConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
-		elevatorConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
-
-		// PID values
-		elevatorConfig.Slot0 = Slot0Configs.from(Constants.Elevator.elevatorConfig);
-		elevatorConfig.Feedback.SensorToMechanismRatio = Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-
-		// Motion Magic Params
-		// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
-		// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kV = 4;
-		elevatorConfig.MotionMagic.MotionMagicExpo_kA = 4;
-
-		liftMotorA.getConfigurator().apply(elevatorConfig);
-		liftMotorB.getConfigurator().apply(elevatorConfig);
-		liftMotorB.setControl(new Follower(liftMotorA.getDeviceID(), false));
-
-
-		final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
-
-		// Configure the reverse limit to read from CANdi S1
-		bananaConfig.HardwareLimitSwitch
-			.withReverseLimitRemoteCANdiS1(Constants.CAN.RIO.BANANA_CANDI.getInstance())
-			.withReverseLimitEnable(true)
-			.withReverseLimitAutosetPositionEnable(true)
-			.withReverseLimitAutosetPositionValue(Units.Degrees.of(0))
-			.withReverseLimitType(ReverseLimitTypeValue.NormallyOpen);
-
-		bananaConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-		bananaConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-		// Peak output amps
-		bananaConfig.CurrentLimits.StatorCurrentLimit = 80.0;
-		bananaConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-		bananaConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
-		bananaConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
-
-		// Supply current limits
-		bananaConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-		bananaConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
-		bananaConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
-		bananaConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
-
-		// PID values
-		bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
-
-		this.pivot.getConfigurator().apply(bananaConfig);
-
-		this.elevatorMotorPosition = this.liftMotorA.getPosition();
-		this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
-		this.elevatorMotorStatorCurrent = this.liftMotorA.getStatorCurrent();
-		this.elevatorMotorSupplyCurrent = this.liftMotorA.getSupplyCurrent();
-		this.elevatorHomedSignal = this.liftMotorA.getReverseLimit();
-
-		this.pivotMotorPosition = this.pivot.getRotorPosition();
-		this.pivotMotorVelocity = this.pivot.getRotorVelocity();
-		this.pivotHomedSignal = this.pivot.getReverseLimit();
-
-
-		StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
-			elevatorMotorPosition,
-			elevatorMotorVelocity,
-			elevatorMotorStatorCurrent,
-			elevatorMotorSupplyCurrent,
-			elevatorHomedSignal,
-			pivotMotorPosition,
-			pivotMotorVelocity,
-			pivotHomedSignal);
-
-		this.setDefaultCommand(toDefaultPosition());
-		this.targetCageLevel = CagePosition.SHALLOW.getValue();  // TODO: change this to accept values from SmartDashboard
-	}
-
-	private ElevatorSuperState handleStateTransition() {
-		elevatorPreviosState = elavatorState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
-		switch (wantedElevatorState) {
-			case Home:
-				elavatorState = ElevatorSuperState.Home;
-				break;
+	private ElevatorSuperState elevatorState;
+	public static ElevatorWantedState wantedElevatorState = ElevatorWantedState.Home;
+		private ElevatorSuperState elevatorPreviousState;
+		// --------------------- Internal Higher-Order States ---------------------
+		// Target state variables
+		private int targetCoralLevel = CoralPosition.NONE.getValue();    // NONE by default
+		private int targetAlgaeLevel = AlgaePosition.NONE.getValue();  // NONE by default
+		private int targetCageLevel  = CagePosition.NONE.getValue();   // NONE by default
+		private GamePieceType currentGamePieceType  = GamePieceType.NONE;  // NONE by default
+	
+		// ------------------- Elevator Position Maps -------------------
+		// Map of Elevator Positions for Coral
+		private final Map<Integer, Distance> elevatorPositionsCoral = Map.of(
+			CoralPosition.NONE.getValue(), Units.Inches.of(0.5),
+			CoralPosition.L1.getValue(),   Units.Meters.of(0.25),
+			CoralPosition.L2.getValue(),   Units.Meters.of(0.472),
+			CoralPosition.L3.getValue(),   Units.Meters.of(0.786),
+			CoralPosition.L4.getValue(),   Units.Meters.of(1.31));
+	
+		// Map of Elevator Positions for Algae
+		private final Map<Integer, Distance> elevatorPositionsAlgae = Map.of(
+			AlgaePosition.NONE.getValue(), Units.Feet.of(0),
+			AlgaePosition.L2.getValue(),   Units.Feet.of(3.5),
+			AlgaePosition.L3.getValue(),   Units.Feet.of(4.5));
+	
+		// Map of Elevator Positions for Cage
+		private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
+			CagePosition.NONE.getValue(),    Units.Feet.of(0),
+			CagePosition.DEEP.getValue(),    Units.Feet.of(3.5),
+			CagePosition.SHALLOW.getValue(), Units.Feet.of(4.5));
+	
+		// ------------------- Banana Angle Maps -------------------
+		// Map of Banana Angles for Coral
+		private final Map<Integer, Angle> bananaAnglesCoral = Map.of(
+			CoralPosition.NONE.getValue(), Units.Degrees.of(0),
+			CoralPosition.L1.getValue(),   Units.Degrees.of(0),
+			CoralPosition.L2.getValue(),   Units.Rotations.of(2.5),
+			CoralPosition.L3.getValue(),   Units.Rotations.of(2.5),
+			CoralPosition.L4.getValue(),   Units.Rotations.of(6));
+	
+		// Map of Banana Angles for Algae
+		private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
+			AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
+			AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
+			AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
+	
+		// Map of Banana Angles for Cage
+		private final Map<Integer, Angle> bananaAnglesCage = Map.of(
+			CagePosition.NONE.getValue(),    Units.Degrees.of(0),
+			CagePosition.DEEP.getValue(),    Units.Degrees.of(0),
+			CagePosition.SHALLOW.getValue(), Units.Degrees.of(0));
+	
+		// --------------------- Hardware Interfaces ---------------------
+		private final TalonFX liftMotorA;
+		private final TalonFX liftMotorB;
+		private final TalonFX pivot;
+		private boolean haultMode = false;
+		private final StatusSignal<Angle> elevatorMotorPosition;
+		private final StatusSignal<AngularVelocity> elevatorMotorVelocity;
+		private final StatusSignal<ReverseLimitValue> elevatorHomedSignal;
+		private final StatusSignal<Current> elevatorMotorStatorCurrent;
+		private final StatusSignal<Current> elevatorMotorSupplyCurrent;
+		private final StatusSignal<Angle> pivotMotorPosition;
+		private final StatusSignal<AngularVelocity> pivotMotorVelocity;
+		private final StatusSignal<ReverseLimitValue> pivotHomedSignal;
+	
+		private Distance elevatorTargetPosition; // Represents final pos system is trying to reach
+		private Angle pivotTargetAngle; // Represents final angle system is trying to reach
+	
+		private Distance elevatorCommandedPosition;  // The pos that the motor is currently told to go to
+		private Angle pivotCommmandedAngle;  // The angle that the motor is currently told to go to
+	
+		private final Distance elevatorThresholdForPivot = Units.Inches.of(8); // The minimum distance that the elevator is allowed to be with a non-zero pivot angle
+		private final Angle bananaDangerZoneThreshold = Units.Degrees.of(5);  // TODO: tune this value
+		private final Distance toleranceForFinishedMovement = Units.Millimeters.of(7);
+		private final Angle toleranceForFinishedPivot = Units.Degrees.of(2);
+	
+		// Simulation objects
+		private final ElevatorSim elevatorSim = new ElevatorSim(
+			LinearSystemId.createElevatorSystem(
+				DCMotor.getKrakenX60Foc(2), Units.Pounds.of(36).in(Units.Kilogram), 
+				Constants.Elevator.DRUM_RADIUS.in(Units.Meters), 
+				Constants.Elevator.ELEVATOR_GEARING), 
+			DCMotor.getKrakenX60Foc(2), 
+			0, 
+			Units.Inches.of(30).in(Units.Meters),
+			false, 
+			0);
+	
+		/**
+		 * Default Constructor
+		 */
+		public Elevator() {
+			this.elevatorTargetPosition = Units.Feet.of(0);
+			this.elevatorCommandedPosition = Units.Feet.of(0);
+			this.pivotTargetAngle = Units.Degrees.of(0);
+			this.pivotCommmandedAngle = Units.Degrees.of(20);
+	
+			// lift motors are on the CANivore
+			liftMotorA = new TalonFX(Constants.CAN.CTRE.elevatorMotorA, Constants.CAN.CTRE.bus);
+			liftMotorB = new TalonFX(Constants.CAN.CTRE.elevatorMotorB, Constants.CAN.CTRE.bus);
+	
+			// pivot motor is on the RIO CAN bus
+			pivot = new TalonFX(Constants.CAN.RIO.bananaPivot, Constants.CAN.RIO.bus);
+	
+			final TalonFXConfiguration elevatorConfig = new TalonFXConfiguration();
+	
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitEnable = true;
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.RemoteTalonFX;
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitRemoteSensorID = Constants.CAN.CTRE.elevatorLimitSwitch;
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+			elevatorConfig.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
+			elevatorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;  // Gearing, clockwise moves elevator up
+			elevatorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+			elevatorConfig.SoftwareLimitSwitch
+				.withForwardSoftLimitEnable(true)
+				.withForwardSoftLimitThreshold(Units.Rotations.of(1.31));
 			
-			case CoralL1:
-				elavatorState = ElevatorSuperState.CoralL1;
-				break;
+			// Peak output amps
+			elevatorConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+			elevatorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+			elevatorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+			elevatorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
 			
-			case CoralL2:
-				elavatorState = ElevatorSuperState.CoralL2;
-				break;	
-			
-			case CoralL3:
-				elavatorState = ElevatorSuperState.CoralL3;
-				break;
-			
-			case CoralL4:
-				elavatorState = ElevatorSuperState.CoralL4;
-				break;
-			case AlgaeL2:
-				elavatorState = ElevatorSuperState.AlgaeL2;
-				break;
-			case AlgaeL3:
-				elavatorState = ElevatorSuperState.AlgaeL3;
-				break;
-			default:{
-				break;
+			// Supply current limits
+			elevatorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+			elevatorConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+			elevatorConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+			elevatorConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+	
+			// PID values
+			elevatorConfig.Slot0 = Slot0Configs.from(Constants.Elevator.elevatorConfig);
+			elevatorConfig.Feedback.SensorToMechanismRatio = Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+	
+			// Motion Magic Params
+			// elevatorConfig.MotionMagic.MotionMagicAcceleration = 10;
+			// elevatorConfig.MotionMagic.MotionMagicCruiseVelocity = 3.833 * Constants.Elevator.DISTANCE_CONVERSION_RATIO;
+			elevatorConfig.MotionMagic.MotionMagicExpo_kV = 4;
+			elevatorConfig.MotionMagic.MotionMagicExpo_kA = 4;
+	
+			liftMotorA.getConfigurator().apply(elevatorConfig);
+			liftMotorB.getConfigurator().apply(elevatorConfig);
+			liftMotorB.setControl(new Follower(liftMotorA.getDeviceID(), false));
+	
+	
+			final TalonFXConfiguration bananaConfig = new TalonFXConfiguration();
+	
+			// Configure the reverse limit to read from CANdi S1
+			bananaConfig.HardwareLimitSwitch
+				.withReverseLimitRemoteCANdiS1(Constants.CAN.RIO.BANANA_CANDI.getInstance())
+				.withReverseLimitEnable(true)
+				.withReverseLimitAutosetPositionEnable(true)
+				.withReverseLimitAutosetPositionValue(Units.Degrees.of(0))
+				.withReverseLimitType(ReverseLimitTypeValue.NormallyOpen);
+	
+			bananaConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+			bananaConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+	
+			// Peak output amps
+			bananaConfig.CurrentLimits.StatorCurrentLimit = 80.0;
+			bananaConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+			bananaConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40;
+			bananaConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40;
+	
+			// Supply current limits
+			bananaConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+			bananaConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
+			bananaConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
+			bananaConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw SupplyCurrentLimit
+	
+			// PID values
+			bananaConfig.Slot0 = Constants.Elevator.pivotConfig;
+	
+			this.pivot.getConfigurator().apply(bananaConfig);
+	
+			this.elevatorMotorPosition = this.liftMotorA.getPosition();
+			this.elevatorMotorVelocity = this.liftMotorA.getVelocity();
+			this.elevatorMotorStatorCurrent = this.liftMotorA.getStatorCurrent();
+			this.elevatorMotorSupplyCurrent = this.liftMotorA.getSupplyCurrent();
+			this.elevatorHomedSignal = this.liftMotorA.getReverseLimit();
+	
+			this.pivotMotorPosition = this.pivot.getRotorPosition();
+			this.pivotMotorVelocity = this.pivot.getRotorVelocity();
+			this.pivotHomedSignal = this.pivot.getReverseLimit();
+	
+	
+			StatusSignal.setUpdateFrequencyForAll(Units.Hertz.of(100),
+				elevatorMotorPosition,
+				elevatorMotorVelocity,
+				elevatorMotorStatorCurrent,
+				elevatorMotorSupplyCurrent,
+				elevatorHomedSignal,
+				pivotMotorPosition,
+				pivotMotorVelocity,
+				pivotHomedSignal);
+	
+			// this.setDefaultCommand(toDefaultPosition());
+			this.targetCageLevel = CagePosition.SHALLOW.getValue();  // TODO: change this to accept values from SmartDashboard
+		}
+	
+		private ElevatorSuperState handleStateTransition() {
+			elevatorPreviousState = elevatorState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
+			switch (wantedElevatorState) {
+				case Home:
+					if(isPivotHomed()){
+						elevatorState = ElevatorSuperState.Home;
+					}
+					else{
+						elevatorState = ElevatorSuperState.prepareForHome;
+					}
+					break;
+				case CoralL1:
+					elevatorState = ElevatorSuperState.CoralL1;
+					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getHeight()));
+					break;
+				
+				case CoralL2:
+					elevatorState = ElevatorSuperState.CoralL2;
+					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getHeight()));
+					break;	
+				
+				case CoralL3:
+					elevatorState = ElevatorSuperState.CoralL3;
+					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getHeight()));
+					break;
+				
+				case CoralL4:
+					elevatorState = ElevatorSuperState.CoralL4;
+					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getHeight()));
+					break;
+				case AlgaeL2:
+					elevatorState = ElevatorSuperState.AlgaeL2;
+					this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L2, GamePieceType.NONE.getHeight()));
+					break;
+				case AlgaeL3:
+					elevatorState = ElevatorSuperState.AlgaeL3;
+					this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L3, GamePieceType.NONE.getHeight()));
+					break;
+				default:{
+					break;
+				}
+			}
+			return elevatorState;
+		}
+	
+		private void applyStates() {
+			switch (elevatorState) {
+				case Home:
+					break;
+				case CoralL1:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case CoralL2:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case CoralL3:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case CoralL4:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case AlgaeL2:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(AlgaePosition.L2.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case AlgaeL3:
+					updateBannanPivot(bananaAnglesCoral.getOrDefault(AlgaePosition.L3.getValue(), GamePieceType.NONE.getPivot()));
+					checkElevatorDanger();
+					break;
+				case prepareForHome:
+					updateBannanPivot(Units.Degrees.of(0));
+					checkElevatorDanger();
+					break;
+				default:
+					break;
 			}
 		}
-		return elavatorState;
-	}
-
-	private void applyStates() {
-		switch (elavatorState) {
-			case Home:
-				
-				break;
-		
-			default:
-				break;
-		}
-	}
-
-	private void moveToPosition(final Distance position) {
-		this.elevatorTargetPosition = Units.Meters.of(
-			MathUtil.clamp(
-				position.in(Units.Meters),
-				Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters),
-				Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meters)));
-	}
-
-	private void pivotBanana(final Angle rotation) {
-		this.pivotTargetAngle = Units.Degrees.of(
-			MathUtil.clamp(
-				rotation.in(Units.Degrees),
-				Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees),
-				Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
-	}
 	
-	private void controlPosition(final Distance position) {
-		Logger.recordOutput("Elevator/DesiredPosition", position.in(Units.Meters));
-		liftMotorA.setControl(new MotionMagicExpoVoltage(position.in(Units.Meters)));
-		elevatorCommandedPosition = position;
-	}
-
-	public void controlPositionVelocity(final LinearVelocity voltage){
-		liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
-	}
-
-	private void controlPivot(final Angle rotation) {
-		// pivot.setControl(new PositionVoltage(rotation));
-		pivotCommmandedAngle = rotation;
-		pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
-	}
-
-	public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
-		return this.currentGamePieceType == pieceType;
-	}
-
-	public boolean isInTargetPos() {
-		boolean isElevatorInPosition = elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement);
-		boolean isBananaInPosition = pivotTargetAngle.isNear(pivotCommmandedAngle, toleranceForFinishedPivot);
-		Logger.recordOutput("Elevator/IsElevatorInPosition", isElevatorInPosition);
-		Logger.recordOutput("Elevator/IsBananaInPosition", isBananaInPosition);
-		return isElevatorInPosition && isBananaInPosition;
-	}
-
-	public void setHaultMode(){
-		haultMode = !haultMode;
-		currentGamePieceType = (haultMode)? GamePieceType.HAULT : GamePieceType.NONE;
-	}
-
-	private void updateBannanPivot(Angle bannanaPivotDesiredAngle){
-		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
-		var currentBananaAngle = pivotCommmandedAngle;
-		// are we currently in the elevator danger zone?
-		bannanaPivotDesiredAngle = Units.Degrees.of(MathUtil.clamp(bannanaPivotDesiredAngle.in(Units.Degrees), 0, 45));
-		boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
-		// is the elevator target within the danger zone?
-		boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
-		// is the banana in a dangerous orientation?
-		boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
-		// are we trying to move the banana into a dangerous orientation?
-		boolean bananaTargetInDangerZone = bannanaPivotDesiredAngle.gt(bananaDangerZoneThreshold);
-
-		Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
-		Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
-		Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
-		Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
-		Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
-		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", bannanaPivotDesiredAngle.in(Units.Degrees));
-		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
-
-		if(currentGamePieceType == GamePieceType.HAULT || elevatorInDangerZone || elevatorTargetInDangerZone){
-			controlPivot(Units.Degrees.of(0));
-			
-		} else{
-			controlPivot(bannanaPivotDesiredAngle);
+		// private void moveToPosition(final Distance position) {
+		// 	this.elevatorTargetPosition = Units.Meters.of(
+		// 		MathUtil.clamp(
+		// 			position.in(Units.Meters),
+		// 			Constants.Elevator.MIN_ELEVATOR_DISTANCE.in(Units.Meters),
+		// 			Constants.Elevator.MAX_ELEVATOR_DISTANCE.in(Units.Meters)));
+		// }
+	
+		private void pivotBanana(final Angle rotation) {
+			this.pivotTargetAngle = Units.Degrees.of(
+				MathUtil.clamp(
+					rotation.in(Units.Degrees),
+					Constants.Elevator.MIN_PIVOT_ANGLE.in(Units.Degrees),
+					Constants.Elevator.MAX_PIVOT_ANGLE.in(Units.Degrees)));
 		}
-	}
-	private void updateMotors() {
-		var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
-		var currentBananaAngle = pivotCommmandedAngle;
-		// are we currently in the elevator danger zone?
-		boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
-		// is the elevator target within the danger zone?
-		boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
-		// is the banana in a dangerous orientation?
-		boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
-		// are we trying to move the banana into a dangerous orientation?
-		boolean bananaTargetInDangerZone = pivotTargetAngle.gt(bananaDangerZoneThreshold);
-
-		Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
-		Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
-		Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
-		Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
-		Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
-		Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
-		Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
-
-		if(currentGamePieceType == GamePieceType.HAULT){
-			controlPositionVelocity(Units.MetersPerSecond.of(0));
-			controlPivot(Units.Degrees.of(0), true);
-			return;
+		
+		private void controlPosition(final Distance position) {
+			Logger.recordOutput("Elevator/DesiredPosition", position.in(Units.Meters));
+			liftMotorA.setControl(new MotionMagicExpoVoltage(position.in(Units.Meters)));
+			elevatorCommandedPosition = position;
 		}
-		if (elevatorInDangerZone && elevatorTargetInDangerZone) {
-			// in the danger zone and staying in the danger zone -- safe to move the elevator
-			controlPosition(elevatorTargetPosition);
-			controlPivot(Units.Degrees.of(0), true);
-			return;
+	
+		public void controlPositionVelocity(final LinearVelocity voltage){
+			liftMotorA.setControl(new VelocityVoltage(voltage.in(Units.MetersPerSecond)));
 		}
-
-		if (elevatorInDangerZone && !elevatorTargetInDangerZone) {
-			// in the danger zone but moving out of it -- safe to move the elevator
-			controlPosition(elevatorTargetPosition);
-			controlPivot(pivotTargetAngle, true);
+	
+		private void controlPivot(final Angle rotation) {
+			// pivot.setControl(new PositionVoltage(rotation));
+			pivotCommmandedAngle = rotation;
+			pivot.setControl(new PositionVoltage(pivotCommmandedAngle));
 		}
-
-		if (!elevatorInDangerZone && elevatorTargetInDangerZone) {
-			// not in the danger zone but moving into it... check the banana first
-			if (bananaAngleInDangerZone || bananaTargetInDangerZone) {
-				// banana is in danger -- move the banana but not the elevator
-				controlPivot(pivotTargetAngle, true);
+	
+		// public boolean hasCurrentGamePieceType(GamePieceType pieceType) {
+		// 	return this.currentGamePieceType == pieceType;
+		// }
+	
+		public boolean isInTargetPos() {
+			boolean isElevatorInPosition = elevatorTargetPosition.isNear(inputs.height, toleranceForFinishedMovement);
+			boolean isBananaInPosition = pivotTargetAngle.isNear(pivotCommmandedAngle, toleranceForFinishedPivot);
+			Logger.recordOutput("Elevator/IsElevatorInPosition", isElevatorInPosition);
+			Logger.recordOutput("Elevator/IsBananaInPosition", isBananaInPosition);
+			return isElevatorInPosition && isBananaInPosition;
+		}
+	
+		public void setHaultMode(){
+			haultMode = !haultMode;
+			currentGamePieceType = (haultMode)? GamePieceType.HAULT : GamePieceType.NONE;
+		}
+	
+		private void updateBannanPivot(Angle bannanaPivotDesiredAngle){
+			var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+			var currentBananaAngle = pivotCommmandedAngle;
+			// are we currently in the elevator danger zone?
+			bannanaPivotDesiredAngle = Units.Degrees.of(MathUtil.clamp(bannanaPivotDesiredAngle.in(Units.Degrees), 0, 45));
+			boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
+			// is the elevator target within the danger zone?
+			boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
+			// is the banana in a dangerous orientation?
+			boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
+			// are we trying to move the banana into a dangerous orientation?
+			boolean bananaTargetInDangerZone = bannanaPivotDesiredAngle.gt(bananaDangerZoneThreshold);
+	
+			Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
+			Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
+			Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
+			Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
+			Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
+			Logger.recordOutput("Elevator/BananaTargetAngleDegrees", bannanaPivotDesiredAngle.in(Units.Degrees));
+			Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
+	
+			if(currentGamePieceType == GamePieceType.HAULT || elevatorInDangerZone || elevatorTargetInDangerZone){
+				controlPivot(Units.Degrees.of(0));
+				
+			} else{
+				controlPivot(bannanaPivotDesiredAngle);
+			}
+		}
+	
+		private void setElevatorControl(Distance elevatorTargetedPosition) {
+			var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+			// are we currently in the elevator danger zone?
+			boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
+			// is the elevator target within the danger zone?
+			boolean elevatorTargetInDangerZone = elevatorTargetedPosition.lt(elevatorThresholdForPivot);
+	
+			Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
+			Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
+			Logger.recordOutput("Elevator/elevatorTargetedPositionMeters", elevatorTargetedPosition.in(Units.Meters));
+			Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
+			Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
+	
+			if(currentGamePieceType == GamePieceType.HAULT){
+				controlPositionVelocity(Units.MetersPerSecond.of(0));
 				return;
 			}
-
-			// banana is safe and will remain safe -- control both
-			controlPivot(pivotTargetAngle, !bananaTargetInDangerZone);
-			controlPosition(elevatorTargetPosition);
-			return;
+			if (elevatorInDangerZone && elevatorTargetInDangerZone) {
+				// in the danger zone and staying in the danger zone -- safe to move the elevator
+				controlPosition(elevatorTargetedPosition);
+				return;
+			}
+	
+			if (elevatorInDangerZone && !elevatorTargetInDangerZone) {
+				// in the danger zone but moving out of it -- safe to move the elevator
+				controlPosition(elevatorTargetedPosition);
+			}
+	
+			if (!elevatorInDangerZone && elevatorTargetInDangerZone) {
+				controlPosition(elevatorTargetedPosition);
+				return;
+			}
+	
+			if (!elevatorInDangerZone && !elevatorTargetInDangerZone) {
+				// no risk to banana -- move both
+				controlPosition(elevatorTargetedPosition);
+				return;
+			}
 		}
-
-		if (!elevatorInDangerZone && !elevatorTargetInDangerZone) {
-			// no risk to banana -- move both
-			controlPivot(pivotTargetAngle, !bananaTargetInDangerZone);
-			controlPosition(elevatorTargetPosition);
-			return;
+	
+		private void checkElevatorDanger(){
+			var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+			if(currentGamePieceType == GamePieceType.HAULT){
+				controlPositionVelocity(Units.MetersPerSecond.of(0));
+				return;
+			}
 		}
-	}
-
-	public void setElevatorMode(GamePieceType type){
-		currentGamePieceType = type;
-	}
-	private void updateInputs(final ElevatorInputs inputs) {
-		BaseStatusSignal
-			.refreshAll(
-				this.elevatorMotorPosition,
-				this.elevatorMotorVelocity,
-				this.elevatorHomedSignal,
-				this.elevatorMotorStatorCurrent,
-				this.elevatorMotorSupplyCurrent
-			);
-
-		// Second refresh for RIO CAN bus
-		BaseStatusSignal.refreshAll(
-			this.pivotMotorPosition,
-			this.pivotMotorVelocity,
-			this.pivotHomedSignal);
-
-		inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
-		inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
-		inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.height.in(Units.Meters) < 1e-7;*/
-		
-		inputs.pivotAngle = pivotMotorPosition.getValue();
-		inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
-		inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
-
-		inputs.currentGamePieceType = this.currentGamePieceType;
-		inputs.targetCoralLevel = this.targetCoralLevel;
-		inputs.targetAlgaeLevel = this.targetAlgaeLevel;
-		inputs.targetCageLevel = this.targetCageLevel;
-		inputs.pivotCommandedAngle = pivotCommmandedAngle;
-		inputs.pivotDesiredAngle = pivotTargetAngle;
-	}
-
-	@Override
-	public void periodic() {
-		this.updateInputs(this.inputs);
-		Logger.processInputs("Elevator", this.inputs);
-		this.updateMotors();
-	}
-
-	public void setDefaultCommand() {
-		this.setDefaultCommand(this.toDefaultPosition());
-	}
-
-	public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
-		this.targetAlgaeLevel = targetAlgaeLevel.getValue();
-	}
-
-	public void setTargetCoralLevel(CoralPosition targetCoralLevel) {
-		this.targetCoralLevel = targetCoralLevel.getValue();
-	}
-
-	public void setTargetCageLevel(CagePosition targetCageLevel) {
-		this.targetCageLevel = targetCageLevel.getValue();
-	}
-
-	public void toggleReefHeightDown() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
-	}
-
-	public void toggleReefHeightUp() {
-		this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
-	}
-
-	public void onEjectAlgae() {
-		// any algae specific logic here
-		onEjectGamePieceGeneric();
-	}
-
-	public void onEjectCoral() {
-		// any coral specific logic here
-		onEjectGamePieceGeneric();
-	}
-
-	private void onEjectGamePieceGeneric() {
-		// reset the home to whatever it was before...
-		this.currentGamePieceType = GamePieceType.NONE;
-	}
-
-	public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
-		return new InstantCommand(() -> {
-			this.targetAlgaeLevel = targetAlgaeLevel.getValue();
-		});
-	}
-
-	public Command toggleClimbMode(){
-		if(currentGamePieceType == GamePieceType.CAGE){
+	
+		// private void updateMotors() {
+		// 	var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+		// 	var currentBananaAngle = pivotCommmandedAngle;
+		// 	// are we currently in the elevator danger zone?
+		// 	boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
+		// 	// is the elevator target within the danger zone?
+		// 	boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
+		// 	// is the banana in a dangerous orientation?
+		// 	boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
+		// 	// are we trying to move the banana into a dangerous orientation?
+		// 	boolean bananaTargetInDangerZone = pivotTargetAngle.gt(bananaDangerZoneThreshold);
+	
+		// 	Logger.recordOutput("Elevator/ElevatorInDangerZone", elevatorInDangerZone);
+		// 	Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
+		// 	Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
+		// 	Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
+		// 	Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
+		// 	Logger.recordOutput("Elevator/BananaTargetAngleDegrees", pivotTargetAngle.in(Units.Degrees));
+		// 	Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
+	
+		// 	if(currentGamePieceType == GamePieceType.HAULT){
+		// 		controlPositionVelocity(Units.MetersPerSecond.of(0));
+		// 		controlPivot(Units.Degrees.of(0));
+		// 		return;
+		// 	}
+		// 	if (elevatorInDangerZone && elevatorTargetInDangerZone) {
+		// 		// in the danger zone and staying in the danger zone -- safe to move the elevator
+		// 		controlPosition(elevatorTargetPosition);
+		// 		controlPivot(Units.Degrees.of(0));
+		// 		return;
+		// 	}
+	
+		// 	if (elevatorInDangerZone && !elevatorTargetInDangerZone) {
+		// 		// in the danger zone but moving out of it -- safe to move the elevator
+		// 		controlPosition(elevatorTargetPosition);
+		// 		controlPivot(pivotTargetAngle);
+		// 	}
+	
+		// 	if (!elevatorInDangerZone && elevatorTargetInDangerZone) {
+		// 		// not in the danger zone but moving into it... check the banana first
+		// 		if (bananaAngleInDangerZone || bananaTargetInDangerZone) {
+		// 			// banana is in danger -- move the banana but not the elevator
+		// 			controlPivot(pivotTargetAngle);
+		// 			return;
+		// 		}
+	
+		// 		// banana is safe and will remain safe -- control both
+		// 		controlPivot(pivotTargetAngle);
+		// 		controlPosition(elevatorTargetPosition);
+		// 		return;
+		// 	}
+	
+		// 	if (!elevatorInDangerZone && !elevatorTargetInDangerZone) {
+		// 		// no risk to banana -- move both
+		// 		controlPivot(pivotTargetAngle);
+		// 		controlPosition(elevatorTargetPosition);
+		// 		return;
+		// 	}
+		// }
+	
+		// public void setElevatorMode(GamePieceType type){
+		// 	currentGamePieceType = type;
+		// }
+	
+		private void updateInputs(final ElevatorInputs inputs) {
+			BaseStatusSignal
+				.refreshAll(
+					this.elevatorMotorPosition,
+					this.elevatorMotorVelocity,
+					this.elevatorHomedSignal,
+					this.elevatorMotorStatorCurrent,
+					this.elevatorMotorSupplyCurrent
+				);
+	
+			// Second refresh for RIO CAN bus
+			BaseStatusSignal.refreshAll(
+				this.pivotMotorPosition,
+				this.pivotMotorVelocity,
+				this.pivotHomedSignal);
+	
+			inputs.height = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
+			inputs.speed = Units.MetersPerSecond.of(elevatorMotorVelocity.getValue().in(Units.RotationsPerSecond));
+			inputs.isElevatorHomed = (elevatorHomedSignal.getValue() == ReverseLimitValue.Open); /*inputs.height.in(Units.Meters) < 1e-7;*/
+			
+			inputs.pivotAngle = pivotMotorPosition.getValue();
+			inputs.pivotAngularVelocity = pivotMotorVelocity.getValue();
+			inputs.isPivotHomed = (pivotHomedSignal.getValue() == ReverseLimitValue.ClosedToGround); /*inputs.pivotAngle.in(Units.Degrees) < 10*/;
+	
+			inputs.currentGamePieceType = this.currentGamePieceType;
+			inputs.targetCoralLevel = this.targetCoralLevel;
+			inputs.targetAlgaeLevel = this.targetAlgaeLevel;
+			inputs.targetCageLevel = this.targetCageLevel;
+			inputs.pivotCommandedAngle = pivotCommmandedAngle;
+			inputs.pivotDesiredAngle = pivotTargetAngle;
+		}
+	
+		@Override
+		public void periodic() {
+			this.updateInputs(this.inputs);
+			Logger.processInputs("Elevator", this.inputs);
+			elevatorState = handleStateTransition();
+			this.applyStates();
+		}
+	
+		public boolean isPivotHomed() {
+			return this.inputs.isPivotHomed;
+		}
+		//TODO: FIX THISSS!!!!!
+		// public void setDefaultCommand() {
+		// 	this.setDefaultCommand(this.toDefaultPosition());
+		// }
+	
+		// public void setTargetAlgaeLevel(AlgaePosition targetAlgaeLevel) {
+		// 	this.targetAlgaeLevel = targetAlgaeLevel.getValue();
+		// }
+	
+		// public void setTargetCoralLevel(CoralPosition targetCoralLevel) {
+		// 	this.targetCoralLevel = targetCoralLevel.getValue();
+		// }
+	
+		// public void setTargetCageLevel(CagePosition targetCageLevel) {
+		// 	this.targetCageLevel = targetCageLevel.getValue();
+		// }
+	
+		public void toggleReefHeightDown() {
+			this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
+		}
+	
+		public void toggleReefHeightUp() {
+			this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
+		}
+	
+		public void onEjectAlgae() {
+			// any algae specific logic here
+			onEjectGamePieceGeneric();
+		}
+	
+		public void onEjectCoral() {
+			// any coral specific logic here
+			onEjectGamePieceGeneric();
+		}
+	
+		private void onEjectGamePieceGeneric() {
+			// reset the home to whatever it was before...
+			this.currentGamePieceType = GamePieceType.NONE;
+		}
+	
+		public Command setTargetAlgaeLevelCommand(AlgaePosition targetAlgaeLevel){
 			return new InstantCommand(() -> {
-				setElevatorMode(GamePieceType.NONE);
+				this.targetAlgaeLevel = targetAlgaeLevel.getValue();
 			});
 		}
-		return new InstantCommand(() -> {
-			setElevatorMode(GamePieceType.CAGE);
-			setTargetCageLevel(CagePosition.SHALLOW); // Hard code the climb to SHALLOW because our climb is shallow
-		});
-	}
+	
+		// public Command toggleClimbMode(){
+		// 	if(currentGamePieceType == GamePieceType.CAGE){
+		// 		return new InstantCommand(() -> {
+		// 			setElevatorMode(GamePieceType.NONE);
+		// 		});
+		// 	}
+		// 	return new InstantCommand(() -> {
+		// 		setElevatorMode(GamePieceType.CAGE);
+		// 		setTargetCageLevel(CagePosition.SHALLOW); // Hard code the climb to SHALLOW because our climb is shallow
+		// 	});
+		// }
+	
+		/**
+		 * Function factory to obtain an executable command to go to a reef height
+		 * based off of a provided game piece type (e.g., Coral, Algae). The returned
+		 * @c Command will terminate once the elevator reaches the desired target position.
+		 *
+		 * @param pieceType a @c GamePieceType indicating the desired game piece
+		 * @return an executable @c Command that moves the elevator to the appropriate position
+		 */
+		// public Command goToReefHeight(GamePieceType pieceType) {
+		// 	return goToGamePieceHeightEndless(pieceType).until(this::isInTargetPos);
+		// }
+	
+		/**
+		 * Function factory to obtain an executable command to go to a height
+		 * based off of a provided game piece type (e.g., Coral, Algae)
+		 *
+		 * @param pieceType a @c GamePieceType indicating the desired game piece
+		 * @return an executable @c Command that moves the elevator to the appropriate position
+		 */
+		// public Command goToGamePieceHeight(GamePieceType pieceType) {
+		// 	return goToGamePieceHeightEndless(pieceType);
+		// }
+	
+		// private Command goToGamePieceHeightEndless(GamePieceType pieceType) {
+		// 	return new RunCommand(
+		// 		() -> {
+		// 			// update the current target game piece so that the home position is also updated accordingly
+		// 			this.currentGamePieceType = pieceType;
+		// 			// select the correct set of maps for the given game piece and figure out which key
+		// 			// we're using to determine the elevator position/banana angle
+		// 			Map<Integer, Distance> elevatorPositionsMap;
+		// 			Map<Integer, Angle> bananaAnglesMap;
+		// 			int positionKey;
+	
+		// 			// TODO: put these into a map and fetch from there instead of these switch-case blocks
+		// 			switch (pieceType) {
+		// 				case NONE:  // fall-through
+		// 				case CORAL: // fall-through
+		// 				default: {
+		// 					elevatorPositionsMap = this.elevatorPositionsCoral;
+		// 					bananaAnglesMap = this.bananaAnglesCoral;
+		// 					positionKey = this.targetCoralLevel;
+		// 					break;
+		// 				}
+		// 				case ALGAE: {
+		// 					elevatorPositionsMap = this.elevatorPositionsAlgae;
+		// 					bananaAnglesMap = this.bananaAnglesAlgae;
+		// 					positionKey = this.targetAlgaeLevel;
+		// 					break;
+		// 				}
+		// 				case CAGE: {
+		// 					elevatorPositionsMap = this.elevatorPositionsCage;
+		// 					bananaAnglesMap = this.bananaAnglesCage;
+		// 					positionKey = this.targetCageLevel;
+		// 					break;
+		// 				}
+		// 			}
+	
+		// 			// fetch the desired setpoints from each map
+		// 			var defaultElevatorHeight = GamePieceType.NONE.getHeight();
+		// 			var defaultBananaAngle = GamePieceType.NONE.getPivot();
+		// 			var desiredElevatorSetpoint = elevatorPositionsMap.getOrDefault(positionKey, defaultElevatorHeight);
+		// 			var desiredBananaSetpoint   = bananaAnglesMap.getOrDefault(positionKey, defaultBananaAngle);
+	
+		// 			// feed the setpoints to the actuators
+		// 			moveToPosition(desiredElevatorSetpoint);
+		// 			pivotBanana(desiredBananaSetpoint);
+		// 		},
+		// 		// require "this" subsystem
+		// 		this);
+		// }
+	
+		// private Command toDefaultPosition() {
+		// 	return new RunCommand(() -> {
+		// 		pivotBanana(currentGamePieceType.getPivot());
+		// 		moveToPosition(currentGamePieceType.getHeight());
+		// 	}, this);
+		// }
+		public void setWantedSuperState(ElevatorWantedState wantedSuperState) {
+			Elevator.wantedElevatorState = wantedSuperState;
+    }
 
-	/**
-	 * Function factory to obtain an executable command to go to a reef height
-	 * based off of a provided game piece type (e.g., Coral, Algae). The returned
-	 * @c Command will terminate once the elevator reaches the desired target position.
-	 *
-	 * @param pieceType a @c GamePieceType indicating the desired game piece
-	 * @return an executable @c Command that moves the elevator to the appropriate position
-	 */
-	public Command goToReefHeight(GamePieceType pieceType) {
-		return goToGamePieceHeightEndless(pieceType).until(this::isInTargetPos);
-	}
-
-	/**
-	 * Function factory to obtain an executable command to go to a height
-	 * based off of a provided game piece type (e.g., Coral, Algae)
-	 *
-	 * @param pieceType a @c GamePieceType indicating the desired game piece
-	 * @return an executable @c Command that moves the elevator to the appropriate position
-	 */
-	public Command goToGamePieceHeight(GamePieceType pieceType) {
-		return goToGamePieceHeightEndless(pieceType);
-	}
-
-	private Command goToGamePieceHeightEndless(GamePieceType pieceType) {
-		return new RunCommand(
-			() -> {
-				// update the current target game piece so that the home position is also updated accordingly
-				this.currentGamePieceType = pieceType;
-				// select the correct set of maps for the given game piece and figure out which key
-				// we're using to determine the elevator position/banana angle
-				Map<Integer, Distance> elevatorPositionsMap;
-				Map<Integer, Angle> bananaAnglesMap;
-				int positionKey;
-
-				// TODO: put these into a map and fetch from there instead of these switch-case blocks
-				switch (pieceType) {
-					case NONE:  // fall-through
-					case CORAL: // fall-through
-					default: {
-						elevatorPositionsMap = this.elevatorPositionsCoral;
-						bananaAnglesMap = this.bananaAnglesCoral;
-						positionKey = this.targetCoralLevel;
-						break;
-					}
-					case ALGAE: {
-						elevatorPositionsMap = this.elevatorPositionsAlgae;
-						bananaAnglesMap = this.bananaAnglesAlgae;
-						positionKey = this.targetAlgaeLevel;
-						break;
-					}
-					case CAGE: {
-						elevatorPositionsMap = this.elevatorPositionsCage;
-						bananaAnglesMap = this.bananaAnglesCage;
-						positionKey = this.targetCageLevel;
-						break;
-					}
-				}
-
-				// fetch the desired setpoints from each map
-				var defaultElevatorHeight = GamePieceType.NONE.getHeight();
-				var defaultBananaAngle = GamePieceType.NONE.getPivot();
-				var desiredElevatorSetpoint = elevatorPositionsMap.getOrDefault(positionKey, defaultElevatorHeight);
-				var desiredBananaSetpoint   = bananaAnglesMap.getOrDefault(positionKey, defaultBananaAngle);
-
-				// feed the setpoints to the actuators
-				moveToPosition(desiredElevatorSetpoint);
-				pivotBanana(desiredBananaSetpoint);
-			},
-			// require "this" subsystem
-			this);
-	}
-
-	private Command toDefaultPosition() {
-		return new RunCommand(() -> {
-			pivotBanana(currentGamePieceType.getPivot());
-			moveToPosition(currentGamePieceType.getHeight());
-		}, this);
-	}
+    public Command setWantedSuperStateCommand(ElevatorWantedState wantedSuperState) {
+        return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
+    }
 
 	@Override
 	public void simulationPeriodic() {
