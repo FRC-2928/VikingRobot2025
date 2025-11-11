@@ -27,7 +27,7 @@ public class OperatorOI extends BaseOI {
 		this.setElevatorMode = this.controller.rightBumper();
 		// this.resetAngle = this.controller.back();
 		this.haultElevatpr = this.controller.leftBumper();
-		this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
+		// this.climbModeOn = new Trigger(() -> (RobotContainer.getInstance().elevator.hasCurrentGamePieceType(GamePieceType.CAGE)));
 		
 		this.toggleReefHeightDown = this.controller.povDown();
 		this.toggleReefHeightUp = this.controller.povUp();
@@ -37,8 +37,6 @@ public class OperatorOI extends BaseOI {
 		this.alignElevatorAlgaeL2 = new Trigger(() -> (this.controller.a().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 		this.alignElevatorAlgaeL3 = new Trigger(() -> (this.controller.y().getAsBoolean())).and(RobotContainer.getInstance().driverOI.holdingCoral);
 	}
-
-	public final Trigger climbModeOn;
 	public final Trigger setElevatorMode;
 	// public final Trigger climberOverrideLower;
 	// public final Trigger climberOverrideRaise;

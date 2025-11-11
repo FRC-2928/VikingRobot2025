@@ -28,6 +28,7 @@ import frc.robot.subsystems.BananaFlywheels;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ElevatorWantedState;
 import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
@@ -91,15 +92,16 @@ public class RobotContainer {
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
-				new InstantCommand(() -> elevator.setTargetCoralLevel(CoralPosition.L4))),
-			this.elevator.goToReefHeight(GamePieceType.CORAL),
+				new Elevator().setWantedSuperStateCommand(ElevatorWantedState.CoralL4)),
+			// this.elevator.goToReefHeight(GamePieceType.CORAL),
 			new ParallelDeadlineGroup(
-				this.bananaFlywheels.scoreHeldCoral(), 
-				this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
-			).withTimeout(0.25)
+				this.bananaFlywheels.scoreHeldCoral()
+				// this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
+			).withTimeout(0.25),
+			new Elevator().setWantedSuperStateCommand(ElevatorWantedState.Home)
 		).finallyDo(() -> {
         this.elevator.onEjectCoral();
-        this.elevator.setTargetCoralLevel(CoralPosition.NONE);
+        // this.elevator.setTargetCoralLevel(CoralPosition.NONE);
       });
 	}
 

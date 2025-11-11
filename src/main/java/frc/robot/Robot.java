@@ -61,7 +61,7 @@ public class Robot extends LoggedRobot {
 		for (var limelight : cont.drivetrain.limelights) {
 			limelight.setIMUMode(1);
 		}
-		cont.elevator.setDefaultCommand();
+		// cont.elevator.setDefaultCommand();
 		initializeSmartDashboard();
 		Logger.recordOutput("RobotTriggers/", cont.driverOI.closeToReef);
 		

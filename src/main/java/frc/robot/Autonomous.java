@@ -19,6 +19,8 @@ import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.VoltageRampCommand;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ElevatorWantedState;
 
 public final class Autonomous {
 	public static final Pose2d autoPosLeftBlue = new Pose2d(7.37,5.68,new Rotation2d(4.19));
@@ -44,7 +46,7 @@ public final class Autonomous {
 		AutoFactory autoFactory = RobotContainer.getInstance().drivetrain.autoFactory;
 
 		choreoChooser.addCmd("[Comp] Score2CoralFromRight", () -> Commands.sequence(
-			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
+			new Elevator().setWantedSuperStateCommand(ElevatorWantedState.CoralL4),
 			autoFactory.trajectoryCmd("StartRightToE"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.E),
 			autoFactory.trajectoryCmd("EToB1Reverse"),
@@ -59,7 +61,7 @@ public final class Autonomous {
 		.withTimeout(0.5));
 
 		choreoChooser.addCmd("[Comp] Score2CoralFromLeft", () -> Commands.sequence(
-			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
+			new Elevator().setWantedSuperStateCommand(ElevatorWantedState.CoralL4),
 			autoFactory.trajectoryCmd("StartLeftToJ"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.J),
 			autoFactory.trajectoryCmd("JToA2Reverse"),
@@ -70,7 +72,7 @@ public final class Autonomous {
 		));
 
 		choreoChooser.addCmd("[Comp] Score1CoralFromCenter", () -> Commands.sequence(
-			new InstantCommand(() -> {RobotContainer.getInstance().elevator.setTargetCoralLevel(CoralPosition.L4);}, RobotContainer.getInstance().elevator),
+			new Elevator().setWantedSuperStateCommand(ElevatorWantedState.CoralL4),
 			autoFactory.trajectoryCmd("SimpleScore"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.H),
 			autoFactory.trajectoryCmd("HToBackOff")

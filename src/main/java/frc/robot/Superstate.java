@@ -186,6 +186,9 @@ public class Superstate extends SubsystemBase {
 		if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
 			setWantedSuperState(RobotStates.Drive);
 		}
+		else if(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean()){
+			Drivetrain.setWantedSuperState(Drivetrain.WantedDrivetrainStates.AutoAlignCoral)
+		}
 	}
 
 	public void manualAlignCoral(){

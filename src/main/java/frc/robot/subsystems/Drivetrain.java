@@ -370,6 +370,8 @@ public class Drivetrain extends SubsystemBase {
 		return true;
 	}
 
+	
+
 	@Override
 	public void periodic() {
 		applyStates();
@@ -528,11 +530,11 @@ public class Drivetrain extends SubsystemBase {
 		// return (Math.abs(xSpeedPid) < 0.09) && (Math.abs(ySpeedPid) < 0.2) && (Math.abs(thetaPid) < 0.15);
 	}
 
-	public void setWantedSuperState(WantedDrivetrainStates wantedSuperState) {
+	public static void setWantedSuperState(WantedDrivetrainStates wantedSuperState) {
         Drivetrain.wanteDrivetrainState = wantedSuperState;
     }
 
-    public Command setWantedSuperStateCommand(WantedDrivetrainStates wantedSuperState) {
+    public static Command setWantedSuperStateCommand(WantedDrivetrainStates wantedSuperState) {
         return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
     }
 
