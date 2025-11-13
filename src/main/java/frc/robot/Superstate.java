@@ -4,12 +4,15 @@
 
 package frc.robot;
 import org.littletonrobotics.junction.Logger;
+
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
+import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
@@ -182,18 +185,21 @@ public class Superstate extends SubsystemBase {
 	// }
 
 	public void autoAlignCoral(){
-		RobotContainer.getInstance().drivetrain.setWantedSuperState(WantedDrivetrainStates.AutoAlignCoral);
+		Drivetrain.setWantedSuperState(WantedDrivetrainStates.AutoAlignCoral);
+		if(Drivetrain.isCenterLimelightFinished(Units.Inches.of(3.85), CenterLimelightMethod.offsetReef.negate(), Units.Radians.of(0), CenterLimelightMethod.reefTags) || 
+		Drivetrain.isCenterLimelightFinished(Units.Inches.of(3.85), CenterLimelightMethod.offsetReef.negate(), Units.Radians.of(0), CenterLimelightMethod.reefTags)){
+			setWantedSuperState(RobotStates.ManualAlignCoral);
+		}
 		if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
 			setWantedSuperState(RobotStates.Drive);
 		}
-		else if(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean()){
-			Drivetrain.setWantedSuperState(Drivetrain.WantedDrivetrainStates.AutoAlignCoral)
+		else{
+			Drivetrain.setWantedSuperState(Drivetrain.WantedDrivetrainStates.AutoAlignCoral);
 		}
 	}
 
 	public void manualAlignCoral(){
-		RobotContainer.getInstance().drivetrain.setWantedSuperState(WantedDrivetrainStates.Dpadmode);
-
+		Drivetrain.setWantedSuperState(WantedDrivetrainStates.Dpadmode);
 	}
 	// public Command manualAlignCoral() {
 	// 	return new ParallelCommandGroup(
