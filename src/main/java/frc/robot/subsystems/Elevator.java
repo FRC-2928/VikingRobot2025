@@ -663,13 +663,13 @@ public class Elevator extends SubsystemBase {
 		// 	this.targetCageLevel = targetCageLevel.getValue();
 		// }
 	
-		public void toggleReefHeightDown() {
-			this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
-		}
+		// public void toggleReefHeightDown() {
+		// 	this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel-1, 0, 4);
+		// }
 	
-		public void toggleReefHeightUp() {
-			this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
-		}
+		// public void toggleReefHeightUp() {
+		// 	this.targetCoralLevel = MathUtil.clamp(this.targetCoralLevel+1, 0, 4);
+		// }
 	
 		public void onEjectAlgae() {
 			// any algae specific logic here

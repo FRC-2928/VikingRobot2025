@@ -66,6 +66,10 @@ public class BananaFlywheels extends SubsystemBase {
 	private final StatusSignal<Current> motorSupplyCurrent;
 	private final StatusSignal<S2StateValue> beamBreakStateSignal;
 
+	public enum flywheelStates {
+		ScoreCoral,
+		Hault;
+	}
 	/**
 	 * Default Constructor
 	 */
@@ -91,7 +95,7 @@ public class BananaFlywheels extends SubsystemBase {
 		flyWheelConfig.CurrentLimits.SupplyCurrentLimit = 60;  	 // max current draw allowed
 		flyWheelConfig.CurrentLimits.SupplyCurrentLowerLimit = 35;  // current allowed *after* the supply current limit is reached
 		flyWheelConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1;  // max time allowed to draw 
-		
+
 
 
 		flyWheelConfig.HardwareLimitSwitch

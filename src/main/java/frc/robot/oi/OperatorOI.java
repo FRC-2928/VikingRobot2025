@@ -3,11 +3,10 @@ package frc.robot.oi;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.GamePieceType;
 import frc.robot.RobotContainer;
+import frc.robot.Superstate;
 
 public class OperatorOI extends BaseOI {
 	public OperatorOI(final CommandXboxController controller) {
@@ -63,8 +62,8 @@ public class OperatorOI extends BaseOI {
 	// 	haultElevatpr.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setHaultMode()));
 	// 	setElevatorMode.onTrue(new InstantCommand(() -> RobotContainer.getInstance().elevator.setElevatorMode(GamePieceType.CORAL)));
 	// // this.climbModeOn.whileTrue(RobotContainer.getInstance().elevator.doClimb(this.climbMotion));
-	// 	this.toggleReefHeightDown.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightDown));
-	// 	this.toggleReefHeightUp.onTrue(new InstantCommand(RobotContainer.getInstance().elevator::toggleReefHeightUp));
+	this.toggleReefHeightDown.onTrue(new InstantCommand(() -> {Superstate.toggleReefHeightDown();}));
+	this.toggleReefHeightUp.onTrue(new InstantCommand(() -> {Superstate.toggleReefHeightUp();}));
 	// 	this.passOffCoral.whileTrue(RobotContainer.getInstance().troughHandoffManual());
 	// 	// TODO: change to toggle
 	// 	this.alignElevatorCoral.whileTrue(

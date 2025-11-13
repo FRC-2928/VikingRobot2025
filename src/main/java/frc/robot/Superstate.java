@@ -5,6 +5,7 @@
 package frc.robot;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -14,7 +15,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelightMethod;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
+import frc.robot.subsystems.Elevator.ElevatorSuperState;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
 
 /** Add your docs here. */
@@ -26,7 +29,6 @@ public class Superstate extends SubsystemBase {
 		ManualAlignCoral,
 		ScoreCoral,
 		UnscoreAlgae;
-
 		public final Trigger isCurrentState;
 
 		private RobotStates() {
@@ -128,6 +130,7 @@ public class Superstate extends SubsystemBase {
 	public static RobotStates globalState = RobotStates.Drive;
 	public static RobotStates wantedGlobalState = RobotStates.Drive;
 	public RobotStates previousRobotState;
+	public static int targetCoralLevel;
 	//State Triggers
 	// public Trigger isDrive = new Trigger(() -> (globalState == RobotStates.Drive));
 	// public Trigger isIntake = new Trigger(() -> (globalState == RobotStates.Intake));
@@ -135,6 +138,31 @@ public class Superstate extends SubsystemBase {
 	// public Trigger ismaunualAlignCoral = new Trigger(() -> (globalState == RobotStates.manualAlignCoral));
 	// public Trigger isScorecoral =  new Trigger(() -> (globalState == RobotStates.Scorecoral));
 	// public Trigger isunscoreAlgaie = new Trigger(() -> (globalState == RobotStates.unscoreAlgaie));
+	public static void toggleReefHeightDown() {
+		targetCoralLevel = MathUtil.clamp(targetCoralLevel-1, 0, 4);
+	}
+
+	public static void toggleReefHeightUp() {
+		targetCoralLevel = MathUtil.clamp(targetCoralLevel+1, 0, 4);
+	}
+
+	public static ElevatorSuperState getTargetCoralHeight() {
+		switch(targetCoralLevel) {
+			case 0:
+				return ElevatorSuperState.Home;
+			case 1:
+				return ElevatorSuperState.CoralL1;
+			case 2:
+				return ElevatorSuperState.CoralL2;
+			case 3:
+				return ElevatorSuperState.CoralL3;
+			case 4:
+				return ElevatorSuperState.CoralL4;
+			default:
+				break;
+		}
+		return ElevatorSuperState.Home;
+	}
 	public void periodic() {
 		globalState = handleStateTransition();
 		applyStates();
@@ -187,7 +215,7 @@ public class Superstate extends SubsystemBase {
 	public void autoAlignCoral(){
 		Drivetrain.setWantedSuperState(WantedDrivetrainStates.AutoAlignCoral);
 		if(Drivetrain.isCenterLimelightFinished(Units.Inches.of(3.85), CenterLimelightMethod.offsetReef.negate(), Units.Radians.of(0), CenterLimelightMethod.reefTags) || 
-		Drivetrain.isCenterLimelightFinished(Units.Inches.of(3.85), CenterLimelightMethod.offsetReef.negate(), Units.Radians.of(0), CenterLimelightMethod.reefTags)){
+		Drivetrain.isCenterLimelightFinished(Units.Inches.of(3.85), CenterLimelightMethod.offsetReef, Units.Radians.of(0), CenterLimelightMethod.reefTags)){
 			setWantedSuperState(RobotStates.ManualAlignCoral);
 		}
 		if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
@@ -200,6 +228,10 @@ public class Superstate extends SubsystemBase {
 
 	public void manualAlignCoral(){
 		Drivetrain.setWantedSuperState(WantedDrivetrainStates.Dpadmode);
+		RobotContainer.getInstance().elevator.setWantedSuperState(getTargetCoralHeight());
+		if(!(RobotContainer.getInstance().driverOI.alignReefLeft.getAsBoolean() || (RobotContainer.getInstance().driverOI.alignReefRight.getAsBoolean()))){
+			setWantedSuperState(RobotStates.ScoreCoral);
+		}
 	}
 	// public Command manualAlignCoral() {
 	// 	return new ParallelCommandGroup(
