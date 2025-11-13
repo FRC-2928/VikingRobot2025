@@ -13,7 +13,6 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -31,21 +30,15 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaePosition;
 import frc.robot.Constants.CagePosition;
 import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.GamePieceType;
-import frc.robot.Superstate;
-import frc.robot.Superstate.RobotStates;
-import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 
 public class Elevator extends SubsystemBase {
 	@AutoLog
@@ -69,30 +62,22 @@ public class Elevator extends SubsystemBase {
 	public enum ElevatorSuperState {
 		
 		Home, /*set elevator to bottom */
-		prepareForHome, /* retract bananna then transition to home state */
 		CoralL1, /* set elevator and pivot for coral l1 */
 		CoralL2,
 		CoralL3,
 		CoralL4,
 		AlgaeL2, /* set elevator and pivot for algae l1 */
-		AlgaeL3
-	}
-
-	public enum ElevatorWantedState {
-		Home,
-		CoralL1,
-		CoralL2,
-		CoralL3,
-		CoralL4,
-		AlgaeL2,
-		AlgaeL3
+		AlgaeL3,
+		/*Dont Set Wanted States To These*/
+		prepareForHome, /* retract bananna then transition to home state */
+		retrevePiotForSafety /*retract bannana until in safe position */
 	}
 
 	public final ElevatorInputsAutoLogged inputs = new ElevatorInputsAutoLogged();
 
 	private ElevatorSuperState elevatorState;
-	public static ElevatorWantedState wantedElevatorState = ElevatorWantedState.Home;
-		private ElevatorSuperState elevatorPreviousState;
+	private ElevatorSuperState wantedElevatorState = ElevatorSuperState.Home;
+	private ElevatorSuperState elevatorPreviousState;
 		// --------------------- Internal Higher-Order States ---------------------
 		// Target state variables
 		private int targetCoralLevel = CoralPosition.NONE.getValue();    // NONE by default
@@ -116,10 +101,10 @@ public class Elevator extends SubsystemBase {
 			AlgaePosition.L3.getValue(),   Units.Feet.of(4.5));
 	
 		// Map of Elevator Positions for Cage
-		private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
-			CagePosition.NONE.getValue(),    Units.Feet.of(0),
-			CagePosition.DEEP.getValue(),    Units.Feet.of(3.5),
-			CagePosition.SHALLOW.getValue(), Units.Feet.of(4.5));
+		// private final Map<Integer, Distance> elevatorPositionsCage = Map.of(
+		// 	CagePosition.NONE.getValue(),    Units.Feet.of(0),
+		// 	CagePosition.DEEP.getValue(),    Units.Feet.of(3.5),
+		// 	CagePosition.SHALLOW.getValue(), Units.Feet.of(4.5));
 	
 		// ------------------- Banana Angle Maps -------------------
 		// Map of Banana Angles for Coral
@@ -131,16 +116,16 @@ public class Elevator extends SubsystemBase {
 			CoralPosition.L4.getValue(),   Units.Rotations.of(6));
 	
 		// Map of Banana Angles for Algae
-		private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
-			AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
-			AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
-			AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
+		// private final Map<Integer, Angle> bananaAnglesAlgae = Map.of(
+		// 	AlgaePosition.NONE.getValue(), Units.Degrees.of(0),
+		// 	AlgaePosition.L2.getValue(),   Units.Degrees.of(0),
+		// 	AlgaePosition.L3.getValue(),   Units.Degrees.of(0));
 	
 		// Map of Banana Angles for Cage
-		private final Map<Integer, Angle> bananaAnglesCage = Map.of(
-			CagePosition.NONE.getValue(),    Units.Degrees.of(0),
-			CagePosition.DEEP.getValue(),    Units.Degrees.of(0),
-			CagePosition.SHALLOW.getValue(), Units.Degrees.of(0));
+		// private final Map<Integer, Angle> bananaAnglesCage = Map.of(
+		// 	CagePosition.NONE.getValue(),    Units.Degrees.of(0),
+		// 	CagePosition.DEEP.getValue(),    Units.Degrees.of(0),
+		// 	CagePosition.SHALLOW.getValue(), Units.Degrees.of(0));
 	
 		// --------------------- Hardware Interfaces ---------------------
 		private final TalonFX liftMotorA;
@@ -293,44 +278,47 @@ public class Elevator extends SubsystemBase {
 	
 		private ElevatorSuperState handleStateTransition() {
 			elevatorPreviousState = elevatorState; // What if globalState doesn't get updated in the switch block? Should previousRobotState still update?
-			switch (wantedElevatorState) {
-				case Home:
-					if(isPivotHomed()){
-						elevatorState = ElevatorSuperState.Home;
+			if(wantedElevatorState != elevatorState){
+				switch (wantedElevatorState) {
+					case Home:
+						if(isPivotHomed()){
+							this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getHeight()));
+							elevatorState = ElevatorSuperState.Home;
+						}
+						else{
+							elevatorState = ElevatorSuperState.retrevePiotForSafety;
+						}
+						break;
+					case CoralL1:
+						elevatorState = ElevatorSuperState.CoralL1;
+						this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getHeight()));
+						break;
+					
+					case CoralL2:
+						elevatorState = ElevatorSuperState.CoralL2;
+						this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getHeight()));
+						break;	
+					
+					case CoralL3:
+						elevatorState = ElevatorSuperState.CoralL3;
+						this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getHeight()));
+						break;
+					
+					case CoralL4:
+						elevatorState = ElevatorSuperState.CoralL4;
+						this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getHeight()));
+						break;
+					case AlgaeL2:
+						elevatorState = ElevatorSuperState.AlgaeL2;
+						this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L2, GamePieceType.NONE.getHeight()));
+						break;
+					case AlgaeL3:
+						elevatorState = ElevatorSuperState.AlgaeL3;
+						this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L3, GamePieceType.NONE.getHeight()));
+						break;
+					default:{
+						break;
 					}
-					else{
-						elevatorState = ElevatorSuperState.prepareForHome;
-					}
-					break;
-				case CoralL1:
-					elevatorState = ElevatorSuperState.CoralL1;
-					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getHeight()));
-					break;
-				
-				case CoralL2:
-					elevatorState = ElevatorSuperState.CoralL2;
-					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getHeight()));
-					break;	
-				
-				case CoralL3:
-					elevatorState = ElevatorSuperState.CoralL3;
-					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getHeight()));
-					break;
-				
-				case CoralL4:
-					elevatorState = ElevatorSuperState.CoralL4;
-					this.setElevatorControl(this.elevatorPositionsCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getHeight()));
-					break;
-				case AlgaeL2:
-					elevatorState = ElevatorSuperState.AlgaeL2;
-					this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L2, GamePieceType.NONE.getHeight()));
-					break;
-				case AlgaeL3:
-					elevatorState = ElevatorSuperState.AlgaeL3;
-					this.setElevatorControl(this.elevatorPositionsAlgae.getOrDefault(AlgaePosition.L3, GamePieceType.NONE.getHeight()));
-					break;
-				default:{
-					break;
 				}
 			}
 			return elevatorState;
@@ -341,38 +329,82 @@ public class Elevator extends SubsystemBase {
 				case Home:
 					break;
 				case CoralL1:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
 					break;
 				case CoralL2:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
 					break;
 				case CoralL3:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
 					break;
 				case CoralL4:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
 					break;
 				case AlgaeL2:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(AlgaePosition.L2.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);	
 					checkElevatorDanger();
 					break;
 				case AlgaeL3:
-					updateBannanPivot(bananaAnglesCoral.getOrDefault(AlgaePosition.L3.getValue(), GamePieceType.NONE.getPivot()));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
 					break;
 				case prepareForHome:
-					updateBannanPivot(Units.Degrees.of(0));
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition()[0], (Distance) getPivotAndElevatorPosition()[1]);
 					checkElevatorDanger();
+					break;
+				case retrevePiotForSafety:
+					updateBannanPivot( (Angle) getPivotAndElevatorPosition(wantedElevatorState)[0], (Distance) getPivotAndElevatorPosition(wantedElevatorState)[1]);
 					break;
 				default:
 					break;
 			}
 		}
-	
+
+		// Returns Elevator height and Pivot rotation based on elevator state
+		private Object[] getPivotAndElevatorPosition() {
+			return getPivotAndElevatorPosition(elevatorState);
+		}
+
+		private Object[] getPivotAndElevatorPosition(ElevatorSuperState state){
+			Object[] pivotElevatorPosition = new Object[2];
+			switch (state){
+				case Home:
+					pivotElevatorPosition[0] = GamePieceType.NONE.getPivot();
+					pivotElevatorPosition[1] = GamePieceType.NONE.getHeight();
+					break;
+				case CoralL1:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(CoralPosition.L1.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				case CoralL2:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(CoralPosition.L2.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				case CoralL3:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(CoralPosition.L3.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				case CoralL4:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(CoralPosition.L4.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				case AlgaeL2:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(AlgaePosition.L2.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(AlgaePosition.L2.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				case AlgaeL3:
+					pivotElevatorPosition[0] = bananaAnglesCoral.getOrDefault(AlgaePosition.L3.getValue(), GamePieceType.NONE.getPivot());
+					pivotElevatorPosition[1] = this.elevatorPositionsCoral.getOrDefault(AlgaePosition.L3.getValue(), GamePieceType.NONE.getHeight());
+					return  pivotElevatorPosition;
+				default:
+					break;
+			}
+			return pivotElevatorPosition;
+		}
 		// private void moveToPosition(final Distance position) {
 		// 	this.elevatorTargetPosition = Units.Meters.of(
 		// 		MathUtil.clamp(
@@ -416,20 +448,28 @@ public class Elevator extends SubsystemBase {
 			Logger.recordOutput("Elevator/IsBananaInPosition", isBananaInPosition);
 			return isElevatorInPosition && isBananaInPosition;
 		}
-	
+		
+		public boolean isElevatorTargetInDangerZone() {
+			return ((Distance) getPivotAndElevatorPosition()[1]).lt(elevatorThresholdForPivot);
+		}
+
+		public boolean isElevatorInDangerZone() {
+			return (Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations))).lt(elevatorThresholdForPivot);
+		}
+
 		public void setHaultMode(){
 			haultMode = !haultMode;
 			currentGamePieceType = (haultMode)? GamePieceType.HAULT : GamePieceType.NONE;
 		}
 	
-		private void updateBannanPivot(Angle bannanaPivotDesiredAngle){
+		private void updateBannanPivot(Angle bannanaPivotDesiredAngle, Distance elevatorTargetedPosition){
 			var currentElevatorPosition = Units.Meters.of(elevatorMotorPosition.getValue().in(Units.Rotations));
 			var currentBananaAngle = pivotCommmandedAngle;
 			// are we currently in the elevator danger zone?
 			bannanaPivotDesiredAngle = Units.Degrees.of(MathUtil.clamp(bannanaPivotDesiredAngle.in(Units.Degrees), 0, 45));
 			boolean elevatorInDangerZone = currentElevatorPosition.lt(elevatorThresholdForPivot);
 			// is the elevator target within the danger zone?
-			boolean elevatorTargetInDangerZone = elevatorTargetPosition.lt(elevatorThresholdForPivot);
+			boolean elevatorTargetInDangerZone = elevatorTargetedPosition.lt(elevatorThresholdForPivot);
 			// is the banana in a dangerous orientation?
 			boolean bananaAngleInDangerZone = currentBananaAngle.gt(bananaDangerZoneThreshold);
 			// are we trying to move the banana into a dangerous orientation?
@@ -439,7 +479,7 @@ public class Elevator extends SubsystemBase {
 			Logger.recordOutput("Elevator/ElevatorTargetInDangerZone", elevatorTargetInDangerZone);
 			Logger.recordOutput("Elevator/BananaAngleInDangerZone", bananaAngleInDangerZone);
 			Logger.recordOutput("Elevator/BananaTargetInDangerZone", bananaTargetInDangerZone);
-			Logger.recordOutput("Elevator/ElevatorTargetPositionMeters", elevatorTargetPosition.in(Units.Meters));
+			Logger.recordOutput("Elevator/elevatorTargetedPosition", elevatorTargetedPosition.in(Units.Meters));
 			Logger.recordOutput("Elevator/BananaTargetAngleDegrees", bannanaPivotDesiredAngle.in(Units.Degrees));
 			Logger.recordOutput("Elevator/InTargetPosition", isInTargetPos());
 	
@@ -742,11 +782,11 @@ public class Elevator extends SubsystemBase {
 		// 		moveToPosition(currentGamePieceType.getHeight());
 		// 	}, this);
 		// }
-		public void setWantedSuperState(ElevatorWantedState wantedSuperState) {
-			Elevator.wantedElevatorState = wantedSuperState;
+	public void setWantedSuperState(ElevatorSuperState wantedSuperState) {
+		wantedElevatorState = wantedSuperState;
     }
 
-    public Command setWantedSuperStateCommand(ElevatorWantedState wantedSuperState) {
+    public Command setWantedSuperStateCommand(ElevatorSuperState wantedSuperState) {
         return new InstantCommand(() -> setWantedSuperState(wantedSuperState));
     }
 

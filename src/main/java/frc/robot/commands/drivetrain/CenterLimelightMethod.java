@@ -30,7 +30,7 @@ public class CenterLimelightMethod {
   public static final Distance yTolerance = Units.Inches.of(0.5);
   public static final Angle thetaTolerance = Units.Degrees.of(0.5);
 
-  private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
+  public static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
     public final static List<Integer> reefTags = List.of(6,7,8,9,10,11,17,18,19,20,21,22);
       public CenterLimelightMethod(Distance offsetX, Distance offsetY, final List<Integer> tagsToCheck) {
         this(offsetX, offsetY, Units.Radians.of(0), tagsToCheck);

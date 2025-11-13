@@ -28,8 +28,8 @@ import frc.robot.subsystems.BananaFlywheels;
 import frc.robot.subsystems.Diagnostics;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Elevator.ElevatorWantedState;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Elevator.ElevatorSuperState;
 
 public class RobotContainer {
 	public LoggedDashboardChooser<String> driveModeChooser;
@@ -92,13 +92,13 @@ public class RobotContainer {
 	public Command autoScoreCoral(ReefPosition reefPos) {
 		return new SequentialCommandGroup(
 			CenterLimelight.centerLimeLightPosition(reefPos).alongWith(
-				new Elevator().setWantedSuperStateCommand(ElevatorWantedState.CoralL4)),
+				new Elevator().setWantedSuperStateCommand(ElevatorSuperState.CoralL4)),
 			// this.elevator.goToReefHeight(GamePieceType.CORAL),
 			new ParallelDeadlineGroup(
 				this.bananaFlywheels.scoreHeldCoral()
 				// this.elevator.goToGamePieceHeight(GamePieceType.CORAL)
 			).withTimeout(0.25),
-			new Elevator().setWantedSuperStateCommand(ElevatorWantedState.Home)
+			new Elevator().setWantedSuperStateCommand(ElevatorSuperState.Home)
 		).finallyDo(() -> {
         this.elevator.onEjectCoral();
         // this.elevator.setTargetCoralLevel(CoralPosition.NONE);

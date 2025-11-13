@@ -193,7 +193,7 @@ public class Drivetrain extends SubsystemBase {
 	private ProfiledPIDController absoluteControllerDpadDrive;
 
 	
-
+	private static final Distance offsetReef = Units.Inches.of(7/*Tuning.offsetCenterReef.get()*/);
 	// private final JoystickDrive joystickDrive = new JoystickDrive(this, 1d);
 	private Rotation2d joystickFOROffset;
 
@@ -500,7 +500,7 @@ public class Drivetrain extends SubsystemBase {
 		control(DPadDriveMethod.execute(this, this.absoluteControllerDpadDrive));
 	}
 
-	public boolean isCenterLimelightFinished(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {
+	public static boolean isCenterLimelightFinished(Distance offsetX, Distance offsetY, Angle offsetTheta, final List<Integer> tagsToCheck) {
 		// 2 ways of looking at the end conditions:
 		// 1. the pose is at/near the target pose
 		// 2. the PID outputs are "close" to zero
