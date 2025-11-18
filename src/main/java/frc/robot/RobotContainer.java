@@ -198,39 +198,39 @@ public class RobotContainer {
 	// 	);
 	// }
 
-	public Command troughHandoffManual(){
-		return new ParallelCommandGroup(
-			this.bananaFlywheels.intakeForward(),
-			this.intake.runTrough()
-		);
-  }
+	// public Command troughHandoffManual(){
+	// 	return new ParallelCommandGroup(
+	// 		this.bananaFlywheels.intakeForward(),
+	// 		this.intake.runTrough()
+	// 	);
+  	// }
 
-	public Command troughHandoffAutomated(){
-		return new SequentialCommandGroup(
-			// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
-			// TODO: need to override the limit switches in Intake and Banana when we want to outtake
-			Commands.deadline(
-				new SequentialCommandGroup(
-					this.bananaFlywheels.outputForward().withTimeout(0.5),
-					new InstantCommand(() -> {elevator.onEjectCoral();}),
-					new RunCommand(() -> {}).until(elevator::isInTargetPos)
-				),
-				this.intake.runTroughBackwards()
-			),
-			new SequentialCommandGroup(
-				new ParallelCommandGroup(
-					this.intake.runTrough(), // protection to ensure we finish staging the piece
-					this.bananaFlywheels.outputForward()
-				).until(bananaFlywheels::holdingCoral),
+	// public Command troughHandoffAutomated(){
+	// 	return new SequentialCommandGroup(
+	// 		// TODO: this doesn't work right -- trough doesn't run even when limit not tripped
+	// 		// TODO: need to override the limit switches in Intake and Banana when we want to outtake
+	// 		Commands.deadline(
+	// 			new SequentialCommandGroup(
+	// 				this.bananaFlywheels.outputForward().withTimeout(0.5),
+	// 				new InstantCommand(() -> {elevator.onEjectCoral();}),
+	// 				new RunCommand(() -> {}).until(elevator::isInTargetPos)
+	// 			),
+	// 			this.intake.runTroughBackwards()
+	// 		),
+	// 		new SequentialCommandGroup(
+	// 			new ParallelCommandGroup(
+	// 				this.intake.runTrough(), // protection to ensure we finish staging the piece
+	// 				this.bananaFlywheels.outputForward()
+	// 			).until(bananaFlywheels::holdingCoral),
 				
-				Commands.deadline(
-					this.bananaFlywheels.rotateBanana(Units.Rotations.of(Tuning.intakeBananaFlywheelsRotations.get())),
-					this.intake.runTrough()
+	// 			Commands.deadline(
+	// 				this.bananaFlywheels.rotateBanana(Units.Rotations.of(Tuning.intakeBananaFlywheelsRotations.get())),
+	// 				this.intake.runTrough()
 					
-				)
-			)
-		);
-	}
+	// 			)
+	// 		)
+	// 	);
+	// }
 
 	public Command reverseTrough() {
 		return this.intake.reverseTrough();

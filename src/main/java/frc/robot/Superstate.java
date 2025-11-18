@@ -14,10 +14,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.GamePieceType;
 import frc.robot.commands.drivetrain.CenterLimelightMethod;
+import frc.robot.subsystems.BananaFlywheels;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Drivetrain.WantedDrivetrainStates;
 import frc.robot.subsystems.Elevator.ElevatorSuperState;
+import frc.robot.subsystems.Intake.IntakeStates;
 import frc.robot.subsystems.Intake.WantedIntakeStates;
 
 /** Add your docs here. */
@@ -28,7 +30,8 @@ public class Superstate extends SubsystemBase {
 		AutoAlignCoral,
 		ManualAlignCoral,
 		ScoreCoral,
-		UnscoreAlgae;
+		UnscoreAlgae,
+		TroughHandoffManual;
 		public final Trigger isCurrentState;
 
 		private RobotStates() {
@@ -78,6 +81,9 @@ public class Superstate extends SubsystemBase {
 			case Drive:
 				globalState = RobotStates.Drive;
 				break;
+			case TroughHandoffManual:
+				globalState = RobotStates.TroughHandoffManual;
+				break;
 			default:{
 				break;
 			}
@@ -103,6 +109,11 @@ public class Superstate extends SubsystemBase {
 			}
 			case ManualAlignCoral:{
 				manualAlignCoral();
+				break;
+			}
+			case TroughHandoffManual:{
+
+				troughHandoffManual();
 				break;
 			}
 			default:
@@ -185,7 +196,6 @@ public class Superstate extends SubsystemBase {
     }
 
 	public void intake() {
-
 		// TODO: Implementation
 		RobotContainer.getInstance().intake.setWantedSuperState(WantedIntakeStates.FORWARD);
 		// do some stuff
@@ -197,6 +207,11 @@ public class Superstate extends SubsystemBase {
 			setWantedSuperState(RobotStates.Drive);
 		}
 		
+	}
+
+	public void troughHandoffManual(){
+		RobotContainer.getInstance().bananaFlywheels.setBannanaFlywheelsWantedState(BananaFlywheels.flywheelStates.IntakeForward);
+		RobotContainer.getInstance().intake.setWantedSuperState(WantedIntakeStates.FORWARD);
 	}
 	public Command driveCommand() {
 		return new InstantCommand();

@@ -15,10 +15,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.S2StateValue;
 
+import edu.wpi.first.hal.FRCNetComm;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -53,6 +55,14 @@ public class BananaFlywheels extends SubsystemBase {
 		public Current flywheelSupplyCurrent = Units.Amps.zero();
 	}
 
+	public static enum flywheelStates {
+		ScoreCoral,
+		IntakeForward,
+		IntakeForwardNudge,
+		OutputForward,
+		Halt;
+	}
+
 	private final BananaFlywheelsInputsAutoLogged inputs = new BananaFlywheelsInputsAutoLogged();
 	/// State tracking which @c GamePieceType is currently held by the Banana
 	private GamePieceType heldGamePieceType;
@@ -66,10 +76,12 @@ public class BananaFlywheels extends SubsystemBase {
 	private final StatusSignal<Current> motorSupplyCurrent;
 	private final StatusSignal<S2StateValue> beamBreakStateSignal;
 
-	public enum flywheelStates {
-		ScoreCoral,
-		Hault;
-	}
+	private double nudgetime;
+	private flywheelStates currentState;
+	private flywheelStates wantedState;
+	private flywheelStates previousState;
+
+	
 	/**
 	 * Default Constructor
 	 */
@@ -128,6 +140,49 @@ public class BananaFlywheels extends SubsystemBase {
 		this.wheels.optimizeBusUtilization();
 	}
 
+	public flywheelStates handleStateTransition(){
+		previousState = currentState;
+		if(currentState != wantedState){
+			switch(wantedState) {
+				case ScoreCoral:
+					currentState = flywheelStates.ScoreCoral;
+					break;
+				case Halt:
+					currentState = flywheelStates.Halt;
+					break;
+				case IntakeForward:
+					currentState = flywheelStates.IntakeForward;
+					break;
+				case IntakeForwardNudge:
+					nudgetime = Timer.getFPGATimestamp();
+					currentState = flywheelStates.IntakeForwardNudge;
+					break;
+				case OutputForward:
+					currentState = flywheelStates.OutputForward;
+					break;
+				default:
+					break;
+			}
+		}
+		return currentState;
+	}
+
+	public void applyStates(){
+		switch(currentState) {
+			case ScoreCoral:
+				break;
+			case Halt:
+				break;
+			case IntakeForward:
+				intakeForward();
+				break;
+			case IntakeForwardNudge:
+				IntakeForwardNudge();
+				break;
+			default:
+				break;
+		}
+	}
 	@Override
 	public void periodic() {
 		updateInputs(inputs);
@@ -231,32 +286,56 @@ public class BananaFlywheels extends SubsystemBase {
 		// 3. Stop the wheels
 	}
 
-	public Command intakeForward()
-	{
-		// TODO: fix this temp hack from comp
-		return new SequentialCommandGroup(
-			new RunCommand(() -> {
-				runFlywheels(FeederDemand.INTAKE_FORWARD);
-			}, this).withTimeout(Units.Seconds.of(0.06)),
-			new RunCommand(() -> {
-				runFlywheels(FeederDemand.INTAKE_FORWARD);
-			}, this).until(() -> this.holdingCoral()),
-			new RunCommand(() -> {
-				runFlywheels(FeederDemand.INTAKE_FORWARD);
-			}, this).withTimeout(Units.Seconds.of(0.185)),
-			new InstantCommand(() -> {
-				runFlywheels(FeederDemand.HALT);
-			}, this)
-		).finallyDo(() -> {runFlywheels(FeederDemand.HALT);});
+	public void intakeForward(){
+		if(!this.holdingCoral()){
+			runFlywheels(FeederDemand.INTAKE_FORWARD);
+		}
+		else{
+			setBannanaFlywheelsWantedState(flywheelStates.IntakeForwardNudge);
+		}
 	}
 
-	public Command outputForward(){
-		return new RunCommand(() -> {
-			runFlywheels(FeederDemand.FORWARD);
-		}, this).finallyDo(() -> {
-			runFlywheels(FeederDemand.HALT);
-		});
+	public void IntakeForwardNudge(){
+		if(Timer.getFPGATimestamp() <= Timer.getFPGATimestamp() + 0.65){
+			runFlywheels(FeederDemand.INTAKE_FORWARD);
+		}
+		else {
+			setBannanaFlywheelsWantedState(flywheelStates.Halt);
+		}
 	}
+
+	public void outputForward(){
+		runFlywheels(FeederDemand.FORWARD);
+	}
+	public void hault(){
+		runFlywheels(FeederDemand.HALT);
+	}
+	// public Command intakeForward()
+	// {
+	// 	// TODO: fix this temp hack from comp
+	// 	return new SequentialCommandGroup(
+	// 		new RunCommand(() -> {
+	// 			runFlywheels(FeederDemand.INTAKE_FORWARD);
+	// 		}, this).withTimeout(Units.Seconds.of(0.06)),
+	// 		new RunCommand(() -> {
+	// 			runFlywheels(FeederDemand.INTAKE_FORWARD);
+	// 		}, this).until(() -> this.holdingCoral()),
+	// 		new RunCommand(() -> {
+	// 			runFlywheels(FeederDemand.INTAKE_FORWARD);
+	// 		}, this).withTimeout(Units.Seconds.of(0.185)),
+	// 		new InstantCommand(() -> {
+	// 			runFlywheels(FeederDemand.HALT);
+	// 		}, this)
+	// 	).finallyDo(() -> {runFlywheels(FeederDemand.HALT);});
+	// }
+
+	// public Command outputForward(){
+	// 	return new RunCommand(() -> {
+	// 		runFlywheels(FeederDemand.FORWARD);
+	// 	}, this).finallyDo(() -> {
+	// 		runFlywheels(FeederDemand.HALT);
+	// 	});
+	// }
 	public Command outputForwardWithoutLimit(){
 		return new RunCommand(() -> {
 			runFlywheels(FeederDemand.FORWARD);
@@ -271,5 +350,13 @@ public class BananaFlywheels extends SubsystemBase {
 		}, this).finallyDo(() -> {
 			runFlywheels(FeederDemand.HALT);
 		});
+	}
+
+	public void setBannanaFlywheelsWantedState(flywheelStates state){
+		wantedState = state;
+	}
+
+	public Command setBannanaFlywheelsWantedStateCommand(flywheelStates state){
+		return new RunCommand(() -> {setBannanaFlywheelsWantedState(state);});
 	}
 }

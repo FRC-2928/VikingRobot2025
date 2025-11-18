@@ -91,7 +91,7 @@ public class Intake extends SubsystemBase {
 	public static class IntakeInputs {
 		public boolean troughHasCoral = false;
 		// public AngularVelocity intakeSpeed;
-	// public Angle pivotAngle;
+		// public Angle pivotAngle;
 		public AngularVelocity troughSpeed = Units.RotationsPerSecond.zero();
 	}
 

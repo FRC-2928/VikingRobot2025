@@ -10,13 +10,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+// import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.Constants.CoralPosition;
+// import frc.robot.Constants.CoralPosition;
 import frc.robot.Constants.HumanPlayerPosition;
 import frc.robot.Constants.ReefPosition;
+import frc.robot.Superstate.RobotStates;
 import frc.robot.commands.drivetrain.CenterLimelight;
 import frc.robot.commands.drivetrain.VoltageRampCommand;
 import frc.robot.subsystems.Elevator;
@@ -51,7 +52,7 @@ public final class Autonomous {
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.E),
 			autoFactory.trajectoryCmd("EToB1Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.B1)),
-			RobotContainer.getInstance().troughHandoffManual(),
+			RobotContainer.getInstance().superstate.setWantedSuperStateCommand(RobotStates.TroughHandoffManual),
 			autoFactory.trajectoryCmd("B1ReverseToD"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.D)
 		));
@@ -66,11 +67,11 @@ public final class Autonomous {
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.J),
 			autoFactory.trajectoryCmd("JToA2Reverse"),
 			Commands.deadline(new WaitCommand(2), CenterLimelight.centerLimelightHPReverse(HumanPlayerPosition.A2)),
-			RobotContainer.getInstance().troughHandoffManual(),
+			RobotContainer.getInstance().superstate.setWantedSuperStateCommand(RobotStates.TroughHandoffManual),
 			autoFactory.trajectoryCmd("A2ReverseToK"),
 			RobotContainer.getInstance().autoScoreCoral(ReefPosition.K)
 		));
-
+		
 		choreoChooser.addCmd("[Comp] Score1CoralFromCenter", () -> Commands.sequence(
 			new Elevator().setWantedSuperStateCommand(ElevatorSuperState.CoralL4),
 			autoFactory.trajectoryCmd("SimpleScore"),
